@@ -81,9 +81,10 @@ public class Player : NetworkBehaviour
         for (int i = 0; i < tank.turretModels.Length; i++) 
         {
             GameObject holder = Instantiate(holderPrefab, hull.transform);
-            holder.transform.localPosition = tank.turretPositions[i];
+            holder.transform.localPosition = tank.turretPivotPoints[i];
             GameObject tm = tank.turretModels[i];
             GameObject t = Instantiate(tm, holder.transform);
+            t.transform.localPosition = tank.turretPositions[i] - tank.turretPivotPoints[i];
             t.transform.localEulerAngles = tank.turretRotations[i];
             turrets.Add(holder);
         }
@@ -92,13 +93,15 @@ public class Player : NetworkBehaviour
         List<GameObject> cannons = new List<GameObject>();
         for (int i = 0; i < tank.cannonModels.Length; i++)
         {
-            GameObject cm = tank.cannonModels[i];
             int turretIndex = tank.cannonAttachedToTurretIndexs[i];
+            GameObject holder = Instantiate(holderPrefab, turrets[turretIndex].transform);
+            holder.transform.localPosition = tank.cannonPivotPoints[i];
+            GameObject cm = tank.cannonModels[i];
             Debug.Log(turretIndex);
-            GameObject c = Instantiate(cm, turrets[turretIndex].transform);
+            GameObject c = Instantiate(cm, holder.transform);
             c.transform.localPosition = tank.cannonPositions[i];
             c.transform.localEulerAngles = tank.cannonRotations[i];
-            cannons.Add(c);
+            cannons.Add(holder);
         }
 
         // update overall scale

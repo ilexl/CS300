@@ -11,6 +11,7 @@ public class TankVarients : ScriptableObject
     public GameObject[] cannonModels;
     [Tooltip("in meters")] public float[] cannonDiameters;
     [Tooltip("in meters")] public float[] cannonLengths;
+    public Vector3[] cannonPivotPoints;
     public Vector3[] cannonPositions;
     public Vector3[] cannonRotations;
     public int[] cannonAttachedToTurretIndexs;
@@ -20,6 +21,7 @@ public class TankVarients : ScriptableObject
     [Tooltip("in meters")] public float[] turretWidths;
     [Tooltip("in meters")] public float[] turretLengths;
     [Tooltip("in meters")] public float[] turretHeights;
+    public Vector3[] turretPivotPoints;
     public Vector3[] turretPositions;
     public Vector3[] turretRotations;
 

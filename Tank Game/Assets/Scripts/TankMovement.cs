@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class TankMovement : MonoBehaviour
 {
-    [SerializeField] Transform hull;
-    [SerializeField] Transform turret;
-    [SerializeField] Transform cannon;
+    [SerializeField] GameObject hull;
+    [SerializeField] List<GameObject> turrets;
+    [SerializeField] List<GameObject> cannons;
     [SerializeField] Camera playerCamera;
     [SerializeField] float moveSpeed = 5f;
     [SerializeField] float rotationSpeed = 60f;
@@ -20,9 +21,9 @@ public class TankMovement : MonoBehaviour
 
     public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons)
     {
-        this.hull = hull.transform;
-        this.turret = turrets[0].transform;
-        this.cannon = cannons[0].transform;
+        this.hull = hull;
+        this.turrets = turrets;
+        this.cannons = cannons;
     }
 
     void Awake()
@@ -43,8 +44,8 @@ public class TankMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Vertical");
         float rotateInput = Input.GetAxis("Horizontal");
 
-        hull.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
-        hull.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
+        hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
+        hull.transform.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
     }
 
     void UpdateAimPoint()
@@ -53,25 +54,44 @@ public class TankMovement : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
         {
             aimPoint = hit.point;
+            Debug.DrawLine(playerCamera.transform.position, hit.point, Color.red);
         }
         else
         {
             aimPoint = playerCamera.transform.position + playerCamera.transform.forward * 1000f;
+            Debug.DrawLine(playerCamera.transform.position, aimPoint, Color.green);
         }
+
+        // Log the aim point for debugging purposes
+        Debug.Log($"Aim Point: {aimPoint}");
     }
 
     void HandleTurretRotation()
     {
-        Vector3 direction = (aimPoint - turret.position).normalized;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-        turret.rotation = Quaternion.Slerp(turret.rotation, lookRotation, aimSmoothSpeed * Time.deltaTime);
+        foreach(GameObject turret in turrets)
+        {
+            // Calculate the direction to the aim point without considering the Y axis (to prevent vertical rotation due to slope)
+            Vector3 targetDirection = aimPoint - turret.transform.position;
+            targetDirection.y = 0; // Ignore the Y-axis to keep the turret's rotation horizontal
+
+            // Rotate the turret towards the target direction
+            if (targetDirection.sqrMagnitude > 0.01f) // If the target direction is not too small
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+                turret.transform.rotation = Quaternion.Slerp(turret.transform.rotation, targetRotation, turretRotationSpeed * Time.deltaTime);
+            }
+            turret.transform.localEulerAngles = new Vector3(0, turret.transform.localEulerAngles.y, 0);
+        }
     }
 
     void HandleCannonElevation()
     {
-        Vector3 direction = (aimPoint - cannon.position).normalized;
-        float targetAngle = Mathf.Asin(direction.y) * Mathf.Rad2Deg;
-        cannonAngle = Mathf.Clamp(targetAngle, minCannonAngle, maxCannonAngle);
-        cannon.localRotation = Quaternion.Lerp(cannon.localRotation, Quaternion.Euler(cannonAngle, 0, 0), aimSmoothSpeed * Time.deltaTime);
+        foreach (GameObject cannon in cannons)
+        {
+            Vector3 direction = (aimPoint - cannon.transform.position).normalized;
+            float targetAngle = Mathf.Asin(direction.y) * Mathf.Rad2Deg;
+            cannonAngle = Mathf.Clamp(targetAngle, minCannonAngle, maxCannonAngle);
+            cannon.transform.localRotation = Quaternion.Lerp(cannon.transform.localRotation, Quaternion.Euler(cannonAngle, 0, 0), aimSmoothSpeed * Time.deltaTime);
+        }
     }
 }
