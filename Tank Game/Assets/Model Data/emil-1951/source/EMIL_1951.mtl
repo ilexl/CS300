@@ -1,0 +1,47 @@
+newmtl 83CD6B4F-380F-41EE-AE1D-C38D72C6573F
+Kd 1.000 1.000 1.000
+Ks 0.314 0.314 0.314
+Ns 30
+Ke 0.000 0.000 0.000
+map_Kd textures/emil_1951_e1_track_diffuse.jpg
+map_Ks textures/emil_1951_e1_track_specular.jpg
+norm textures/emil_1951_e1_track_normal.jpg
+map_d textures/emil_1951_e1_track_alpha.png
+
+newmtl 45D8AE56-659C-48B1-89D8-B256A681024A
+Kd 1.000 1.000 1.000
+Ks 0.314 0.314 0.314
+Ns 30
+Ke 0.000 0.000 0.000
+map_Kd textures/emil_51_chassis_01_diffuse.jpg
+map_Ks textures/emil_51_chassis_01_specular.jpg
+norm textures/emil_51_chassis_01_normal.jpg
+map_d textures/emil_51_chassis_01_alpha.png
+
+newmtl 3BAFE5A1-786B-4E37-86C7-CBFC70AF02E2
+Kd 1.000 1.000 1.000
+Ks 0.314 0.314 0.314
+Ns 30
+Ke 0.000 0.000 0.000
+map_Kd textures/emil_51_hull_01_diffuse.jpg
+map_Ks textures/emil_51_hull_01_specular.jpg
+norm textures/emil_51_hull_01_normal.jpg
+
+newmtl FCC562D9-B3BC-492B-9A28-2881EC016DEB
+Kd 1.000 1.000 1.000
+Ks 0.314 0.314 0.314
+Ns 30
+Ke 0.000 0.000 0.000
+map_Kd textures/emil_51_turret_01_diffuse.jpg
+map_Ks textures/emil_51_turret_01_specular.jpg
+norm textures/emil_51_turret_01_normal.jpg
+
+newmtl AD3FBD27-1855-47BB-BA9E-2B7043E03256
+Kd 1.000 1.000 1.000
+Ks 0.314 0.314 0.314
+Ns 30
+Ke 0.000 0.000 0.000
+map_Kd textures/emil_51_guns_diffuse.jpg
+map_Ks textures/emil_51_guns_specular.jpg
+norm textures/emil_51_guns_normal.jpg
+
