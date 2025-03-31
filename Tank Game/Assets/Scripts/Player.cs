@@ -1,92 +1,133 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections.Generic;
+using log4net.Filter;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+[RequireComponent(typeof(TankMovement))]
 public class Player : NetworkBehaviour
 {
-    [Header("Movement Settings")]
-    public float moveSpeed = 5f;
-    public float rotationSpeed = 10f;
-
-    [Header("Transforms")]
-    [SerializeField] Transform hullTransform;
-    [SerializeField] Transform turretTransform;
-    [SerializeField] Transform barrelTransform;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] TankMovement tankMovement;
+    [SerializeField] TankVarients currentTank;
+    [SerializeField] GameObject holderPrefab;
+    public TankVarients TankVarient
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (!IsOwner) return; // Only the local player controls movement
-
-        MovePlayer();
-        SyncTransforms();
-    }
-
-    private void MovePlayer()
-    {
-        // Get input axis for movement and rotation
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-
-        Vector3 moveDirection = new Vector3(horizontal, 0, vertical).normalized;
-
-        if (moveDirection.magnitude >= 0.1f)
+        get { return currentTank; }
+        set
         {
-            // Move player
-            hullTransform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
-
-            // Rotate player
-            Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            hullTransform.rotation = Quaternion.Slerp(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+            currentTank = value;
+            ChangeTank(value);
         }
     }
 
-    // Sync all relevant transforms to the server and other clients
-    private void SyncTransforms()
-    {
-        // Sync transforms
-        SyncTransformServerRpc(hullTransform.position, hullTransform.rotation, "hull");
-        SyncTransformServerRpc(turretTransform.position, turretTransform.rotation, "turret");
-        SyncTransformServerRpc(barrelTransform.position, barrelTransform.rotation, "barrel");
+    public void OnValidate()
+    { 
+        #if UNITY_EDITOR
+        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
+        if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
 
-    }
-
-    // ServerRPC to sync transforms with the server and then broadcast to clients
-    [ServerRpc(RequireOwnership = false)]
-    private void SyncTransformServerRpc(Vector3 position, Quaternion rotation, string transformName)
-    {
-        // Call the ClientRpc to sync on all clients
-        SyncTransformClientRpc(position, rotation, transformName);
-    }
-
-    // ClientRPC to sync transforms on all clients
-    [ClientRpc]
-    private void SyncTransformClientRpc(Vector3 position, Quaternion rotation, string transformName)
-    {
-        // Only update other clients, not the owner's own transforms
-        if (IsOwner) return;
-
-        // Depending on the transformName, sync the appropriate transform
-        switch (transformName)
+        // Schedule object destruction to avoid Unity serialization issues
+        UnityEditor.EditorApplication.delayCall += () =>
         {
-            case "hull":
-                hullTransform.position = position;
-                hullTransform.rotation = rotation;
-                break;
-            case "turret":
-                turretTransform.position = position;
-                turretTransform.rotation = rotation;
-                break;
-            case "barrel":
-                barrelTransform.position = position;
-                barrelTransform.rotation = rotation;
-                break;
+            if (this == null) return; // Prevent null reference errors if the object was deleted
 
+            foreach (Transform child in transform)
+            {
+                DestroyImmediate(child.gameObject, true);
+            }
+            foreach (Transform child in transform)
+            {
+                DestroyImmediate(child.gameObject, true);
+            } 
+
+            if (currentTank != null)
+            {
+                ChangeTank(currentTank);
+            }
+        };
+        #endif
+    }
+
+    public void ChangeTank(TankVarients tank)
+    {
+        if (tank == null)
+        {
+            Debug.LogError("Cannot change tank to null");
+            return;
+        }
+
+        Debug.Log($"Tank changing to {tank.name}");
+        if(tankMovement == null)
+        {
+            Debug.LogError("Missing TankMovement (required script for player)");
+            Debug.LogWarning($"Failed to change tank to {tank.name}");
+            return;
+        }
+        foreach(Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // hull
+        GameObject hull = Instantiate(tank.hullModel, this.transform);
+        hull.transform.localPosition = tank.hullPosition;
+
+        // turrets
+        List<GameObject> turrets = new List<GameObject>();
+        for (int i = 0; i < tank.turretModels.Length; i++) 
+        {
+            GameObject holder = Instantiate(holderPrefab, hull.transform);
+            holder.transform.localPosition = tank.turretPositions[i];
+            GameObject tm = tank.turretModels[i];
+            GameObject t = Instantiate(tm, holder.transform);
+            t.transform.localEulerAngles = tank.turretRotations[i];
+            turrets.Add(holder);
+        }
+
+        // cannons
+        List<GameObject> cannons = new List<GameObject>();
+        for (int i = 0; i < tank.cannonModels.Length; i++)
+        {
+            GameObject cm = tank.cannonModels[i];
+            int turretIndex = tank.cannonAttachedToTurretIndexs[i];
+            Debug.Log(turretIndex);
+            GameObject c = Instantiate(cm, turrets[turretIndex].transform);
+            c.transform.localPosition = tank.cannonPositions[i];
+            c.transform.localEulerAngles = tank.cannonRotations[i];
+            cannons.Add(c);
+        }
+
+        // update overall scale
+        hull.transform.localScale = tank.modelScale;
+
+        // update tank movement script
+        tankMovement.UpdateTank(tank, gameObject, turrets, cannons); 
+
+
+        currentTank = tank;
+        Debug.Log($"Tank successfully changed to {tank.name}");
+    }
+}
+
+#if UNITY_EDITOR
+
+[CustomEditor(typeof(Player))]
+public class EDITOR_Player : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        Player p = (Player)target;
+
+        if (GUILayout.Button("Refresh"))
+        {
+            p.OnValidate();
         }
     }
 }
+
+#endif

@@ -1,23 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TankMovement : MonoBehaviour
 {
-    public Transform hull;
-    public Transform turret;
-    public Transform cannon;
-    public Camera playerCamera;
-    public float moveSpeed = 5f;
-    public float rotationSpeed = 60f;
-    public float turretRotationSpeed = 80f;
-    public float cannonElevationSpeed = 30f;
-    public float minCannonAngle = -10f;
-    public float maxCannonAngle = 20f;
-    public float aimSmoothSpeed = 5f;
+    [SerializeField] Transform hull;
+    [SerializeField] Transform turret;
+    [SerializeField] Transform cannon;
+    [SerializeField] Camera playerCamera;
+    [SerializeField] float moveSpeed = 5f;
+    [SerializeField] float rotationSpeed = 60f;
+    [SerializeField] float turretRotationSpeed = 80f;
+    [SerializeField] float cannonElevationSpeed = 30f;
+    [SerializeField] float minCannonAngle = -10f;
+    [SerializeField] float maxCannonAngle = 20f;
+    [SerializeField] float aimSmoothSpeed = 5f;
 
     private float cannonAngle = 0f;
     private Vector3 aimPoint;
 
-    private void Awake()
+    public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons)
+    {
+        this.hull = hull.transform;
+        this.turret = turrets[0].transform;
+        this.cannon = cannons[0].transform;
+    }
+
+    void Awake()
     {
         playerCamera = Camera.main;
     }
