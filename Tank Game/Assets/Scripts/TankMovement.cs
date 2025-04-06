@@ -15,6 +15,10 @@ public class TankMovement : MonoBehaviour
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
     [SerializeField] float aimSmoothSpeed = 5f;
+    [SerializeField] bool canMove = true;
+
+    public bool CanMove() { return canMove; }
+    public void SetCanMove(bool set) { canMove = set; }
 
     private float cannonAngle = 0f;
     private Vector3 aimPoint;
@@ -33,6 +37,7 @@ public class TankMovement : MonoBehaviour
 
     void Update()
     {
+        if (canMove is false) { return; }
         HandleHullMovement();
         UpdateAimPoint();
         HandleTurretRotation();
