@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CameraControl : MonoBehaviour
+public class CameraMainMenu : MonoBehaviour
 {
     public Transform target; // Assign the tank here
     public float distance = 5f;
@@ -18,13 +18,16 @@ public class CameraControl : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     void Update()
     {
-        currentX += Input.GetAxis("Mouse X") * sensitivity;
-        currentY -= Input.GetAxis("Mouse Y") * sensitivity;
+        if(Input.GetMouseButton(0) || Input.GetMouseButton(1))
+        {
+            currentX += Input.GetAxis("Mouse X") * sensitivity;
+            currentY -= Input.GetAxis("Mouse Y") * sensitivity;
+        }
         currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
 
         // Handle Zooming
@@ -36,23 +39,10 @@ public class CameraControl : MonoBehaviour
     void LateUpdate()
     {
         if (target == null) return;
-
-        // Get the target's world position (the tank)
         Vector3 targetPosition = target.position + offset;
-
-        // Log the tank's world position to see where the camera is supposed to pivot
-        Debug.Log($"Tank World Position: {target.position}");
-
         Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
         Vector3 desiredPosition = targetPosition - (rotation * Vector3.forward * distance);
-
-        // Log the desired camera position
-        Debug.Log($"Desired Camera Position: {desiredPosition}");
-
-        // Smoothly move the camera towards the desired position
         transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
-
-        // Make the camera look at the target
         transform.LookAt(target.position + offset);
     }
 }
