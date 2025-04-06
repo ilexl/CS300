@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 using log4net.Filter;
+using System;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -73,7 +75,17 @@ public class Player : NetworkBehaviour
         }
 
         // hull
+        if (tank.hullModel == null)
+        {
+            Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
+            return;
+        }
         GameObject hull = Instantiate(tank.hullModel, this.transform);
+        if (tank.hullPosition == null)
+        {
+            Debug.LogError($"{tank.tankName} [hull position] == null... STOPING EXECUTION");
+            return;
+        }
         hull.transform.localPosition = tank.hullPosition;
 
         // turrets
@@ -81,11 +93,42 @@ public class Player : NetworkBehaviour
         for (int i = 0; i < tank.turretModels.Length; i++) 
         {
             GameObject holder = Instantiate(holderPrefab, hull.transform);
-            holder.transform.localPosition = tank.turretPivotPoints[i];
-            GameObject tm = tank.turretModels[i];
+            try { holder.transform.localPosition = tank.turretPivotPoints[i]; } 
+            #region catch
+            catch(IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                holder.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            if (tank.hullModel == null)
+            {
+                Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
+                return;
+            }
+            GameObject tm = tank.turretModels[i]; // no check as for loop has max defined
+            if(tm == null)
+            {
+                Debug.LogError($"{tank.tankName} [turret model] @ index {i} == null... STOPING EXECUTION");
+                return;
+            }
             GameObject t = Instantiate(tm, holder.transform);
-            t.transform.localPosition = tank.turretPositions[i] - tank.turretPivotPoints[i];
-            t.transform.localEulerAngles = tank.turretRotations[i];
+            try { t.transform.localPosition = tank.turretPositions[i] - tank.turretPivotPoints[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [turret positions OR turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                t.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            try { t.transform.localEulerAngles = tank.turretRotations[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [turret rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                t.transform.localEulerAngles = Vector3.zero;
+            }
+            #endregion
             turrets.Add(holder);
         }
 
@@ -93,14 +136,47 @@ public class Player : NetworkBehaviour
         List<GameObject> cannons = new List<GameObject>();
         for (int i = 0; i < tank.cannonModels.Length; i++)
         {
-            int turretIndex = tank.cannonAttachedToTurretIndexs[i];
+            int turretIndex = 0;
+            try { turretIndex = tank.cannonAttachedToTurretIndexs[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [cannon attached to turret indexs] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                turretIndex = 0;
+            }
+            #endregion
             GameObject holder = Instantiate(holderPrefab, turrets[turretIndex].transform);
-            holder.transform.localPosition = tank.cannonPivotPoints[i];
-            GameObject cm = tank.cannonModels[i];
-            Debug.Log(turretIndex);
+            try { holder.transform.localPosition = tank.cannonPivotPoints[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [cannon pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                holder.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            GameObject cm = tank.cannonModels[i]; // no check as for loop has max defined
+            if (cm == null)
+            {
+                Debug.LogError($"{tank.tankName} [cannon model] @ index {i} == null... STOPING EXECUTION");
+                return;
+            }
             GameObject c = Instantiate(cm, holder.transform);
-            c.transform.localPosition = tank.cannonPositions[i];
-            c.transform.localEulerAngles = tank.cannonRotations[i];
+            try { c.transform.localPosition = tank.cannonPositions[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [cannon positions] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                c.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            try { c.transform.localEulerAngles = tank.cannonRotations[i]; }
+            #region catch
+            catch (IndexOutOfRangeException e)
+            {
+                Debug.LogError($"{tank.tankName} [cannon rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                c.transform.localEulerAngles = Vector3.zero;
+            }
+            #endregion
             cannons.Add(holder);
         }
 
@@ -108,7 +184,8 @@ public class Player : NetworkBehaviour
         hull.transform.localScale = tank.modelScale;
 
         // update tank movement script
-        tankMovement.UpdateTank(tank, gameObject, turrets, cannons); 
+        tankMovement.UpdateTank(tank, gameObject, turrets, cannons);
+        Debug.Log("TankMovement Script Updated!");
 
 
         currentTank = tank;
