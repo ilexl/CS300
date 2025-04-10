@@ -17,7 +17,7 @@ public class WindowManager : MonoBehaviour
     }
 
     // Start is called before the first frame
-    private void Start()
+    public void Start()
     {
         if (!startFeature) { return; }
         foreach(Window window in Windows)
@@ -193,6 +193,19 @@ public class WindowManager : MonoBehaviour
         }
     }
 
+    // Show All Windows Function
+
+    /// <summary>
+    /// Shows all windows managed by the WM
+    /// </summary>
+    public void ShowAll()
+    {
+        foreach (Window window in Windows)
+        {
+            window.Show();
+        }
+    }
+
     // Hide Specific Window (Individually Hide)
 
     /// <summary>
@@ -287,13 +300,21 @@ public class EDITOR_WindowManager : Editor
         {
             WM.OnEnable();
         }
+        if (GUILayout.Button("Show ALL windows"))
+        {
+            WM.ShowAll();
+        }
 
         if (GUILayout.Button("Hide ALL windows"))
         {
             WM.HideAll();
         }
+        if (GUILayout.Button("Test Start"))
+        {
+            WM.Start();
+        }
 
-        foreach(Window window in Windows)
+        foreach (Window window in Windows)
         {
             GUILayout.Space(10);
             if (GUILayout.Button("Show Window - " + window.GetName() + " - (Hides Others)")) WM.ShowWindow(window);
