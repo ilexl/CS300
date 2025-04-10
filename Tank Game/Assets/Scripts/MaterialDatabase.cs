@@ -61,7 +61,7 @@ public class Material
 
 public static class MaterialDatabase
 {
-    public static readonly Dictionary<MaterialKey, Material> Materials = new()
+    private static readonly Dictionary<MaterialKey, Material> Materials = new()
     {
         // STEEL GRADES
         { MaterialKey.MildSteel, new Material("Mild Steel (A36)", MaterialType.Metal, 4.5f, 7850f, 0.5f, 400f, 1510f, 150f) },
@@ -95,6 +95,6 @@ public static class MaterialDatabase
 
     public static Material GetMaterial(MaterialKey key)
     {
-        return Materials.TryGetValue(key, out var material) ? material : null;
+        return Materials.GetValueOrDefault(key);
     }
 }

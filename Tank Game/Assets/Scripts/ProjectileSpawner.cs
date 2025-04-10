@@ -2,49 +2,33 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class ProjectileSpawner : MonoBehaviour
+public class ProjectileSpawner : MaterialObject
 {
-    private MaterialKey _materialType;
-    public MaterialKey MaterialType
-    {
-        get => _materialType;
-        set
-        {
-            _materialType = value;
-            _material = MaterialDatabase.GetMaterial(_materialType);
-        }
-    }
-    private Material _material;
+    public Projectile projectilePrefab;
 
-    [FormerlySerializedAs("projectileDiameterMM")] public float projectileDiameterMm;
+    public float projectileDiameterMm;
 
-    [FormerlySerializedAs("projectileLengthMM")] public float projectileLengthMm;
+    public float projectileLengthMm;
     public float projectileVelocityMS;
 
+    private float _diameterM;
+    private float _lengthM;
     private float _volume;
-    private float _mass;
-    private float _kineticEnergy;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // Convert diameter and length from mm to meters
-        float diameterM = projectileDiameterMm / 1000f;  // Convert mm to m
-        float lengthM = projectileLengthMm / 1000f;      // Convert mm to m
+        _diameterM = projectileDiameterMm / 1000f;  // Convert mm to m
+        _lengthM = projectileLengthMm / 1000f;      // Convert mm to m
         
 
         // Calculate the volume of the cylinder (projectile)
-        _volume = Mathf.PI * Mathf.Pow(diameterM / 2f, 2) * lengthM;
+        _volume = Mathf.PI * Mathf.Pow(_diameterM / 2f, 2) * _lengthM;
         
 
-        if (_material != null)
+        if (Material != null)
         {
-            float density = _material.Density;  // Density in kg/m³
-
-            // Calculate mass
-            _mass = _volume * density;
-            _kineticEnergy = (float)(0.5 * _mass * Math.Pow(projectileVelocityMS, 2));
-            Debug.Log($"Projectile Mass: {_mass} kg");
-            Debug.Log($"Projectile KE: {_kineticEnergy} joules");
+            FireProjectile();
         }
         else
         {
@@ -52,9 +36,9 @@ public class ProjectileSpawner : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    void FireProjectile()
     {
-        
+        var projectileInstance = Instantiate(projectilePrefab, transform);
+        projectileInstance.SetProjectileProperties(projectileVelocityMS, _diameterM, _lengthM, MaterialType);
     }
 }
