@@ -1,7 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
-using log4net.Filter;
 using System;
 
 
@@ -95,7 +94,7 @@ public class Player : NetworkBehaviour
             GameObject holder = Instantiate(holderPrefab, hull.transform);
             try { holder.transform.localPosition = tank.turretPivotPoints[i]; } 
             #region catch
-            catch(IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 holder.transform.localPosition = Vector3.zero;
@@ -115,7 +114,7 @@ public class Player : NetworkBehaviour
             GameObject t = Instantiate(tm, holder.transform);
             try { t.transform.localPosition = tank.turretPositions[i] - tank.turretPivotPoints[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [turret positions OR turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 t.transform.localPosition = Vector3.zero;
@@ -123,7 +122,7 @@ public class Player : NetworkBehaviour
             #endregion
             try { t.transform.localEulerAngles = tank.turretRotations[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [turret rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 t.transform.localEulerAngles = Vector3.zero;
@@ -139,7 +138,7 @@ public class Player : NetworkBehaviour
             int turretIndex = 0;
             try { turretIndex = tank.cannonAttachedToTurretIndexs[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [cannon attached to turret indexs] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 turretIndex = 0;
@@ -148,7 +147,7 @@ public class Player : NetworkBehaviour
             GameObject holder = Instantiate(holderPrefab, turrets[turretIndex].transform);
             try { holder.transform.localPosition = tank.cannonPivotPoints[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [cannon pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 holder.transform.localPosition = Vector3.zero;
@@ -163,7 +162,7 @@ public class Player : NetworkBehaviour
             GameObject c = Instantiate(cm, holder.transform);
             try { c.transform.localPosition = tank.cannonPositions[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [cannon positions] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 c.transform.localPosition = Vector3.zero;
@@ -171,7 +170,7 @@ public class Player : NetworkBehaviour
             #endregion
             try { c.transform.localEulerAngles = tank.cannonRotations[i]; }
             #region catch
-            catch (IndexOutOfRangeException e)
+            catch (IndexOutOfRangeException)
             {
                 Debug.LogError($"{tank.tankName} [cannon rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
                 c.transform.localEulerAngles = Vector3.zero;
