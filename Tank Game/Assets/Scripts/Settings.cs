@@ -42,8 +42,8 @@ public class Settings : MonoBehaviour
         list.Add(new Setting("Graphics-ReflectionQuality", "TBC")); // Reflection quality
         list.Add(new Setting("Graphics-ParticleQuality", "TBC")); // Particle effect quality(visual effects, explosions, atmospheric effects, volumetric clouds, fog, water)
         list.Add(new Setting("Graphics-AntiAliasing", "TBC")); // Anti-Aliasing
-        list.Add(new Setting("Graphics-Ambiant Occlusion", "TBC")); // Ambiant Occlusion
-        list.Add(new Setting("Graphics-Depth of Field", "TBC")); // Depth of Field
+        list.Add(new Setting("Graphics-AmbiantOcclusion", "TBC")); // Ambiant Occlusion
+        list.Add(new Setting("Graphics-DepthOfField", "TBC")); // Depth of Field
 
         // Audio
         list.Add(new Setting("Audio-Master", "100")); // Master Audio
@@ -77,23 +77,218 @@ public class Settings : MonoBehaviour
         return list;
     }
 
+    private List<string> GetSettingOptions(Setting setting)
+    {
+        List<string> options = new List<string>();
+
+        // Video
+        #region Video
+        if (setting.GetName() == "Video-Resolution")
+        {
+            HashSet<string> resolutionSet = new HashSet<string>();
+            List<string> resolutions = new List<string>();
+
+            foreach (Resolution res in Screen.resolutions)
+            {
+                string resKey = $"{res.width}x{res.height}";
+                if (!resolutionSet.Contains(resKey))
+                {
+                    resolutionSet.Add(resKey);
+                    resolutions.Add(resKey);
+                }
+            }
+
+            Debug.Log("Available Resolutions:");
+            foreach (string r in resolutions)
+            {
+                options.Add(r);
+                Debug.Log(r);
+            }
+        }
+        if (setting.GetName() == "Video-Fullscreen")
+        {
+            options.Add("Fullscreen");
+            options.Add("Borderless");
+            options.Add("Windowed");
+        }
+        if (setting.GetName() == "Video-Aspect")
+        {
+            // unsure yet
+            // TODO: determine if Video-Aspect can be deleted?
+        }
+        if (setting.GetName() == "Video-VSync")
+        {
+            options.Add("Off");
+            options.Add("Half");
+            options.Add("On");
+        }
+        if (setting.GetName() == "Video-RefreshRate")
+        {
+            HashSet<string> refreshRateSet = new HashSet<string>();
+            List<string> refreshRates = new List<string>();
+
+            foreach (Resolution res in Screen.resolutions)
+            {
+                string rateKey = $"{res.refreshRateRatio}Hz";
+
+                if (!refreshRateSet.Contains(rateKey))
+                {
+                    refreshRateSet.Add(rateKey);
+                    refreshRates.Add(rateKey);
+                }
+            }
+
+            Debug.Log("Available Refresh Rates:");
+            foreach (string hz in refreshRates)
+            {
+                options.Add(hz);
+                Debug.Log(hz);
+            }
+        }
+        #endregion
+
+        // Graphics
+        #region Graphics
+        if (setting.GetName() == "Graphics-TextureQuality")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-ShadowQuality")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-ReflectionQuality")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-ParticleQuality")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-AntiAliasing")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-AmbiantOcclusion")
+        {
+
+        }
+        if (setting.GetName() == "Graphics-DepthOfField")
+        {
+
+        }
+        #endregion
+
+        // Audio
+        #region Audio
+        if (setting.GetName() == "Audio-Master" || setting.GetName() == "Audio-Effects" || setting.GetName() == "Audio-MusicMenu" || setting.GetName() == "Audio-MusicGame")
+        {
+            options.Add("0");
+            options.Add("10");
+            options.Add("20");
+            options.Add("30");
+            options.Add("40");
+            options.Add("50");
+            options.Add("60");
+            options.Add("70");
+            options.Add("80");
+            options.Add("90");
+            options.Add("100");
+        }
+        if (setting.GetName() == "Audio-Engines")
+        {
+            options.Add("40");
+            options.Add("50");
+            options.Add("60");
+            options.Add("70");
+            options.Add("80");
+            options.Add("90");
+            options.Add("100");
+        }
+        #endregion
+
+        // Camera
+        #region Camera
+        if (setting.GetName() == "Camera-FOV")
+        {
+            options.Add("40");
+            options.Add("45");
+            options.Add("50");
+            options.Add("55");
+            options.Add("60");
+            options.Add("65");
+            options.Add("70");
+            options.Add("75");
+            options.Add("80");
+            options.Add("85");
+            options.Add("90");
+            options.Add("95");
+            options.Add("100");
+        }
+        if (setting.GetName() == "Camera-LookSensitivity")
+        {
+            options.Add("1");
+        }
+        if (setting.GetName() == "Camera-AimSensitivity")
+        {
+            options.Add("1");
+        }
+        if (setting.GetName() == "Camera-AxisInverted")
+        {
+            options.Add("false");
+            options.Add("true");
+        }
+        #endregion
+
+        if (options.Count == 0) { Debug.LogWarning($"Setting {setting.GetName()} has no options, this needs to be set in GetSettingsOptions manually..."); }
+        return options;
+    }
+
+    private void DeleteUI()
+    {
+        // Schedule object destruction to avoid Unity serialization issues
+        if (EditorApplication.isPlaying)
+        {
+            foreach (Transform child in videoHolder) { Destroy(child.gameObject, 0.01f); }
+            foreach (Transform child in graphicsHolder) { Destroy(child.gameObject, 0.01f); }
+            foreach (Transform child in audioHolder) { Destroy(child.gameObject, 0.01f); }
+            foreach (Transform child in controlsHolder) { Destroy(child.gameObject, 0.01f); }
+            foreach (Transform child in cameraHolder) { Destroy(child.gameObject, 0.01f); }
+            foreach (Transform child in otherHolder) { Destroy(child.gameObject, 0.01f); }
+        }
+        else
+        {
+            #region EDITOR ONLY
+            #if UNITY_EDITOR
+            if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
+            if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
+
+            foreach (Transform child in videoHolder)    { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+            foreach (Transform child in graphicsHolder) { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+            foreach (Transform child in audioHolder)    { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+            foreach (Transform child in controlsHolder) { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+            foreach (Transform child in cameraHolder)   { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+            foreach (Transform child in otherHolder)    { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
+
+            #endif
+            #endregion
+        }
+    }
+
     private void NewUI()
     {
         // delete old UI
-        foreach(Transform child in videoHolder) { Destroy(child, 0.01f); }
-        foreach(Transform child in graphicsHolder) { Destroy(child, 0.01f); }
-        foreach(Transform child in audioHolder) { Destroy(child, 0.01f); }
-        foreach(Transform child in controlsHolder) { Destroy(child, 0.01f); }
-        foreach(Transform child in cameraHolder) { Destroy(child, 0.01f); }
-        foreach(Transform child in otherHolder) { Destroy(child, 0.01f); }
+        DeleteUI();
 
-        if(settingPrefabUI == null)
+        if (settingPrefabUI == null)
         {
             Debug.LogError("Settings Prefab is its UI is missing, cannot continue!");
             return;
         }
 
+
         // create new UI
+        string currentType = "";
         foreach(Setting setting in settings)
         {
             Transform parentType = null;
@@ -103,15 +298,38 @@ public class Settings : MonoBehaviour
                 continue;
             }
             string type = (setting.GetName().Split('-'))[0];
+
+            // alternating list colours need to be reset here for each category created
+            if (currentType != type)
+            {
+                currentType = type;
+                SettingUI.ResetColourCount();
+            }
+
+            if (type == "Controls") { parentType = controlsHolder; }
+            if (parentType is not null)
+            {
+                // control needs it own script as it is special...
+
+                continue;
+            }
+
             if (type == "Video") { parentType = videoHolder; }
             if (type == "Graphics") { parentType = graphicsHolder; }
             if (type == "Audio") { parentType = audioHolder; }
-            if (type == "Controls") { parentType = controlsHolder; }
             if (type == "Camera") { parentType = cameraHolder; }
             if (type == "Other") { parentType = otherHolder; }
-            if (type == "Other") { parentType = otherHolder; }
-            GameObject ui = Instantiate(settingPrefabUI, parentType);
-            ui.name = setting.GetName();
+
+            if(parentType is not null)
+            {
+                GameObject ui = Instantiate(settingPrefabUI, parentType);
+                ui.name = setting.GetName();
+                ui.GetComponent<SettingUI>().Setup(setting, GetSettingOptions(setting));
+                continue;
+            }
+
+            
+
         }
 
     }
@@ -143,6 +361,11 @@ public class Settings : MonoBehaviour
     public void ApplySettings()
     {
         // tbc for each individual setting...
+    }
+
+    public void TestCodeSnippet()
+    {
+        
     }
 
     public class Setting
@@ -181,6 +404,7 @@ public class EDITOR_Settings : Editor
         if(GUILayout.Button("Save Settings")) { settings.SaveSettings(); }
         if(GUILayout.Button("Reset Settings")) { settings.ResetSettings(); }
         if(GUILayout.Button("Apply Settings")) { settings.ApplySettings(); }
+        if(GUILayout.Button("Test Code Snippet")) { settings.TestCodeSnippet(); }
     }
 }
 
