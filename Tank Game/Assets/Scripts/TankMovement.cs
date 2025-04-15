@@ -14,7 +14,6 @@ public class TankMovement : MonoBehaviour
     [SerializeField] float cannonElevationSpeed = 30f;
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
-    [SerializeField] float aimSmoothSpeed = 5f;
     [SerializeField] bool canMove = true;
 
     public bool CanMove() { return canMove; }
@@ -96,7 +95,7 @@ public class TankMovement : MonoBehaviour
             Vector3 direction = (aimPoint - cannon.transform.position).normalized;
             float targetAngle = Mathf.Asin(direction.y) * Mathf.Rad2Deg;
             cannonAngle = Mathf.Clamp(targetAngle, minCannonAngle, maxCannonAngle);
-            cannon.transform.localRotation = Quaternion.Lerp(cannon.transform.localRotation, Quaternion.Euler(cannonAngle, 0, 0), aimSmoothSpeed * Time.deltaTime);
+            cannon.transform.localRotation = Quaternion.Lerp(cannon.transform.localRotation, Quaternion.Euler(cannonAngle, 0, 0), cannonElevationSpeed * Time.deltaTime);
         }
     }
 }
