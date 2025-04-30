@@ -48,6 +48,11 @@ public class TankMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Vertical");
         float rotateInput = Input.GetAxis("Horizontal");
 
+        if(moveInput < 0)
+        {
+            rotateInput *= -1;
+        }
+
         hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
         hull.transform.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
     }
