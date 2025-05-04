@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class TankMovement : MonoBehaviour
 {
@@ -15,6 +14,7 @@ public class TankMovement : MonoBehaviour
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
     [SerializeField] bool canMove = true;
+    [SerializeField] Transform debugAimObject;
 
     public bool CanMove() { return canMove; }
     public void SetCanMove(bool set) { canMove = set; }
@@ -64,11 +64,19 @@ public class TankMovement : MonoBehaviour
         {
             aimPoint = hit.point;
             Debug.DrawLine(playerCamera.transform.position, hit.point, Color.red);
+            if(debugAimObject is not null)
+            {
+                debugAimObject.position = aimPoint;
+            }
         }
         else
         {
             aimPoint = playerCamera.transform.position + playerCamera.transform.forward * 1000f;
             Debug.DrawLine(playerCamera.transform.position, aimPoint, Color.green);
+            if (debugAimObject is not null)
+            {
+                debugAimObject.position = aimPoint;
+            }
         }
 
         // Log the aim point for debugging purposes
@@ -97,10 +105,41 @@ public class TankMovement : MonoBehaviour
     {
         foreach (GameObject cannon in cannons)
         {
-            Vector3 direction = (aimPoint - cannon.transform.position).normalized;
-            float targetAngle = Mathf.Asin(direction.y) * Mathf.Rad2Deg;
-            cannonAngle = Mathf.Clamp(targetAngle, minCannonAngle, maxCannonAngle);
-            cannon.transform.localRotation = Quaternion.Lerp(cannon.transform.localRotation, Quaternion.Euler(cannonAngle, 0, 0), cannonElevationSpeed * Time.deltaTime);
+            Transform cannonBarrel = cannon.transform.GetChild(0);
+            Vector3 direction = aimPoint - cannonBarrel.position;
+            Vector3 localDirection = cannonBarrel.parent.InverseTransformDirection(direction.normalized);
+
+            float pitchAngle = -Mathf.Atan2(localDirection.y, new Vector2(localDirection.x, localDirection.z).magnitude) * Mathf.Rad2Deg;
+            pitchAngle = Mathf.Clamp(pitchAngle, minCannonAngle, maxCannonAngle);
+
+            Quaternion targetRotation = Quaternion.Euler(pitchAngle, 0, 0); // Or Euler(0, 0, pitchAngle) depending on your axis
+            cannonBarrel.localRotation = Quaternion.Lerp(cannonBarrel.localRotation, targetRotation, cannonElevationSpeed * Time.deltaTime);
+
+
+
+
+            if (debugAimObject is not null)
+            {
+                // Get cannons child
+                Transform cannonAimStart = cannon.transform.GetChild(0);
+                if (cannonAimStart == null)
+                {
+
+                }
+                Ray ray = new Ray(cannonAimStart.position, cannon.transform.GetChild(0).forward);
+                if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f))
+                {
+                    Vector3 currentAimPoint = currentHit.point;
+                    Debug.DrawLine(cannonAimStart.position, currentAimPoint, Color.yellow);
+                }
+                else
+                {
+                    Vector3 currentAimPoint = cannonAimStart.position + cannon.transform.forward * 1000f;
+                    Debug.DrawLine(cannonAimStart.position, currentAimPoint, Color.yellow);
+                }
+            }
+
+            
         }
     }
 }
