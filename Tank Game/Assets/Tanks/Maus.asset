@@ -26,8 +26,8 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
   cannonPositions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 4.55, z: 1}
+  - {x: 0, y: 4.55, z: 1}
   cannonRotations:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
@@ -45,7 +45,7 @@ MonoBehaviour:
   turretPositions:
   - {x: 0, y: 0, z: 0}
   turretRotations:
-  - {x: -90, y: 0, z: 0}
+  - {x: 270, y: 0, z: 0}
   hullModel: {fileID: 6091899036476872224, guid: c379784e60df5744eab108008da68d1a, type: 3}
   hullWidth: 0
   hullLength: 0
