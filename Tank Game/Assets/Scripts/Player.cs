@@ -58,7 +58,7 @@ public class Player : NetworkBehaviour
     {
         if (tank == null)
         {
-            Debug.LogError("Cannot change tank to null");
+            Debug.LogWarning("Cannot change tank to null");
             return;
         }
 
