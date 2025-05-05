@@ -14,19 +14,31 @@ public class TankMovement : MonoBehaviour
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
     [SerializeField] bool canMove = true;
+    [SerializeField] Transform sniperCameraPos;
     [SerializeField] Transform debugAimObject;
+    TankVarients currentTank;
+    private Vector3 aimPoint;
+    public bool SniperMode
+    {
+        get { return sniperMode; } // public read only
+    }
+
+    public Transform GetSniperCameraTransform() { return sniperCameraPos; }
+    public Vector3 GetAimPoint() { return aimPoint; }
+
+    private bool sniperMode; // only changable from this script
 
     public bool CanMove() { return canMove; }
     public void SetCanMove(bool set) { canMove = set; }
 
-    private float cannonAngle = 0f;
-    private Vector3 aimPoint;
 
-    public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons)
+    public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons, GameObject SniperCameraPos)
     {
+        currentTank = tank;
         this.hull = hull;
         this.turrets = turrets;
         this.cannons = cannons;
+        this.sniperCameraPos = SniperCameraPos.transform;
     }
 
     void Awake()
@@ -37,14 +49,31 @@ public class TankMovement : MonoBehaviour
     void Update()
     {
         if (canMove is false) { return; }
+        if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
+        {
+            FixTankRunTime();
+            return; 
+        }
         HandleHullMovement();
+        SniperCheck();
         UpdateAimPoint();
         HandleTurretRotation();
         HandleCannonElevation();
     }
 
+    void FixTankRunTime()
+    {
+        GetComponent<Player>().ChangeTank(GetComponent<Player>().TankVarient);
+        GetComponent<TankVisuals>().RefreshList();
+    }
+
     void HandleHullMovement()
     {
+        if (hull == null)
+        {
+            Debug.LogWarning("Tank Movement missing assigned variables...");
+            return;
+        }
         float moveInput = Input.GetAxis("Vertical");
         float rotateInput = Input.GetAxis("Horizontal");
 
@@ -59,6 +88,7 @@ public class TankMovement : MonoBehaviour
 
     void UpdateAimPoint()
     {
+
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
         {
@@ -85,6 +115,11 @@ public class TankMovement : MonoBehaviour
 
     void HandleTurretRotation()
     {
+        if(turrets == null)
+        { 
+            Debug.LogWarning("Tank Movement missing assigned variables...");
+            return;
+        }
         foreach(GameObject turret in turrets)
         {
             // Calculate the direction to the aim point without considering the Y axis (to prevent vertical rotation due to slope)
@@ -103,6 +138,11 @@ public class TankMovement : MonoBehaviour
 
     void HandleCannonElevation()
     {
+        if (cannons == null)
+        {
+            Debug.LogWarning("Tank Movement missing assigned variables...");
+            return;
+        }
         foreach (GameObject cannon in cannons)
         {
             Transform cannonBarrel = cannon.transform.GetChild(0);
@@ -140,6 +180,14 @@ public class TankMovement : MonoBehaviour
             }
 
             
+        }
+    }
+
+    void SniperCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            sniperMode = !sniperMode;
         }
     }
 }

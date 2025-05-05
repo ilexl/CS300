@@ -9,6 +9,7 @@ using UnityEditor;
 #endif
 
 [RequireComponent(typeof(TankMovement))]
+[RequireComponent(typeof(TankVisuals))]
 public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
@@ -182,10 +183,14 @@ public class Player : NetworkBehaviour
         // update overall scale
         hull.transform.localScale = tank.modelScale;
 
-        // update tank movement script
-        tankMovement.UpdateTank(tank, gameObject, turrets, cannons);
-        Debug.Log("TankMovement Script Updated!");
+        // create empty gameobject for camera pos in snipermode
+        GameObject sniperPos = Instantiate(holderPrefab, hull.transform);
+        sniperPos.transform.localPosition = tank.cameraPosSniper;
+        sniperPos.name = "SNIPERMODE CAMERA POSITION";
 
+        // update tank movement script
+        tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
+        Debug.Log("TankMovement Script Updated!");
 
         currentTank = tank;
         Debug.Log($"Tank successfully changed to {tank.name}");

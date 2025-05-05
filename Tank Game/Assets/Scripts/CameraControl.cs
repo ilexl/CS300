@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class CameraControl : MonoBehaviour
 {
@@ -15,6 +16,11 @@ public class CameraControl : MonoBehaviour
 
     private float currentX = 0f;
     private float currentY = 0f;
+    private float NomralFOV = 60f;
+    private float SniperFOV = 40f;
+
+    private bool sniperModeCOV = false; // handles changes between sniper mode and normal mode ONLY
+
 
     void Start()
     {
@@ -36,7 +42,65 @@ public class CameraControl : MonoBehaviour
     void LateUpdate()
     {
         if (target == null) return;
+        if (target.GetComponent<TankMovement>() is null)
+        {
+            CameraMovement(); // spectate only if no player controls i.e. no tank movement script
+            return;
+        }
 
+        if (target.GetComponent<TankMovement>().SniperMode)
+        {
+            SniperMode();
+        }
+        else
+        {
+            CameraMovement();
+        }
+        
+    }
+
+    void SniperMode()
+    {
+        // Sniper Mode
+
+        // Change FOV to zoom (detect change of states)
+        if (sniperModeCOV is false)
+        {
+            Camera.main.fieldOfView = SniperFOV;
+            sniperModeCOV = true;
+
+            // Attach camera to turret (move camera pos)
+            transform.position = target.GetComponent<TankMovement>().GetSniperCameraTransform().position;
+            transform.LookAt(target.GetComponent<TankMovement>().GetAimPoint());
+
+            // Hide models of tank while zoomed in
+            target.GetComponent<TankVisuals>().HideTankSniperMode();
+        }
+
+
+
+        // Allow scrolling to change zoom (FOV)
+
+
+        // Move camera
+        transform.position = target.GetComponent<TankMovement>().GetSniperCameraTransform().position; // always update position
+        transform.localRotation = Quaternion.Euler(currentY, currentX, 0f);
+        
+    }
+
+    void CameraMovement()
+    {
+        if (sniperModeCOV)
+        {
+            Camera.main.fieldOfView = NomralFOV;
+            sniperModeCOV = false;
+
+            // Attach camera to above again (move camera pos)
+            // TODO: Move camera faster as there is currently a delay
+
+            // Hide models of tank while zoomed in
+            target.GetComponent<TankVisuals>().ShowTankNormal();
+        }
         // Get the target's world position (the tank)
         Vector3 targetPosition = target.position + offset;
 
