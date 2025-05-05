@@ -80,7 +80,7 @@ public class CameraControl : MonoBehaviour
 
 
         // Allow scrolling to change zoom (FOV)
-
+        // TODO: allow scrolling for zoom FOV
 
         // Move camera
         transform.position = target.GetComponent<TankMovement>().GetSniperCameraTransform().position; // always update position
@@ -105,13 +105,13 @@ public class CameraControl : MonoBehaviour
         Vector3 targetPosition = target.position + offset;
 
         // Log the tank's world position to see where the camera is supposed to pivot
-        Debug.Log($"Tank World Position: {target.position}");
+        // Debug.Log($"Tank World Position: {target.position}");
 
         Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
         Vector3 desiredPosition = targetPosition - (rotation * Vector3.forward * distance);
 
         // Log the desired camera position
-        Debug.Log($"Desired Camera Position: {desiredPosition}");
+        // Debug.Log($"Desired Camera Position: {desiredPosition}");
 
         // Smoothly move the camera towards the desired position
         transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
