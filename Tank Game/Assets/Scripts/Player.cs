@@ -26,11 +26,14 @@ public class Player : NetworkBehaviour
     }
 
     public void OnValidate()
-    { 
-        #if UNITY_EDITOR
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-        if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
-        if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
+    {
+    #if UNITY_EDITOR
+        if (EditorApplication.isPlaying is false)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
+            if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
+        }
 
         // Schedule object destruction to avoid Unity serialization issues
         UnityEditor.EditorApplication.delayCall += () =>
