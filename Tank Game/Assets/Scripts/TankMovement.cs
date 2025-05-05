@@ -51,7 +51,7 @@ public class TankMovement : MonoBehaviour
         if (canMove is false) { return; }
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
         {
-            FixTankRunTime();
+            if (currentTank != null) { FixTankRunTime(); }
             return; 
         }
         HandleHullMovement();
