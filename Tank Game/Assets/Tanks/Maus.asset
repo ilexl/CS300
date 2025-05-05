@@ -53,3 +53,9 @@ MonoBehaviour:
   hullRotation: {x: 0, y: 0, z: 0}
   hullPosition: {x: 0, y: 0, z: 0}
   modelScale: {x: 0.6, y: 0.6, z: 0.6}
+  turretRotationSpeed:
+  - 1
+  gunAimSpeed:
+  - 1
+  tankMoveSpeed: 1
+  cameraPosSniper: {x: 0, y: 4.5, z: 0.75}

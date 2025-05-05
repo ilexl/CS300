@@ -35,7 +35,8 @@ public class TankVarients : ScriptableObject
 
     [Header("Parameters")]
     public Vector3 modelScale;
-    [Tooltip("in m/s")] float[] turretRotationSpeed;
-    [Tooltip("in m/s")] float[] gunAimSpeed;
-    [Tooltip("in m/s")] float tankMoveSpeed;
+    [Tooltip("in m/s")] public float[] turretRotationSpeed;
+    [Tooltip("in m/s")] public float[] gunAimSpeed;
+    [Tooltip("in m/s")] public float tankMoveSpeed;
+    public Vector3 cameraPosSniper;
 }
