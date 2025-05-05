@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2224726165394799684}
   - component: {fileID: 6005193014395978784}
   - component: {fileID: 1446215712490391783}
+  - component: {fileID: 5072461580168938618}
   m_Layer: 0
   m_Name: Player_Test
   m_TagString: Untagged
@@ -46,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1474126386
+  GlobalObjectIdHash: 4005135661
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -74,6 +75,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   tankMovement: {fileID: 0}
   currentTank: {fileID: 0}
+  holderPrefab: {fileID: 0}
 --- !u!114 &1446215712490391783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,8 +89,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hull: {fileID: 0}
-  turret: {fileID: 0}
-  cannon: {fileID: 0}
+  turrets: []
+  cannons: []
   playerCamera: {fileID: 0}
   moveSpeed: 5
   rotationSpeed: 60
@@ -96,4 +98,18 @@ MonoBehaviour:
   cannonElevationSpeed: 30
   minCannonAngle: -10
   maxCannonAngle: 20
-  aimSmoothSpeed: 5
+  canMove: 1
+  sniperCameraPos: {fileID: 0}
+  debugAimObject: {fileID: 0}
+--- !u!114 &5072461580168938618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2108151186436044004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6d25de8fae216a43b4acb9e3c80f471, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
