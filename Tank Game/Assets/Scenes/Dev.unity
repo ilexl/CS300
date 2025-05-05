@@ -197,18 +197,30 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 114075790}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 977229108}
         m_TargetAssemblyTypeName: WindowManager, GAME
-        m_MethodName: ShowWindow
+        m_MethodName: ShowOnly
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 2106991193}
           m_ObjectArgumentAssemblyTypeName: Window, GAME
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2106991195}
+        m_TargetAssemblyTypeName: Settings, GAME
+        m_MethodName: LoadSettings
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1144,7 +1156,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 503536267}
   m_OnClick:
     m_PersistentCalls:
@@ -1662,7 +1674,7 @@ GameObject:
   - component: {fileID: 977229113}
   - component: {fileID: 977229114}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1799,6 +1811,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   windowManager: {fileID: 977229108}
   sniperWindow: {fileID: 2111814312}
+  pauseWindow: {fileID: 153746741}
+  respawnWindow: {fileID: 256403887}
+  settingsWindow: {fileID: 2106991193}
 --- !u!1001 &988621898
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2188,7 +2203,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 1100070026}
   m_OnClick:
     m_PersistentCalls:
@@ -3691,7 +3706,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 2101130497}
   m_OnClick:
     m_PersistentCalls:
@@ -3703,6 +3718,18 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 153746741}
           m_ObjectArgumentAssemblyTypeName: Window, GAME
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 977229114}
+        m_TargetAssemblyTypeName: HUDUI, GAME
+        m_MethodName: SetCursorShown
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -3789,6 +3816,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
@@ -3812,6 +3843,10 @@ PrefabInstance:
       value: LoadSettings
       objectReference: {fileID: 0}
     - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: WindowManager, GAME
+      objectReference: {fileID: 0}
+    - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: Settings, GAME
       objectReference: {fileID: 0}
@@ -3819,6 +3854,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgument
       value: 
       objectReference: {fileID: 2106991193}
+    - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: Window, GAME
+      objectReference: {fileID: 0}
     - target: {fileID: 1578669786018473454, guid: 0cca3cf47c727a14684f6ca39ac31594, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
