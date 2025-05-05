@@ -15,6 +15,7 @@ public class TankVisuals : MonoBehaviour
         {
             mesh.enabled = true;
         }
+        HUDUI.current.HideSniperMode();
     }
 
     public void ShowTankDestroyed()
@@ -34,6 +35,7 @@ public class TankVisuals : MonoBehaviour
         {
             mesh.enabled = false;
         }
+        HUDUI.current.ShowSniperMode();
     }
 
     void Awake()
