@@ -15,6 +15,7 @@ public class HUDUI : MonoBehaviour
     {
         current = this;
         SetCursorShown(false);
+        ShowRespawnUI();
     }
 
     private void Awake()
@@ -103,4 +104,11 @@ public class HUDUI : MonoBehaviour
     {
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void ShowRespawnUI()
+    {
+        windowManager.ShowWindow(respawnWindow);
+        SetCursorShown(true);
+    }
+
 }

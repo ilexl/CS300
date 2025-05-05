@@ -62,6 +62,11 @@ public class Player : NetworkBehaviour
         if (tank == null)
         {
             Debug.LogWarning("Cannot change tank to null");
+            if (HUDUI.current is not null)
+            {
+                Debug.Log("Showing Respawn Window as tank cannot be null...");
+                HUDUI.current.ShowRespawnUI();
+            }
             return;
         }
 
