@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HUDUI : MonoBehaviour
 {
@@ -96,5 +97,10 @@ public class HUDUI : MonoBehaviour
             return;
         }
         windowManager.HideOnly(sniperWindow);
+    }
+
+    public void LeaveMatch()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
