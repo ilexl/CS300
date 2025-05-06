@@ -15,7 +15,10 @@ public class TankVisuals : MonoBehaviour
         {
             mesh.enabled = true;
         }
-        HUDUI.current.HideSniperMode();
+        if (HUDUI.current is not null)
+        {
+            HUDUI.current.HideSniperMode();
+        }
     }
 
     public void ShowTankDestroyed()
