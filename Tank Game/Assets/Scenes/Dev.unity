@@ -3519,10 +3519,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: hull
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
@@ -3534,30 +3530,6 @@ PrefabInstance:
       propertyPath: debugAimObject
       value: 
       objectReference: {fileID: 1344553679}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: sniperCameraPos
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: cannons.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: turrets.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: 'cannons.Array.data[0]'
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: 'cannons.Array.data[1]'
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
-      propertyPath: 'turrets.Array.data[0]'
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 2108151186436044004, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
       propertyPath: m_Name
       value: Player_Test
@@ -3606,6 +3578,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6005193014395978784, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
+      propertyPath: tankVisuals
+      value: 
+      objectReference: {fileID: 1626661152}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 0}
@@ -4103,6 +4079,19 @@ MultiplayerRolesData:
   m_ComponentsRolesMasks:
   - m_Object: {fileID: 1626661152}
     m_RolesMask: 1
+  - m_Object: {fileID: 2101308361}
+    m_RolesMask: 1
+--- !u!114 &2101308361 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1446215712490391783, guid: 3faf203f4f055c542aae23d213c4c2ea, type: 3}
+  m_PrefabInstance: {fileID: 1626661150}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1626661151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17bbfcbe9a4d241449550ec5e975f5fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2106991192
 PrefabInstance:
   m_ObjectHideFlags: 0

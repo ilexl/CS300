@@ -8,11 +8,10 @@ using System;
 using UnityEditor;
 #endif
 
-[RequireComponent(typeof(TankMovement))]
-[RequireComponent(typeof(TankVisuals))]
 public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
+    [SerializeField] TankVisuals tankVisuals;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
     public TankVarients TankVarient
@@ -197,9 +196,17 @@ public class Player : NetworkBehaviour
         sniperPos.name = "SNIPERMODE CAMERA POSITION";
 
         // update tank movement script
-        tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
-        Debug.Log("TankMovement Script Updated!");
-
+        if (tankMovement == null || tankVisuals == null)
+        {
+            Debug.Log("Player missing movement or visual scripts. " +
+                "This may be intended but stops some code frome executing");
+        }
+        else
+        {
+            tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
+            Debug.Log("TankMovement Script Updated!");
+        }
+        
         currentTank = tank;
         Debug.Log($"Tank successfully changed to {tank.name}");
     }

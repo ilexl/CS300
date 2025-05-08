@@ -53,11 +53,11 @@ MonoBehaviour:
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
-  AlwaysReplicateAsRoot: 0
+  AlwaysReplicateAsRoot: 1
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
+  SpawnWithObservers: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
@@ -91,8 +91,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hull: {fileID: 0}
-  turrets: []
-  cannons: []
+  turrets:
+  - {fileID: 0}
+  cannons:
+  - {fileID: 0}
+  - {fileID: 0}
   playerCamera: {fileID: 0}
   moveSpeed: 5
   rotationSpeed: 60
