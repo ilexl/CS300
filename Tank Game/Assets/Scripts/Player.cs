@@ -12,6 +12,7 @@ public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
     [SerializeField] TankVisuals tankVisuals;
+    [SerializeField] PlayerTeam playerTeam;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
     public TankVarients TankVarient
@@ -206,8 +207,17 @@ public class Player : NetworkBehaviour
             tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
             Debug.Log("TankMovement Script Updated!");
         }
-        
-        currentTank = tank;
+
+        if(playerTeam is null)
+        {
+            Debug.LogWarning("PlayerTeam Script is missing and health bar will not work...");
+        }
+        else
+        {
+            playerTeam.SetTeamSide(playerTeam.team); // set to whatever it already is
+        }
+
+            currentTank = tank;
         Debug.Log($"Tank successfully changed to {tank.name}");
     }
 }

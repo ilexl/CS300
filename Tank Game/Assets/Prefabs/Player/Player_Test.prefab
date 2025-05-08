@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4522512173398077463}
   - component: {fileID: 2224726165394799684}
   - component: {fileID: 6005193014395978784}
+  - component: {fileID: 1135166309345070894}
   - component: {fileID: 1446215712490391783}
   - component: {fileID: 5072461580168938618}
   - component: {fileID: 545148053518853521}
@@ -76,8 +77,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   tankMovement: {fileID: 1446215712490391783}
-  currentTank: {fileID: 0}
+  tankVisuals: {fileID: 5072461580168938618}
+  playerTeam: {fileID: 1135166309345070894}
+  currentTank: {fileID: 11400000, guid: 58446c7e29dd7af4f8330cc59dcfb28a, type: 2}
   holderPrefab: {fileID: 1759585474127827268, guid: ab07aabb15943ab4ebb2f504e2ff5358, type: 3}
+--- !u!114 &1135166309345070894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2108151186436044004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f271ed7c8de591741b6cf423a7171c85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 0
+  healthBarPrefab: {fileID: 2070612816741130148, guid: 12b7cbc2845cfb245ab6884b120585a3, type: 3}
+  healthBarCurrent: {fileID: 0}
 --- !u!114 &1446215712490391783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17bbfcbe9a4d241449550ec5e975f5fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hull: {fileID: 0}
+  hull: {fileID: 2108151186436044004}
   turrets:
   - {fileID: 0}
   cannons:
