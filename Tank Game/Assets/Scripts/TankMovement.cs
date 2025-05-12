@@ -49,6 +49,7 @@ public class TankMovement : MonoBehaviour
     void Update()
     {
         if (canMove is false) { return; }
+        if (GetComponent<Player>().IsLocalPlayer is false) { return; }
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
         {
             if (currentTank != null) { FixTankRunTime(); }
@@ -110,7 +111,7 @@ public class TankMovement : MonoBehaviour
         }
 
         // Log the aim point for debugging purposes
-        Debug.Log($"Aim Point: {aimPoint}");
+        // Debug.Log($"Aim Point: {aimPoint}");
     }
 
     void HandleTurretRotation()
