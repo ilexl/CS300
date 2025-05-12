@@ -7,7 +7,7 @@ public class PlayerTeam : MonoBehaviour
 {
     public Side team = Side.None;
     [SerializeField] GameObject healthBarPrefab;
-    [SerializeField] GameObject healthBarCurrent;
+    public GameObject healthBarCurrent;
     
 
     [System.Serializable]
@@ -23,6 +23,17 @@ public class PlayerTeam : MonoBehaviour
         team = side;
         Debug.Log($"Player set to team {team}");
         UpdateHealthColour();
+    }
+
+    public void UpdateHealthBar(float current, float max = 0)
+    {
+        if(healthBarCurrent is null || healthBarCurrent == null) { UpdateHealthColour(); }
+        if(healthBarCurrent is null || healthBarCurrent == null) { Debug.LogError("Health bar not being added correctly..."); }
+        Slider s = healthBarCurrent.GetComponentInChildren<Slider>();
+        
+        if(max is not 0) { s.maxValue = max; }
+        s.minValue = 0; // min value is ALWAYS zero
+        s.value = current;
     }
 
     private void UpdateHealthColour()
