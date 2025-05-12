@@ -15,6 +15,7 @@ public class Player : NetworkBehaviour
     [SerializeField] PlayerTeam playerTeam;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
+    public bool IsLocalPlayer = false; // TODO: fix for multiplayer as defaults to false with no checks currently
     public TankVarients TankVarient
     {
         get { return currentTank; }
