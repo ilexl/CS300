@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class HUDUI : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private Window pauseWindow;
     [SerializeField] private Window respawnWindow;
     [SerializeField] private Window settingsWindow;
+
+    [Space(10)]
+
+    [SerializeField] private GameObject healthBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -111,4 +116,31 @@ public class HUDUI : MonoBehaviour
         SetCursorShown(true);
     }
 
+    public void UpdateHealth(float currentHealth, float maxHealth)
+    {
+        Slider s = healthBar.GetComponent<Slider>();
+        s.value = currentHealth;
+        s.maxValue = maxHealth;
+    }
+
+    public void UpdateTeamColour(PlayerTeam.Side team)
+    {
+        // update health bar
+        var images = healthBar.GetComponentsInChildren<Image>();
+        foreach (Image image in images)
+        {
+            if (image.gameObject.name == "Fill")
+            {
+                Debug.Log("Normal Color Set");
+                image.color = PlayerTeam.GetNormalColour(team);
+            }
+            if (image.gameObject.name == "Background")
+            {
+                Debug.Log("Dark Color Set");
+                image.color = PlayerTeam.GetDarkerColour(team);
+            }
+        }
+
+        // update team tracker thingy
+    }
 }
