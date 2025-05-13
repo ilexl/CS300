@@ -8,7 +8,6 @@ public class PlayerTeam : MonoBehaviour
     public Side team = Side.None;
     [SerializeField] GameObject healthBarPrefab;
     public GameObject healthBarCurrent;
-    
 
     [System.Serializable]
     public enum Side
@@ -34,13 +33,16 @@ public class PlayerTeam : MonoBehaviour
         if(max is not 0) { s.maxValue = max; }
         s.minValue = 0; // min value is ALWAYS zero
         s.value = current;
+
+        // update UI
+        if (GetComponent<Player>().LocalPlayer)
+        {
+            HUDUI.current.UpdateHealth(current, max);
+        }
     }
 
     private void UpdateHealthColour()
     {
-        // For now show all health bars
-        // TODO: once networking enabled we can disable health bar if it is our own.
-
         if(healthBarCurrent is not null)
         {
             #if UNITY_EDITOR
@@ -56,20 +58,28 @@ public class PlayerTeam : MonoBehaviour
             if(image.gameObject.name == "Fill")
             {
                 Debug.Log("Normal Color Set");
-                image.color = GetNormalColour();
+                image.color = GetNormalColour(team);
             }
             if (image.gameObject.name == "Background")
             {
                 Debug.Log("Dark Color Set");
-                image.color = GetDarkerColour();
+                image.color = GetDarkerColour(team);
             }
+        }
+
+        healthBarCurrent.SetActive(!GetComponent<Player>().LocalPlayer);
+
+        // update UI
+        if (GetComponent<Player>().LocalPlayer)
+        {
+            HUDUI.current.UpdateTeamColour(team);
         }
     }
 
-    readonly Color32 GREYCOLOR = new Color32(246, 246, 246, 255);
-    readonly Color32 BLUECOLOR = new Color32(72, 187, 255, 255);
-    readonly Color32 ORANGECOLOR = new Color32(255, 125, 10, 255);
-    private Color32 GetNormalColour()
+    static readonly Color32 GREYCOLOR = new Color32(246, 246, 246, 255);
+    static readonly Color32 BLUECOLOR = new Color32(72, 187, 255, 255);
+    static readonly Color32 ORANGECOLOR = new Color32(255, 125, 10, 255);
+    public static Color32 GetNormalColour(Side team)
     {
         switch (team)
         {
@@ -89,10 +99,10 @@ public class PlayerTeam : MonoBehaviour
         }
     }
 
-    readonly Color32 GREYCOLORARKENED = new Color32(123, 123, 123, 255);
-    readonly Color32 BLUECOLORDARKENED = new Color32(36, 93, 127, 255);
-    readonly Color32 ORANGECOLORDARKENED = new Color32(127, 62, 5, 255);
-    private Color32 GetDarkerColour()
+    static readonly Color32 GREYCOLORARKENED = new Color32(123, 123, 123, 255);
+    static readonly Color32 BLUECOLORDARKENED = new Color32(36, 93, 127, 255);
+    static readonly Color32 ORANGECOLORDARKENED = new Color32(127, 62, 5, 255);
+    public static Color32 GetDarkerColour(Side team)
     {
         switch (team)
         {

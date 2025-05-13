@@ -15,7 +15,7 @@ public class Player : NetworkBehaviour
     [SerializeField] PlayerTeam playerTeam;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
-    public bool IsLocalPlayer = false; // TODO: fix for multiplayer as defaults to false with no checks currently
+    public bool LocalPlayer = false; // TODO: fix for multiplayer as defaults to false with no checks currently
     public TankVarients TankVarient
     {
         get { return currentTank; }
@@ -56,6 +56,17 @@ public class Player : NetworkBehaviour
             }
         };
         #endif
+    }
+
+    void SetLayerAllChildren(Transform root, int layer)
+    {
+        root.gameObject.layer = layer;
+        var children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        foreach (var child in children)
+        {
+            //            Debug.Log(child.name);
+            child.gameObject.layer = layer;
+        }
     }
 
     public void ChangeTank(TankVarients tank)
@@ -218,7 +229,17 @@ public class Player : NetworkBehaviour
             playerTeam.SetTeamSide(playerTeam.team); // set to whatever it already is
         }
 
-            currentTank = tank;
+        // set all layers to local or default
+        if (LocalPlayer)
+        {
+            SetLayerAllChildren(transform, 10); // 10 is local player
+        }
+        else
+        {
+            SetLayerAllChildren(transform, 0); // 0 is default
+        }
+
+        currentTank = tank;
         Debug.Log($"Tank successfully changed to {tank.name}");
     }
 }

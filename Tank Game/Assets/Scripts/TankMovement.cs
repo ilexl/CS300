@@ -17,6 +17,7 @@ public class TankMovement : MonoBehaviour
     [SerializeField] Transform sniperCameraPos;
     [SerializeField] Transform debugAimObject;
     TankVarients currentTank;
+
     private Vector3 aimPoint;
     public bool SniperMode
     {
@@ -49,7 +50,7 @@ public class TankMovement : MonoBehaviour
     void Update()
     {
         if (canMove is false) { return; }
-        if (GetComponent<Player>().IsLocalPlayer is false) { return; }
+        if (GetComponent<Player>().LocalPlayer is false) { return; }
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
         {
             if (currentTank != null) { FixTankRunTime(); }
@@ -89,9 +90,9 @@ public class TankMovement : MonoBehaviour
 
     void UpdateAimPoint()
     {
-
+        int layerMask = ~(1 << 10); // hit everything but layer 10 (Layer 10 is the local player)
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
         {
             aimPoint = hit.point;
             Debug.DrawLine(playerCamera.transform.position, hit.point, Color.red);
@@ -168,7 +169,8 @@ public class TankMovement : MonoBehaviour
 
                 }
                 Ray ray = new Ray(cannonAimStart.position, cannon.transform.GetChild(0).forward);
-                if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f))
+                int layerMask = ~(1 << 10); // hit everything but layer 10 (Layer 10 is the local player)
+                if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f, layerMask))
                 {
                     Vector3 currentAimPoint = currentHit.point;
                     Debug.DrawLine(cannonAimStart.position, currentAimPoint, Color.yellow);
@@ -190,5 +192,10 @@ public class TankMovement : MonoBehaviour
         {
             sniperMode = !sniperMode;
         }
+    }
+
+    public GameObject GetCannon(int cannonIndex)
+    {
+        return cannons[cannonIndex];
     }
 }
