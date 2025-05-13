@@ -119,8 +119,8 @@ public class HUDUI : MonoBehaviour
     public void UpdateHealth(float currentHealth, float maxHealth)
     {
         Slider s = healthBar.GetComponent<Slider>();
-        s.value = currentHealth;
         s.maxValue = maxHealth;
+        s.value = currentHealth;
     }
 
     public void UpdateTeamColour(PlayerTeam.Side team)

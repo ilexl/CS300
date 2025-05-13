@@ -1,7 +1,6 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class TankCombat : MonoBehaviour
 {
@@ -88,10 +87,25 @@ public class TankCombat : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        UpdateHealthBar();
+    }
+
     void UpdateHealthBar()
     {
         PlayerTeam pt = GetComponent<PlayerTeam>();
         pt.UpdateHealthBar(CurrentHealth, MaxHealth);
+        if (GetComponent<Player>().LocalPlayer)
+        {
+            if (HUDUI.current is null) 
+            {
+                Debug.LogWarning("CANNOT SET HEALTH HUD");
+                return; 
+            }
+            HUDUI.current.UpdateHealth(CurrentHealth, MaxHealth);
+            Debug.Log($"Updated HUD Health : {CurrentHealth}");
+        }
     }
 
 #if UNITY_EDITOR

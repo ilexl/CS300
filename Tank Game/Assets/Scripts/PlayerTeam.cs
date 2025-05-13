@@ -33,12 +33,6 @@ public class PlayerTeam : MonoBehaviour
         if(max is not 0) { s.maxValue = max; }
         s.minValue = 0; // min value is ALWAYS zero
         s.value = current;
-
-        // update UI
-        if (GetComponent<Player>().LocalPlayer)
-        {
-            HUDUI.current.UpdateHealth(current, max);
-        }
     }
 
     private void UpdateHealthColour()
@@ -72,7 +66,9 @@ public class PlayerTeam : MonoBehaviour
         // update UI
         if (GetComponent<Player>().LocalPlayer)
         {
+            if (HUDUI.current is null) { return; }
             HUDUI.current.UpdateTeamColour(team);
+            Debug.Log("Updated HUD Team Colour");
         }
     }
 
