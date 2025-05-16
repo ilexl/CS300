@@ -80,9 +80,9 @@ MonoBehaviour:
   tankMovement: {fileID: 1446215712490391783}
   tankVisuals: {fileID: 5072461580168938618}
   playerTeam: {fileID: 1135166309345070894}
-  currentTank: {fileID: 11400000, guid: 58446c7e29dd7af4f8330cc59dcfb28a, type: 2}
+  currentTank: {fileID: 0}
   holderPrefab: {fileID: 1759585474127827268, guid: ab07aabb15943ab4ebb2f504e2ff5358, type: 3}
-  IsLocalPlayer: 0
+  LocalPlayer: 0
 --- !u!114 &2361285768631409635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -95,6 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a7d286b4584e4546aea0dbc0c92e9f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damage: 10
 --- !u!114 &1135166309345070894
 MonoBehaviour:
   m_ObjectHideFlags: 0
