@@ -21,12 +21,6 @@ public class CameraControl : MonoBehaviour
 
     private bool sniperModeCOV = false; // handles changes between sniper mode and normal mode ONLY
 
-
-    void Start()
-    {
-        
-    }
-
     void Update()
     {
         currentX += Input.GetAxis("Mouse X") * sensitivity;
