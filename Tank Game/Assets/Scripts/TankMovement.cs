@@ -43,8 +43,10 @@ public class TankMovement : MonoBehaviour
     }
 
     void Awake()
+    public void SetPlayerCamera(Camera camera)
     {
         playerCamera = Camera.main;
+        playerCamera = camera;
     }
 
     void Update()
