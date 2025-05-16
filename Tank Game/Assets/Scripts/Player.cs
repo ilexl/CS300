@@ -8,7 +8,7 @@ using System;
 using UnityEditor;
 #endif
 
-public class Player : NetworkBehaviour
+public class Player : MonoBehaviour
 {
     [SerializeField] TankMovement tankMovement;
     [SerializeField] TankVisuals tankVisuals;
@@ -58,17 +58,38 @@ public class Player : NetworkBehaviour
         #endif
     }
 
+    public void Setup(TankMovement tm, PlayerTeam pt, TankVisuals tv, bool localPlayer)
+    {
+        tankMovement = tm;
+        playerTeam = pt;
+        tankVisuals = tv;
+    }
+
     void SetLayerAllChildren(Transform root, int layer)
     {
         root.gameObject.layer = layer;
         var children = root.GetComponentsInChildren<Transform>(includeInactive: true);
         foreach (var child in children)
         {
-            //            Debug.Log(child.name);
+            // Debug.Log(child.name);
             child.gameObject.layer = layer;
         }
     }
 
+    [ClientRpc]
+    public void ChangeTankClientRpc(string tankName)
+    {
+        TankVarients[] allTanks = Resources.LoadAll<TankVarients>("Tanks"); // "Tanks" folder must be located in Resources
+        foreach (var tank in allTanks)
+        {
+            if(tank.tankName == tankName)
+            {
+                ChangeTank(tank);
+                return;
+            }
+        }
+        ChangeTank(null);
+    }
     public void ChangeTank(TankVarients tank)
     {
         if (tank == null)

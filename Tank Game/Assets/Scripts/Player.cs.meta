@@ -1,2 +1,16 @@
 fileFormatVersion: 2
 guid: 8837fab86d7377541ba9f1c1ec143d00
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - tankMovement: {instanceID: 0}
+  - tankVisuals: {instanceID: 0}
+  - playerTeam: {instanceID: 0}
+  - currentTank: {instanceID: 0}
+  - holderPrefab: {fileID: 1759585474127827268, guid: ab07aabb15943ab4ebb2f504e2ff5358, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
