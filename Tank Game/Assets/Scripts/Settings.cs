@@ -246,6 +246,7 @@ public class Settings : MonoBehaviour
 
     private void DeleteUI()
     {
+#if UNITY_EDITOR
         // Schedule object destruction to avoid Unity serialization issues
         if (EditorApplication.isPlaying)
         {
@@ -259,7 +260,7 @@ public class Settings : MonoBehaviour
         else
         {
             #region EDITOR ONLY
-            #if UNITY_EDITOR
+            
             if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
             if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
 
@@ -270,9 +271,17 @@ public class Settings : MonoBehaviour
             foreach (Transform child in cameraHolder)   { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
             foreach (Transform child in otherHolder)    { if (child.gameObject == null) { continue; } UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(child.gameObject); }; }
 
-            #endif
+
             #endregion
         }
+#else
+        foreach (Transform child in videoHolder) { Destroy(child.gameObject, 0.01f); }
+        foreach (Transform child in graphicsHolder) { Destroy(child.gameObject, 0.01f); }
+        foreach (Transform child in audioHolder) { Destroy(child.gameObject, 0.01f); }
+        foreach (Transform child in controlsHolder) { Destroy(child.gameObject, 0.01f); }
+        foreach (Transform child in cameraHolder) { Destroy(child.gameObject, 0.01f); }
+        foreach (Transform child in otherHolder) { Destroy(child.gameObject, 0.01f); }
+#endif
     }
 
     private void NewUI()
