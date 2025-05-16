@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -21,6 +22,7 @@ public class HUDUI : MonoBehaviour
         current = this;
         SetCursorShown(false);
         ShowRespawnUI();
+        SetupJoinButtons();
     }
 
     private void Awake()
@@ -123,7 +125,7 @@ public class HUDUI : MonoBehaviour
         s.value = currentHealth;
     }
 
-    public void UpdateTeamColour(PlayerTeam.Side team)
+    public void UpdateTeamColour(Team team)
     {
         // update health bar
         var images = healthBar.GetComponentsInChildren<Image>();
@@ -142,5 +144,22 @@ public class HUDUI : MonoBehaviour
         }
 
         // update team tracker thingy
+    }
+
+    public Button orangeButton;
+    public Button blueButton;
+
+    public void SelectTeam(Team team)
+    {
+        if (PlayerRespawn.Singleton != null && NetworkManager.Singleton.IsClient)
+        {
+            PlayerRespawn.Singleton.SelectTeamServerRpc(team);
+        }
+    }
+
+    void SetupJoinButtons()
+    {
+        orangeButton.onClick.AddListener(() => SelectTeam(Team.Orange));
+        blueButton.onClick.AddListener(() => SelectTeam(Team.Blue));
     }
 }
