@@ -93,6 +93,7 @@ public class TankMovement : MonoBehaviour
     void UpdateAimPoint()
     {
         int layerMask = ~(1 << 10); // hit everything but layer 10 (Layer 10 is the local player)
+        int layerMask = ~((1 << 2) | (1 << 10)); // hit everything but layer 10 and 2
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
         {
