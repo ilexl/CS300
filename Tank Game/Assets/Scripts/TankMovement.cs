@@ -42,15 +42,14 @@ public class TankMovement : MonoBehaviour
         this.sniperCameraPos = SniperCameraPos.transform;
     }
 
-    void Awake()
     public void SetPlayerCamera(Camera camera)
     {
-        playerCamera = Camera.main;
         playerCamera = camera;
     }
 
     void Update()
     {
+        if(GetComponent<PlayerSetup>() is not null && GetComponent<PlayerSetup>().enabled) { return; } // dont update if setting up
         if (canMove is false) { return; }
         if (GetComponent<Player>().LocalPlayer is false) { return; }
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
@@ -92,7 +91,7 @@ public class TankMovement : MonoBehaviour
 
     void UpdateAimPoint()
     {
-        int layerMask = ~(1 << 10); // hit everything but layer 10 (Layer 10 is the local player)
+        if(playerCamera is null) { return; }
         int layerMask = ~((1 << 2) | (1 << 10)); // hit everything but layer 10 and 2
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
@@ -172,7 +171,7 @@ public class TankMovement : MonoBehaviour
 
                 }
                 Ray ray = new Ray(cannonAimStart.position, cannon.transform.GetChild(0).forward);
-                int layerMask = ~(1 << 10); // hit everything but layer 10 (Layer 10 is the local player)
+                int layerMask = ~((1 << 2) | (1 << 10)); // hit everything but layer 10 and 2
                 if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f, layerMask))
                 {
                     Vector3 currentAimPoint = currentHit.point;
