@@ -15,6 +15,7 @@ public class RaycastUtility : MonoBehaviour
         Vector3 origin,
         Vector3 direction,
         Transform targetObject,
+        out RaycastHit hit,
         float maxDistance = Mathf.Infinity,
         LayerMask? layerMask = null)
     {
@@ -31,16 +32,19 @@ public class RaycastUtility : MonoBehaviour
         }
 
         // Iterate through all hits
-        foreach (RaycastHit hit in hits)
+        foreach (RaycastHit _hit in hits)
         {
             // Check if the hit object matches the target
-            if (hit.transform == targetObject)
+            if (_hit.transform == targetObject)
             {
+                hit = _hit;
                 return true; // Target object was hit
             }
         }
 
         // Target object was not hit
+        hit = default;
         return false;
     }
 }
+
