@@ -87,24 +87,27 @@ private double NormalRandom(System.Random rng, double mean, double stdDev)
 }
 
 // Helper: Generate a random direction vector inside a cone
-private Vector3 RandomDirectionInCone(System.Random rng, Vector3 coneDirection, float coneAngleRad)
-{
-    // Random angle from 0 to coneAngleRad
-    double cosTheta = 1 - rng.NextDouble() * (1 - Math.Cos(coneAngleRad));
-    double sinTheta = Math.Sqrt(1 - cosTheta * cosTheta);
+    private Vector3 RandomDirectionInCone(System.Random rng, Vector3 coneDirection, float coneAngleRad)
+    {
+        // Random azimuth 0 to 2π
+        double phi = rng.NextDouble() * 2.0 * Math.PI;
 
-    // Random azimuthal angle from 0 to 2pi
-    double phi = rng.NextDouble() * 2 * Math.PI;
+        // Biased random elevation (0 to coneAngleRad)
+        // Square of NextDouble() biases towards zero (more central clustering)
+        double theta = Math.Pow(rng.NextDouble(), 2.0) * coneAngleRad;
 
-    // Direction in local cone space (assuming coneDirection is along +Z)
-    Vector3 localDir = new Vector3(
-        (float)(sinTheta * Math.Cos(phi)),
-        (float)(sinTheta * Math.Sin(phi)),
-        (float)cosTheta);
+        // Convert spherical to Cartesian (assuming cone along +Z)
+        double sinTheta = Math.Sin(theta);
+        Vector3 localDir = new Vector3(
+            (float)(sinTheta * Math.Cos(phi)),
+            (float)(sinTheta * Math.Sin(phi)),
+            (float)Math.Cos(theta)
+        );
 
-    // Rotate localDir to align with coneDirection
-    return RotateVectorToDirection(localDir, coneDirection);
-}
+        // Rotate localDir to align with coneDirection
+        return RotateVectorToDirection(localDir, coneDirection);
+    }
+
 
 // Helper: Rotate vector from local +Z to target direction
 private Vector3 RotateVectorToDirection(Vector3 vec, Vector3 targetDir)
