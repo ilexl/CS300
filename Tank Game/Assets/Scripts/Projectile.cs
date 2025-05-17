@@ -20,6 +20,7 @@ public class Projectile : MaterialObject
     [SerializeField]
     public UnityEngine.Material unityMaterial;
 
+    public static List<Projectile> Projectiles = new List<Projectile>();
     public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM,
         MaterialKey mKey)
     {
@@ -40,8 +41,8 @@ public class Projectile : MaterialObject
 
     public void Start()
     {
-        _previousPos = transform.position;
-        if (unityMaterial == null) throw new Exception("Material field must be set!");
+        Projectiles.Add(this);
+        _layerMask = LayerMask.GetMask("Armour");   // Why can't I make this static, unity?? Are you trying to make optimization impossible?
         _layerMask = LayerMask.GetMask("Armour");   
     }
     public void SetProjectileProperties(float velocityMS, float diameterM, float lengthM, MaterialKey mKey)
@@ -139,6 +140,11 @@ public class Projectile : MaterialObject
         return true;
     }
 
+    public void Destroy()
+    {
+        Destroy(gameObject);
+        Projectiles.Remove(this);
+    }
     
     // An attempt at CSG-based plate damage
     // private void DamagePlate(Collider[] colliders )    
