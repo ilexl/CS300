@@ -47,11 +47,11 @@ public class PlayerRespawn : NetworkBehaviour
             return;
         }
 
-        GameObject player = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.gameObject;
-        player.transform.position = GetRandomizedSpawnPosition(team);
-
         playerTeams[clientId] = team;
         Debug.Log($"Client {clientId} joined {team} team");
+
+        Vector3 spawnPos = GetRandomizedSpawnPosition(team);
+        SendPlayerToSpawnClientRpc(clientId, spawnPos);
     }
 
     private Vector3 GetRandomizedSpawnPosition(Team team)
@@ -73,6 +73,20 @@ public class PlayerRespawn : NetworkBehaviour
         Vector3 offset = new Vector3(randomCircle.x, 0, randomCircle.y);
         return baseSpawn.position + offset;
     }
+
+    [ClientRpc]
+    private void SendPlayerToSpawnClientRpc(ulong targetClientId, Vector3 spawnPosition)
+    {
+        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
+
+        var player = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (player != null)
+        {
+            player.transform.position = spawnPosition;
+            player.transform.rotation = Quaternion.identity; // Reset rotation to 0,0,0
+        }
+    }
+
 
     public void RemovePlayerTeam(ulong clientId)
     {
@@ -106,7 +120,7 @@ public class PlayerRespawn : NetworkBehaviour
             }
         }
 
-        // Then broadcast to all other clients (we'll handle local below)
+        // Broadcast to all clients (including requester)
         UpdateTankClientRpc(clientId, tankName);
     }
 
