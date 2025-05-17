@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class TankMovement : MonoBehaviour
+public class TankMovement : NetworkBehaviour
 {
-    [SerializeField] Transform hull;
-    [SerializeField] Transform turret;
-    [SerializeField] Transform cannon;
+    [SerializeField] GameObject hull;
+    [SerializeField] List<GameObject> turrets;
+    [SerializeField] List<GameObject> cannons;
     [SerializeField] Camera playerCamera;
     [SerializeField] float moveSpeed = 5f;
     [SerializeField] float rotationSpeed = 60f;
@@ -13,29 +14,75 @@ public class TankMovement : MonoBehaviour
     [SerializeField] float cannonElevationSpeed = 30f;
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
-    [SerializeField] float aimSmoothSpeed = 5f;
+    [SerializeField] bool canMove = true;
+    [SerializeField] Transform sniperCameraPos;
+    [SerializeField] Transform debugAimObject;
+    TankVarients currentTank;
 
-    private float cannonAngle = 0f;
     private Vector3 aimPoint;
+    private bool sniperMode;
 
-    public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons)
+    private Vector3 lastServerPosition;
+    private Quaternion lastServerRotation;
+    private float correctionThreshold = 1.5f;
+
+    private List<Quaternion> turretRotations = new List<Quaternion>();
+    private List<Quaternion> cannonRotations = new List<Quaternion>();
+
+    public bool SniperMode => sniperMode;
+    public Transform GetSniperCameraTransform() => sniperCameraPos;
+    public Vector3 GetAimPoint() => aimPoint;
+
+    public bool CanMove() => canMove;
+    public void SetCanMove(bool set) => canMove = set;
+
+    public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons, GameObject SniperCameraPos)
     {
-        this.hull = hull.transform;
-        this.turret = turrets[0].transform;
-        this.cannon = cannons[0].transform;
+        currentTank = tank;
+        this.hull = hull;
+        this.turrets = turrets;
+        this.cannons = cannons;
+        this.sniperCameraPos = SniperCameraPos.transform;
     }
 
-    void Awake()
+    public void SetPlayerCamera(Camera camera)
     {
-        playerCamera = Camera.main;
+        playerCamera = camera;
     }
 
     void Update()
     {
-        HandleHullMovement();
-        UpdateAimPoint();
-        HandleTurretRotation();
-        HandleCannonElevation();
+        if (!canMove) return;
+
+        if (hull == null || turrets == null || cannons == null || sniperCameraPos == null)
+        {
+            if (currentTank != null) FixTankRunTime();
+            return;
+        }
+
+        if (IsOwner)
+        {
+            HandleHullMovement();
+            SniperCheck();
+            UpdateAimPoint();
+            HandleTurretRotation();
+            HandleCannonElevation();
+            SyncTurretAndCannonRotations(); // from player to server/other players
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (IsServer && !IsOwner)
+        {
+            ServerValidateClientMovement();
+        }
+    }
+
+    void FixTankRunTime()
+    {
+        GetComponent<Player>().ChangeTank(GetComponent<Player>().TankVarient);
+        GetComponent<TankVisuals>().RefreshList();
     }
 
     void HandleHullMovement()
@@ -43,35 +90,162 @@ public class TankMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Vertical");
         float rotateInput = Input.GetAxis("Horizontal");
 
-        hull.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
-        hull.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
+        if (moveInput < 0) rotateInput *= -1;
+
+        hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
+        hull.transform.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
+
+        SubmitPositionToServerServerRpc(hull.transform.position, hull.transform.rotation);
+    }
+
+    [ServerRpc]
+    void SubmitPositionToServerServerRpc(Vector3 position, Quaternion rotation)
+    {
+        lastServerPosition = position;
+        lastServerRotation = rotation;
+    }
+
+    void ServerValidateClientMovement()
+    {
+        if (hull == null) return;
+
+        float distance = Vector3.Distance(hull.transform.position, lastServerPosition);
+        if (distance > correctionThreshold)
+        {
+            hull.transform.position = lastServerPosition;
+            hull.transform.rotation = lastServerRotation;
+            Debug.LogWarning($"Correcting client movement. Distance was {distance}.");
+        }
     }
 
     void UpdateAimPoint()
     {
+        if (playerCamera == null && IsOwner) playerCamera = Camera.main;
+        if (playerCamera == null) return;
+
+        int layerMask = ~((1 << 2) | (1 << 10));
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
         {
             aimPoint = hit.point;
+            Debug.DrawLine(playerCamera.transform.position, hit.point, Color.red);
+            if (debugAimObject != null) debugAimObject.position = aimPoint;
         }
         else
         {
             aimPoint = playerCamera.transform.position + playerCamera.transform.forward * 1000f;
+            Debug.DrawLine(playerCamera.transform.position, aimPoint, Color.green);
+            if (debugAimObject != null) debugAimObject.position = aimPoint;
         }
     }
 
     void HandleTurretRotation()
     {
-        Vector3 direction = (aimPoint - turret.position).normalized;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-        turret.rotation = Quaternion.Slerp(turret.rotation, lookRotation, aimSmoothSpeed * Time.deltaTime);
+        if (turrets == null) return;
+
+        turretRotations.Clear();
+
+        foreach (GameObject turret in turrets)
+        {
+            Vector3 targetDirection = aimPoint - turret.transform.position;
+            targetDirection.y = 0;
+
+            if (targetDirection.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+                turret.transform.rotation = Quaternion.Slerp(turret.transform.rotation, targetRotation, turretRotationSpeed * Time.deltaTime);
+            }
+
+            turret.transform.localEulerAngles = new Vector3(0, turret.transform.localEulerAngles.y, 0);
+            turretRotations.Add(turret.transform.localRotation);
+        }
     }
 
     void HandleCannonElevation()
     {
-        Vector3 direction = (aimPoint - cannon.position).normalized;
-        float targetAngle = Mathf.Asin(direction.y) * Mathf.Rad2Deg;
-        cannonAngle = Mathf.Clamp(targetAngle, minCannonAngle, maxCannonAngle);
-        cannon.localRotation = Quaternion.Lerp(cannon.localRotation, Quaternion.Euler(cannonAngle, 0, 0), aimSmoothSpeed * Time.deltaTime);
+        if (cannons == null) return;
+
+        cannonRotations.Clear();
+
+        foreach (GameObject cannon in cannons)
+        {
+            Transform cannonBarrel = cannon.transform.GetChild(0);
+            Vector3 direction = aimPoint - cannonBarrel.position;
+            Vector3 localDirection = cannonBarrel.parent.InverseTransformDirection(direction.normalized);
+
+            float pitchAngle = -Mathf.Atan2(localDirection.y, new Vector2(localDirection.x, localDirection.z).magnitude) * Mathf.Rad2Deg;
+            pitchAngle = Mathf.Clamp(pitchAngle, minCannonAngle, maxCannonAngle);
+
+            Quaternion targetRotation = Quaternion.Euler(pitchAngle, 0, 0);
+            cannonBarrel.localRotation = Quaternion.Lerp(cannonBarrel.localRotation, targetRotation, cannonElevationSpeed * Time.deltaTime);
+
+            cannonRotations.Add(cannonBarrel.localRotation);
+
+            if (debugAimObject != null)
+            {
+                Ray ray = new Ray(cannonBarrel.position, cannonBarrel.forward);
+                int layerMask = ~((1 << 2) | (1 << 10));
+                if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f, layerMask))
+                {
+                    Debug.DrawLine(cannonBarrel.position, currentHit.point, Color.yellow);
+                }
+                else
+                {
+                    Vector3 currentAimPoint = cannonBarrel.position + cannonBarrel.forward * 1000f;
+                    Debug.DrawLine(cannonBarrel.position, currentAimPoint, Color.yellow);
+                }
+            }
+        }
     }
+
+    void SyncTurretAndCannonRotations()
+    {
+        if (!IsOwner) return;
+
+        // Debug.Log($"{OwnerClientId} sent update to all");
+
+        Vector3[] turretEuler = new Vector3[turretRotations.Count];
+        Vector3[] cannonEuler = new Vector3[cannonRotations.Count];
+
+        for (int i = 0; i < turretRotations.Count; i++)
+            turretEuler[i] = turretRotations[i].eulerAngles;
+
+        for (int i = 0; i < cannonRotations.Count; i++)
+            cannonEuler[i] = cannonRotations[i].eulerAngles;
+
+        SendRotationsToServerServerRpc(turretEuler, cannonEuler);
+    }
+
+    [ServerRpc]
+    void SendRotationsToServerServerRpc(Vector3[] turretEuler, Vector3[] cannonEuler)
+    {
+        SyncTurretAndCannonRotationsClientRpc(turretEuler, cannonEuler);
+    }
+
+    [ClientRpc]
+    void SyncTurretAndCannonRotationsClientRpc(Vector3[] syncedTurretEulerAngles, Vector3[] syncedCannonEulerAngles)
+    {
+        if (IsOwner) return;
+
+        // Debug.Log($"{NetworkManager.Singleton.LocalClientId} received update");
+
+        for (int i = 0; i < turrets.Count && i < syncedTurretEulerAngles.Length; i++)
+        {
+            turrets[i].transform.localEulerAngles = new Vector3(0f, syncedTurretEulerAngles[i].y, 0f);
+        }
+
+        for (int i = 0; i < cannons.Count && i < syncedCannonEulerAngles.Length; i++)
+        {
+            Transform cannonBarrel = cannons[i].transform.GetChild(0);
+            cannonBarrel.localEulerAngles = syncedCannonEulerAngles[i];
+        }
+    }
+
+    void SniperCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift)) sniperMode = !sniperMode;
+    }
+
+    public GameObject GetCannon(int cannonIndex) => cannons[cannonIndex];
 }

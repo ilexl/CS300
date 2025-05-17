@@ -1,18 +1,23 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
-using log4net.Filter;
+using System;
+using Unity.Netcode.Components;
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-[RequireComponent(typeof(TankMovement))]
 public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
+    [SerializeField] TankVisuals tankVisuals;
+    [SerializeField] PlayerTeam playerTeam;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
+    public bool LocalPlayer = false; // TODO: fix for multiplayer as defaults to false with no checks currently
     public TankVarients TankVarient
     {
         get { return currentTank; }
@@ -24,11 +29,14 @@ public class Player : NetworkBehaviour
     }
 
     public void OnValidate()
-    { 
-        #if UNITY_EDITOR
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-        if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
-        if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
+    {
+    #if UNITY_EDITOR
+        if (EditorApplication.isPlaying is false)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
+            if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
+        }
 
         // Schedule object destruction to avoid Unity serialization issues
         UnityEditor.EditorApplication.delayCall += () =>
@@ -52,11 +60,47 @@ public class Player : NetworkBehaviour
         #endif
     }
 
+    private void Start()
+    {
+        LocalPlayer = GetComponent<NetworkObject>().IsOwner;
+        if(LocalPlayer)
+        {
+            Camera.main.GetComponent<CameraControl>().target = transform;
+        }
+    }
+
+    void SetLayerAllChildren(Transform root, int layer)
+    {
+        root.gameObject.layer = layer;
+        var children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        foreach (var child in children)
+        {
+            // Debug.Log(child.name);
+            child.gameObject.layer = layer;
+        }
+    }
+    public void ChangeTank(string tankName)
+    {
+        TankVarients tv = TankVarients.GetFromString(tankName);
+        
+        if (tv != null) 
+        {
+            ChangeTank(tv);
+            return;
+        }
+
+        ChangeTank((TankVarients)null); // change tank to null if not found
+    }
     public void ChangeTank(TankVarients tank)
     {
         if (tank == null)
         {
-            Debug.LogError("Cannot change tank to null");
+            Debug.LogWarning("Cannot change tank to null");
+            if (HUDUI.current is not null)
+            {
+                Debug.Log("Showing Respawn Window as tank cannot be null...");
+                HUDUI.current.ShowRespawnUI();
+            }
             return;
         }
 
@@ -73,7 +117,17 @@ public class Player : NetworkBehaviour
         }
 
         // hull
+        if (tank.hullModel == null)
+        {
+            Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
+            return;
+        }
         GameObject hull = Instantiate(tank.hullModel, this.transform);
+        if (tank.hullPosition == null)
+        {
+            Debug.LogError($"{tank.tankName} [hull position] == null... STOPING EXECUTION");
+            return;
+        }
         hull.transform.localPosition = tank.hullPosition;
 
         // turrets
@@ -81,10 +135,42 @@ public class Player : NetworkBehaviour
         for (int i = 0; i < tank.turretModels.Length; i++) 
         {
             GameObject holder = Instantiate(holderPrefab, hull.transform);
-            holder.transform.localPosition = tank.turretPositions[i];
-            GameObject tm = tank.turretModels[i];
+            try { holder.transform.localPosition = tank.turretPivotPoints[i]; } 
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                holder.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            if (tank.hullModel == null)
+            {
+                Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
+                return;
+            }
+            GameObject tm = tank.turretModels[i]; // no check as for loop has max defined
+            if(tm == null)
+            {
+                Debug.LogError($"{tank.tankName} [turret model] @ index {i} == null... STOPING EXECUTION");
+                return;
+            }
             GameObject t = Instantiate(tm, holder.transform);
-            t.transform.localEulerAngles = tank.turretRotations[i];
+            try { t.transform.localPosition = tank.turretPositions[i] - tank.turretPivotPoints[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [turret positions OR turret pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                t.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            try { t.transform.localEulerAngles = tank.turretRotations[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [turret rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                t.transform.localEulerAngles = Vector3.zero;
+            }
+            #endregion
             turrets.Add(holder);
         }
 
@@ -92,21 +178,88 @@ public class Player : NetworkBehaviour
         List<GameObject> cannons = new List<GameObject>();
         for (int i = 0; i < tank.cannonModels.Length; i++)
         {
-            GameObject cm = tank.cannonModels[i];
-            int turretIndex = tank.cannonAttachedToTurretIndexs[i];
-            Debug.Log(turretIndex);
-            GameObject c = Instantiate(cm, turrets[turretIndex].transform);
-            c.transform.localPosition = tank.cannonPositions[i];
-            c.transform.localEulerAngles = tank.cannonRotations[i];
-            cannons.Add(c);
+            int turretIndex = 0;
+            try { turretIndex = tank.cannonAttachedToTurretIndexs[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [cannon attached to turret indexs] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                turretIndex = 0;
+            }
+            #endregion
+            GameObject holder = Instantiate(holderPrefab, turrets[turretIndex].transform);
+            try { holder.transform.localPosition = tank.cannonPivotPoints[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [cannon pivot points] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                holder.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            GameObject cm = tank.cannonModels[i]; // no check as for loop has max defined
+            if (cm == null)
+            {
+                Debug.LogError($"{tank.tankName} [cannon model] @ index {i} == null... STOPING EXECUTION");
+                return;
+            }
+            GameObject c = Instantiate(cm, holder.transform);
+            try { c.transform.localPosition = tank.cannonPositions[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [cannon positions] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                c.transform.localPosition = Vector3.zero;
+            }
+            #endregion
+            try { c.transform.localEulerAngles = tank.cannonRotations[i]; }
+            #region catch
+            catch (IndexOutOfRangeException)
+            {
+                Debug.LogError($"{tank.tankName} [cannon rotations] @ index {i} == OUT OF RANGE... SET TO 0 and CONTINUING");
+                c.transform.localEulerAngles = Vector3.zero;
+            }
+            #endregion
+            cannons.Add(holder);
         }
 
         // update overall scale
         hull.transform.localScale = tank.modelScale;
 
-        // update tank movement script
-        tankMovement.UpdateTank(tank, gameObject, turrets, cannons); 
+        // create empty gameobject for camera pos in snipermode
+        GameObject sniperPos = Instantiate(holderPrefab, hull.transform);
+        sniperPos.transform.localPosition = tank.cameraPosSniper;
+        sniperPos.name = "SNIPERMODE CAMERA POSITION";
 
+        // update tank movement script
+        if (tankMovement == null || tankVisuals == null)
+        {
+            Debug.Log("Player missing movement or visual scripts. " +
+                "This may be intended but stops some code frome executing");
+        }
+        else
+        {
+            tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
+            Debug.Log("TankMovement Script Updated!");
+        }
+
+        if(playerTeam is null)
+        {
+            Debug.LogWarning("PlayerTeam Script is missing and health bar will not work...");
+        }
+        else
+        {
+            playerTeam.SetTeamSide(playerTeam.team); // set to whatever it already is
+        }
+
+        // set all layers to local or default
+        if (LocalPlayer)
+        {
+            SetLayerAllChildren(transform, 10); // 10 is local player
+        }
+        else
+        {
+            SetLayerAllChildren(transform, 0); // 0 is default
+        }
 
         currentTank = tank;
         Debug.Log($"Tank successfully changed to {tank.name}");

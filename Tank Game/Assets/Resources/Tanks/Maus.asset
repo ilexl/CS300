@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 985bdfed7d52bb74b92d952d6e21711f, type: 3}
+  m_Name: Maus
+  m_EditorClassIdentifier: 
+  tankName: Maus
+  cannonModels:
+  - {fileID: 3170276044312012370, guid: a1305464d5dcd1246afa411512fdc221, type: 3}
+  - {fileID: 3332158073181034661, guid: bf101498e9ffa434ca6835264fd37f3d, type: 3}
+  cannonDiameters:
+  - 0
+  - 0
+  cannonLengths:
+  - 0
+  - 0
+  cannonPivotPoints:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  cannonPositions:
+  - {x: 0, y: 4.55, z: 1}
+  - {x: 0, y: 4.55, z: 1}
+  cannonRotations:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  cannonAttachedToTurretIndexs: 0000000000000000
+  turretModels:
+  - {fileID: 8312975039670094758, guid: 549156b6641654f4fb73aa71e15b3f12, type: 3}
+  turretWidths:
+  - 0
+  turretLengths:
+  - 0
+  turretHeights:
+  - 0
+  turretPivotPoints:
+  - {x: 0, y: 0, z: 0}
+  turretPositions:
+  - {x: 0, y: 0, z: 0}
+  turretRotations:
+  - {x: 270, y: 0, z: 0}
+  hullModel: {fileID: 6091899036476872224, guid: c379784e60df5744eab108008da68d1a, type: 3}
+  hullWidth: 0
+  hullLength: 0
+  hullHeight: 0
+  hullRotation: {x: 0, y: 0, z: 0}
+  hullPosition: {x: 0, y: 0, z: 0}
+  modelScale: {x: 0.6, y: 0.6, z: 0.6}
+  turretRotationSpeed:
+  - 1
+  gunAimSpeed:
+  - 1
+  tankMoveSpeed: 1
+  cameraPosSniper: {x: 0, y: 4.5, z: 0.75}
