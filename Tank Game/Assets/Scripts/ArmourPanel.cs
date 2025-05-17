@@ -135,20 +135,9 @@ private Vector3 RotateAroundAxis(Vector3 v, Vector3 axis, float angle)
     return v * cos + Vector3.Cross(axis, v) * sin + axis * (Vector3.Dot(axis, v) * (1 - cos));
 }
 
-// Dummy spawn method - replace this with your actual spall fragment spawning code
-private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
-{
-    Vector3 dir = velocity.normalized;
-    bool didHit = Physics.Raycast(position + dir * 0.001f, velocity, out RaycastHit hit, 100f);
-
-    if (!didHit)
+    private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
     {
-        Debug.DrawRay(position, velocity, Color.red, 10f);
+        // Create a new projectile using the current plate's material
+        Projectile.Create(position, velocity, size, size, MaterialType);
     }
-    else
-    {
-        Debug.DrawLine(position, hit.point, Color.red, 10f);
-    }
-    
-}
 }
