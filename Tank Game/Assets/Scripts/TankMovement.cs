@@ -49,9 +49,9 @@ public class TankMovement : MonoBehaviour
 
     void Update()
     {
-        if(GetComponent<PlayerSetup>() is not null && GetComponent<PlayerSetup>().enabled) { return; } // dont update if setting up
         if (canMove is false) { return; }
-        if (GetComponent<Player>().LocalPlayer is false) { return; }
+        if (GetComponent<Player>().LocalPlayer == false) { return; }
+        if (GetComponent<Player>().TankVarient == null) { return; }
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null) 
         {
             if (currentTank != null) { FixTankRunTime(); }
@@ -91,26 +91,28 @@ public class TankMovement : MonoBehaviour
 
     void UpdateAimPoint()
     {
-        if(playerCamera is null) { return; }
+        if((playerCamera is null || playerCamera == null) && GetComponent<Player>().LocalPlayer == true) 
+        {
+            playerCamera = Camera.main;
+        }
+        if(playerCamera is null || playerCamera == null) { return; }
         int layerMask = ~((1 << 2) | (1 << 10)); // hit everything but layer 10 and 2
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
         {
             aimPoint = hit.point;
             Debug.DrawLine(playerCamera.transform.position, hit.point, Color.red);
-            if(debugAimObject is not null)
-            {
-                debugAimObject.position = aimPoint;
-            }
+            if(debugAimObject is null || debugAimObject == null) { return; }
+            
+            debugAimObject.position = aimPoint;
         }
         else
         {
             aimPoint = playerCamera.transform.position + playerCamera.transform.forward * 1000f;
             Debug.DrawLine(playerCamera.transform.position, aimPoint, Color.green);
-            if (debugAimObject is not null)
-            {
-                debugAimObject.position = aimPoint;
-            }
+            if (debugAimObject is null || debugAimObject == null) { return; }
+            
+            debugAimObject.position = aimPoint;
         }
 
         // Log the aim point for debugging purposes

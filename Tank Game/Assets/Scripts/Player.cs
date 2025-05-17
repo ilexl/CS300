@@ -58,11 +58,13 @@ public class Player : MonoBehaviour
         #endif
     }
 
-    public void Setup(TankMovement tm, PlayerTeam pt, TankVisuals tv, bool localPlayer)
+    private void Start()
     {
-        tankMovement = tm;
-        playerTeam = pt;
-        tankVisuals = tv;
+        LocalPlayer = GetComponent<NetworkObject>().IsOwner;
+        if(LocalPlayer)
+        {
+            Camera.main.GetComponent<CameraControl>().target = transform;
+        }
     }
 
     void SetLayerAllChildren(Transform root, int layer)

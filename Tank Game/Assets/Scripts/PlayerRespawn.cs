@@ -6,7 +6,6 @@ public class PlayerRespawn : NetworkBehaviour
 {
     public static PlayerRespawn Singleton { get; private set; }
 
-    [SerializeField] GameObject playerPrefab;
     [SerializeField] TankVarients tempTankRespawn; // TODO: add tank selection
     [SerializeField] Transform TeamOrangeRespawn, TeamBlueRespawn;
     [SerializeField] float spawnRadius = 5f;
@@ -30,41 +29,16 @@ public class PlayerRespawn : NetworkBehaviour
             return;
         }
 
-        if (NetworkManager.Singleton.ConnectedClients.ContainsKey(clientId) &&
-            NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject != null)
-        {
-            Debug.LogWarning($"Client {clientId} already has a player object.");
-            return;
-        }
+        GameObject player = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.gameObject;
+        player.transform.position = GetRandomizedSpawnPosition(team);
+        //player.GetComponent<Player>().Respawn();
 
         playerTeams[clientId] = team;
         Debug.Log($"Client {clientId} joined {team} team");
 
-        SpawnPlayer(clientId, team);
-    }
 
-    private void SpawnPlayer(ulong clientId, Team team)
-    {
-        if (playerPrefab == null)
-        {
-            Debug.LogError("Player prefab not assigned!");
-            return;
-        }
 
-        Vector3 spawnPos = GetRandomizedSpawnPosition(team);
-        GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-
-        NetworkObject netObj = player.GetComponent<NetworkObject>();
-        netObj.SpawnAsPlayerObject(clientId);
-        Debug.Log("Player spawned!");
-
-        /*netObj.GetComponent<Player>().ChangeTankClientRpc(tempTankRespawn.tankName);
-
-        var pt = player.GetComponent<PlayerTeam>();
-        if (pt != null)
-        {
-            pt.SetTeamSide(team);
-        }*/
+        //SpawnPlayer(clientId, team); // test spawn
     }
 
     private Vector3 GetRandomizedSpawnPosition(Team team)

@@ -35,6 +35,7 @@ public class TankCombat : MonoBehaviour
     void Update()
     {
         if (GetComponent<Player>().LocalPlayer is false) { return; } // not controlling other players damage system...
+        if (GetComponent<Player>().TankVarient == null) { return; }
 
         if (CurrentReload > 0f)
         {
