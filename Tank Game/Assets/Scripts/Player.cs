@@ -2,13 +2,15 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 using System;
+using Unity.Netcode.Components;
+
 
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public class Player : MonoBehaviour
+public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
     [SerializeField] TankVisuals tankVisuals;
