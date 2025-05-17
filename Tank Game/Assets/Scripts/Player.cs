@@ -77,20 +77,17 @@ public class Player : MonoBehaviour
             child.gameObject.layer = layer;
         }
     }
-
-    [ClientRpc]
-    public void ChangeTankClientRpc(string tankName)
+    public void ChangeTank(string tankName)
     {
-        TankVarients[] allTanks = Resources.LoadAll<TankVarients>("Tanks"); // "Tanks" folder must be located in Resources
-        foreach (var tank in allTanks)
+        TankVarients tv = TankVarients.GetFromString(tankName);
+        
+        if (tv != null) 
         {
-            if(tank.tankName == tankName)
-            {
-                ChangeTank(tank);
-                return;
-            }
+            ChangeTank(tv);
+            return;
         }
-        ChangeTank(null);
+
+        ChangeTank((TankVarients)null); // change tank to null if not found
     }
     public void ChangeTank(TankVarients tank)
     {

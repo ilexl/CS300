@@ -39,4 +39,33 @@ public class TankVarients : ScriptableObject
     [Tooltip("in m/s")] public float[] gunAimSpeed;
     [Tooltip("in m/s")] public float tankMoveSpeed;
     public Vector3 cameraPosSniper;
+
+
+
+
+
+    /// <summary>
+    /// Loads a TankVarients ScriptableObject from Resources/Tanks by name.
+    /// </summary>
+    /// <param name="tankName">The name of the tank asset (must match filename)</param>
+    /// <returns>TankVarients if found, otherwise null</returns>
+    public static TankVarients GetFromString(string tankName)
+    {
+        if (string.IsNullOrWhiteSpace(tankName))
+        {
+            Debug.LogWarning("Tank name is null or empty.");
+            return null;
+        }
+
+        TankVarients tank = Resources.Load<TankVarients>($"Tanks/{tankName}");
+
+        if (tank == null)
+        {
+            Debug.LogWarning($"TankVarient '{tankName}' not found in Resources/Tanks/");
+        }
+
+        return tank;
+    }
+    
+
 }
