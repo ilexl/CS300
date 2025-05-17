@@ -31,7 +31,7 @@ public class ArmourPanel : MaterialObject
 {
     // Parameters for spall generation
     float baseFragmentCount = thickness * projectileDiameter * 10000f; // tune multiplier for density
-    int fragmentCount = Math.Clamp((int)baseFragmentCount, 2, 500);  // clamp for min/max fragments
+    int fragmentCount = Math.Clamp((int)baseFragmentCount, 0, 500);  // clamp for min/max fragments
 
     float baseFragmentSize = projectileDiameter * 0.1f;             // base fragment size relative to projectile
     float sizeStdDev = baseFragmentSize * 0.3f;                     // standard deviation of fragment size
