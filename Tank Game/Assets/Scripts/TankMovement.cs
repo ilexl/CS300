@@ -26,6 +26,9 @@ public class TankMovement : NetworkBehaviour
     private Quaternion lastServerRotation;
     private float correctionThreshold = 1.5f;
 
+    private List<Quaternion> turretRotations = new List<Quaternion>();
+    private List<Quaternion> cannonRotations = new List<Quaternion>();
+
     public bool SniperMode => sniperMode;
     public Transform GetSniperCameraTransform() => sniperCameraPos;
     public Vector3 GetAimPoint() => aimPoint;
@@ -49,20 +52,23 @@ public class TankMovement : NetworkBehaviour
 
     void Update()
     {
-        if(IsOwner == false) { return; }
-        if(canMove == false) { return; }
+        if (!canMove) return;
 
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null)
         {
-            if (currentTank != null) { FixTankRunTime(); }
+            if (currentTank != null) FixTankRunTime();
             return;
         }
 
-        HandleHullMovement();
-        SniperCheck();
-        UpdateAimPoint();
-        HandleTurretRotation();
-        HandleCannonElevation();
+        if (IsOwner)
+        {
+            HandleHullMovement();
+            SniperCheck();
+            UpdateAimPoint();
+            HandleTurretRotation();
+            HandleCannonElevation();
+            SyncTurretAndCannonRotations(); // from player to server/other players
+        }
     }
 
     void LateUpdate()
@@ -101,6 +107,8 @@ public class TankMovement : NetworkBehaviour
 
     void ServerValidateClientMovement()
     {
+        if (hull == null) return;
+
         float distance = Vector3.Distance(hull.transform.position, lastServerPosition);
         if (distance > correctionThreshold)
         {
@@ -112,7 +120,7 @@ public class TankMovement : NetworkBehaviour
 
     void UpdateAimPoint()
     {
-        if ((playerCamera == null) && IsOwner) playerCamera = Camera.main;
+        if (playerCamera == null && IsOwner) playerCamera = Camera.main;
         if (playerCamera == null) return;
 
         int layerMask = ~((1 << 2) | (1 << 10));
@@ -136,6 +144,8 @@ public class TankMovement : NetworkBehaviour
     {
         if (turrets == null) return;
 
+        turretRotations.Clear();
+
         foreach (GameObject turret in turrets)
         {
             Vector3 targetDirection = aimPoint - turret.transform.position;
@@ -148,12 +158,15 @@ public class TankMovement : NetworkBehaviour
             }
 
             turret.transform.localEulerAngles = new Vector3(0, turret.transform.localEulerAngles.y, 0);
+            turretRotations.Add(turret.transform.localRotation);
         }
     }
 
     void HandleCannonElevation()
     {
         if (cannons == null) return;
+
+        cannonRotations.Clear();
 
         foreach (GameObject cannon in cannons)
         {
@@ -167,21 +180,65 @@ public class TankMovement : NetworkBehaviour
             Quaternion targetRotation = Quaternion.Euler(pitchAngle, 0, 0);
             cannonBarrel.localRotation = Quaternion.Lerp(cannonBarrel.localRotation, targetRotation, cannonElevationSpeed * Time.deltaTime);
 
+            cannonRotations.Add(cannonBarrel.localRotation);
+
             if (debugAimObject != null)
             {
-                Transform cannonAimStart = cannon.transform.GetChild(0);
-                Ray ray = new Ray(cannonAimStart.position, cannon.transform.GetChild(0).forward);
+                Ray ray = new Ray(cannonBarrel.position, cannonBarrel.forward);
                 int layerMask = ~((1 << 2) | (1 << 10));
                 if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f, layerMask))
                 {
-                    Debug.DrawLine(cannonAimStart.position, currentHit.point, Color.yellow);
+                    Debug.DrawLine(cannonBarrel.position, currentHit.point, Color.yellow);
                 }
                 else
                 {
-                    Vector3 currentAimPoint = cannonAimStart.position + cannon.transform.forward * 1000f;
-                    Debug.DrawLine(cannonAimStart.position, currentAimPoint, Color.yellow);
+                    Vector3 currentAimPoint = cannonBarrel.position + cannonBarrel.forward * 1000f;
+                    Debug.DrawLine(cannonBarrel.position, currentAimPoint, Color.yellow);
                 }
             }
+        }
+    }
+
+    void SyncTurretAndCannonRotations()
+    {
+        if (!IsOwner) return;
+
+        // Debug.Log($"{OwnerClientId} sent update to all");
+
+        Vector3[] turretEuler = new Vector3[turretRotations.Count];
+        Vector3[] cannonEuler = new Vector3[cannonRotations.Count];
+
+        for (int i = 0; i < turretRotations.Count; i++)
+            turretEuler[i] = turretRotations[i].eulerAngles;
+
+        for (int i = 0; i < cannonRotations.Count; i++)
+            cannonEuler[i] = cannonRotations[i].eulerAngles;
+
+        SendRotationsToServerServerRpc(turretEuler, cannonEuler);
+    }
+
+    [ServerRpc]
+    void SendRotationsToServerServerRpc(Vector3[] turretEuler, Vector3[] cannonEuler)
+    {
+        SyncTurretAndCannonRotationsClientRpc(turretEuler, cannonEuler);
+    }
+
+    [ClientRpc]
+    void SyncTurretAndCannonRotationsClientRpc(Vector3[] syncedTurretEulerAngles, Vector3[] syncedCannonEulerAngles)
+    {
+        if (IsOwner) return;
+
+        // Debug.Log($"{NetworkManager.Singleton.LocalClientId} received update");
+
+        for (int i = 0; i < turrets.Count && i < syncedTurretEulerAngles.Length; i++)
+        {
+            turrets[i].transform.localEulerAngles = new Vector3(0f, syncedTurretEulerAngles[i].y, 0f);
+        }
+
+        for (int i = 0; i < cannons.Count && i < syncedCannonEulerAngles.Length; i++)
+        {
+            Transform cannonBarrel = cannons[i].transform.GetChild(0);
+            cannonBarrel.localEulerAngles = syncedCannonEulerAngles[i];
         }
     }
 
