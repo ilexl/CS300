@@ -8,7 +8,7 @@ public abstract class MaterialObject : MonoBehaviour
 
     public Material Material => _Material;
 
-    protected MaterialKey MaterialType
+    public MaterialKey MaterialType
     {
         get => materialType;
         set
