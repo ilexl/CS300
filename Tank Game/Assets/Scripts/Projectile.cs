@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Parabox.CSG;
+//using Parabox.CSG;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using Boolean = Parabox.CSG.Boolean;
+//using Boolean = Parabox.CSG.Boolean;
 using Vector3 = UnityEngine.Vector3;
 
 public class Projectile : MaterialObject
