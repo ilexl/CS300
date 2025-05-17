@@ -20,6 +20,22 @@ public class Projectile : MaterialObject
     [SerializeField]
     public UnityEngine.Material unityMaterial;
 
+    public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM,
+        MaterialKey mKey)
+    {
+        if (Projectiles.Count >= 1000)
+        {
+            throw new Exception("Too many projectiles!");
+        }
+        // Create an empty gameobject to start with
+        var projectile = new GameObject("Projectile");
+        
+        var projectileInstance = projectile.AddComponent<Projectile>();
+        
+        projectileInstance.rb = projectile.AddComponent<Rigidbody>();
+        projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey);
+        return projectile;
+    }
     
 
     public void Start()
