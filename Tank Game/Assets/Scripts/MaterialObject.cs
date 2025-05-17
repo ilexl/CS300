@@ -4,7 +4,9 @@ public abstract class MaterialObject : MonoBehaviour
 {
     [SerializeField] 
     private MaterialKey materialType; // Backing field, directly set in unity editor
-    protected Material Material;
+    protected Material _Material;
+
+    public Material Material => _Material;
 
     protected MaterialKey MaterialType
     {
@@ -12,7 +14,7 @@ public abstract class MaterialObject : MonoBehaviour
         set
         {
             materialType = value;
-            Material = MaterialDatabase.GetMaterial(materialType);
+            _Material = MaterialDatabase.GetMaterial(materialType);
         }
     }
     
@@ -20,6 +22,6 @@ public abstract class MaterialObject : MonoBehaviour
     private void OnValidate()
     {
         // Ensure your material database lookup is valid.
-        Material = MaterialDatabase.GetMaterial(materialType);
+        _Material = MaterialDatabase.GetMaterial(materialType);
     }
 }
