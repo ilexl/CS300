@@ -14,8 +14,12 @@ public class ProjectileSpawner : MaterialObject
     private float _diameterM;
     private float _lengthM;
     private float _volume;
+
+    private int _frame = 0;
+    private int fireDelay = 60;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    void FireProjectile()
     {
         // Convert diameter and length from mm to meters
         _diameterM = projectileDiameterMm / 1000f;  // Convert mm to m
@@ -26,19 +30,24 @@ public class ProjectileSpawner : MaterialObject
         _volume = Mathf.PI * Mathf.Pow(_diameterM / 2f, 2) * _lengthM;
         
 
-        if (Material != null)
-        {
-            FireProjectile();
-        }
-        else
+        if (Material == null)
         {
             Debug.LogError("Material not found in the database!");
+            return;
         }
+        
+        // var projectileInstance = Instantiate(projectilePrefab, transform);
+        // projectileInstance.SetProjectileProperties(projectileVelocityMS * transform.forward, _diameterM, _lengthM, MaterialType);
+        Projectile.Create(transform.position, projectileVelocityMS * transform.forward, _diameterM,
+            _lengthM, MaterialType);
     }
 
-    void FireProjectile()
+    private void FixedUpdate()
     {
-        var projectileInstance = Instantiate(projectilePrefab, transform);
-        projectileInstance.SetProjectileProperties(projectileVelocityMS, _diameterM, _lengthM, MaterialType);
+        if (++_frame % fireDelay == 0)
+        {
+            _frame = 0;
+            FireProjectile();
+        }
     }
 }
