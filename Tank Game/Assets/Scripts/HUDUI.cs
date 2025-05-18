@@ -15,6 +15,7 @@ public class HUDUI : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private GameObject healthBar;
+    [SerializeField] private GameObject battleStatusBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -161,5 +162,29 @@ public class HUDUI : MonoBehaviour
     {
         orangeButton.onClick.AddListener(() => SelectTeam(Team.Orange));
         blueButton.onClick.AddListener(() => SelectTeam(Team.Blue));
+    }
+
+    public void UpdateBattleStatus(float value)
+    {
+        value = Mathf.Clamp01(value); // slider value is 0->1
+        battleStatusBar.GetComponent<Slider>().value = value;
+    }
+
+    public void SetTeams(Team local, Team away)
+    {
+        var images = battleStatusBar.GetComponentsInChildren<Image>();
+        foreach (Image image in images)
+        {
+            if (image.gameObject.name == "Fill")
+            {
+                Debug.Log("Normal Color Set");
+                image.color = PlayerTeam.GetNormalColour(local);
+            }
+            if (image.gameObject.name == "Background")
+            {
+                Debug.Log("Dark Color Set");
+                image.color = PlayerTeam.GetNormalColour(away);
+            }
+        }
     }
 }

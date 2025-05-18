@@ -51,8 +51,22 @@ public class RespawnManager : NetworkBehaviour
         playerTeams[clientId] = team;
         Debug.Log($"Client {clientId} joined {team} team");
 
+        
+
         Vector3 spawnPos = GetRandomizedSpawnPosition(team);
         SendPlayerToSpawnClientRpc(clientId, spawnPos);
+
+        // Notify all clients that this player selected a team
+        NotifyTeamSelectedClientRpc(clientId, team);
+    }
+
+    [ClientRpc]
+    private void NotifyTeamSelectedClientRpc(ulong clientId, Team team)
+    {
+        if (IsServer) { return; }
+        Debug.Log($"Client {clientId} selected team {team}");
+
+        NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<PlayerTeam>().SetTeamSide(team); // set the team
     }
 
     private Vector3 GetRandomizedSpawnPosition(Team team)

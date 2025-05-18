@@ -32,11 +32,41 @@ public class PlayerTeam : MonoBehaviour
         }
     }
 
-    public void SetTeamSide(Team side)
+    public void SetTeamSide(Team team)
     {
-        team = side;
-        Debug.Log($"Player set to team {team}");
+        this.team = team;
+        Debug.Log($"Player set to team {this.team}");
         UpdateHealthColour();
+        if(GameManager.Singleton.GetCurrentGamemode() == GameMode.CaptureTheFlag ||
+           GameManager.Singleton.GetCurrentGamemode() == GameMode.TeamDeathmatch)
+        {
+            if(team != Team.None)
+            {
+                HUDUI.Singleton.SetTeams(team, GetOppositeTeam(team));
+            } 
+        }
+    }
+
+    public static Team GetOppositeTeam(Team team)
+    {
+        if (team == Team.None)
+        {
+            Debug.LogError("Cannot return opposite team for Team.None...");
+            return Team.None;
+        }
+
+        switch (team)
+        {
+            case Team.Blue:
+                return Team.Orange;
+            case Team.Orange:
+                return Team.Blue;
+            default:
+                {
+                    Debug.LogError("Team not found...");
+                    return Team.None;
+                }
+        }
     }
 
     public void UpdateHealthBar(float current, float max = 0)
