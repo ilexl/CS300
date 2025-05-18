@@ -15,9 +15,9 @@ public class TankVisuals : MonoBehaviour
         {
             mesh.enabled = true;
         }
-        if (HUDUI.current is not null)
+        if (HUDUI.Singleton is not null)
         {
-            HUDUI.current.HideSniperMode();
+            HUDUI.Singleton.HideSniperMode();
         }
     }
 
@@ -38,7 +38,7 @@ public class TankVisuals : MonoBehaviour
         {
             mesh.enabled = false;
         }
-        HUDUI.current.ShowSniperMode();
+        HUDUI.Singleton.ShowSniperMode();
     }
 
     void Awake()

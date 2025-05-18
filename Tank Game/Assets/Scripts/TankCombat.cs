@@ -99,12 +99,12 @@ public class TankCombat : MonoBehaviour
         pt.UpdateHealthBar(CurrentHealth, MaxHealth);
         if (GetComponent<Player>().LocalPlayer)
         {
-            if (HUDUI.current is null) 
+            if (HUDUI.Singleton is null) 
             {
                 Debug.LogWarning("CANNOT SET HEALTH HUD");
                 return; 
             }
-            HUDUI.current.UpdateHealth(CurrentHealth, MaxHealth);
+            HUDUI.Singleton.UpdateHealth(CurrentHealth, MaxHealth);
             Debug.Log($"Updated HUD Health : {CurrentHealth}");
         }
     }

@@ -104,8 +104,8 @@ public class PlayerTeam : MonoBehaviour
 
         if (GetComponent<Player>().LocalPlayer)
         {
-            if (HUDUI.current == null) return;
-            HUDUI.current.UpdateTeamColour(team);
+            if (HUDUI.Singleton == null) return;
+            HUDUI.Singleton.UpdateTeamColour(team);
             Debug.Log("Updated HUD Team Colour");
         }
     }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class HUDUI : MonoBehaviour
 {
-    public static HUDUI current;
+    public static HUDUI Singleton;
     [SerializeField] private WindowManager windowManager;
     [SerializeField] private Window sniperWindow;
     [SerializeField] private Window pauseWindow;
@@ -19,7 +19,7 @@ public class HUDUI : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        current = this;
+        Singleton = this;
         SetCursorShown(false);
         ShowRespawnUI();
         SetupJoinButtons();
@@ -27,7 +27,7 @@ public class HUDUI : MonoBehaviour
 
     private void Awake()
     {
-        current = this;
+        Singleton = this;
     }
 
     private void Update()
@@ -151,9 +151,9 @@ public class HUDUI : MonoBehaviour
 
     public void SelectTeam(Team team)
     {
-        if (PlayerRespawn.Singleton != null && NetworkManager.Singleton.IsClient)
+        if (RespawnManager.Singleton != null && NetworkManager.Singleton.IsClient)
         {
-            PlayerRespawn.Singleton.SelectTeamServerRpc(team);
+            RespawnManager.Singleton.SelectTeamServerRpc(team);
         }
     }
 
