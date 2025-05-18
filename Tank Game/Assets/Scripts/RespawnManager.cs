@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerRespawn : NetworkBehaviour
+public class RespawnManager : NetworkBehaviour
 {
-    public static PlayerRespawn Singleton { get; private set; }
+    public static RespawnManager Singleton { get; private set; }
 
     [SerializeField] TankVarients tempTankRespawn;
     [SerializeField] Transform TeamOrangeRespawn, TeamBlueRespawn;
@@ -12,12 +12,12 @@ public class PlayerRespawn : NetworkBehaviour
 
     private Dictionary<ulong, Team> playerTeams = new();
 
-    private void Awake()
+    void Awake()
     {
         Singleton = this;
     }
 
-    public void Start()
+    void Start()
     {
         StartCoroutine(Spawn());
     }
@@ -33,6 +33,7 @@ public class PlayerRespawn : NetworkBehaviour
         if (IsServer)
         {
             GetComponent<NetworkObject>().Spawn(true);
+            Debug.Log("Respawn Manager spawned on network!");
         }
     }
 
