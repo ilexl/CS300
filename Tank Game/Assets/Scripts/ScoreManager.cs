@@ -4,8 +4,40 @@ using UnityEngine;
 
 public class ScoreManager : NetworkBehaviour
 {
+    public static ScoreManager Singleton { get; private set; }
     private Dictionary<ulong, int> playerScores;
     private Dictionary<Team, int> teamScores;
+
+    void Awake()
+    {
+        Singleton = this;
+    }
+    void Start()
+    {
+        StartCoroutine(Spawn());
+    }
+
+    private System.Collections.IEnumerator Spawn()
+    {
+        while (NetworkManager.Singleton == null)
+        {
+            Debug.Log("Waiting for NetworkManager...");
+            yield return null;
+        }
+
+        if (IsServer)
+        {
+            GetComponent<NetworkObject>().Spawn(true);
+            Debug.Log("Score Manager spawned on network!");
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        // This will be the start function here
+    }
+
     public void SetupScoreSystem(GameMode gameMode)
     {
         switch (gameMode)
