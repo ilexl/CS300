@@ -82,7 +82,7 @@ MonoBehaviour:
   NetworkTransformExpanded: 0
   AuthorityMode: 1
   TickSyncChildren: 0
-  UseUnreliableDeltas: 0
+  UseUnreliableDeltas: 1
   SyncPositionX: 1
   SyncPositionY: 1
   SyncPositionZ: 1
@@ -131,6 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8837fab86d7377541ba9f1c1ec143d00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   tankMovement: {fileID: 1446215712490391783}
   tankVisuals: {fileID: 5072461580168938618}
   playerTeam: {fileID: 1135166309345070894}
