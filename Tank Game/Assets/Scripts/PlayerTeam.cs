@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,14 +38,21 @@ public class PlayerTeam : MonoBehaviour
         this.team = team;
         Debug.Log($"Player set to team {this.team}");
         UpdateHealthColour();
-        if(GameManager.Singleton.GetCurrentGamemode() == GameMode.CaptureTheFlag ||
-           GameManager.Singleton.GetCurrentGamemode() == GameMode.TeamDeathmatch)
+
+        if(NetworkManager.Singleton == null) { return; } // cant execute if no network
+        if(NetworkManager.Singleton.LocalClient == null) { return; } // cant execute on server
+        if(NetworkManager.Singleton.LocalClient.PlayerObject == null) { return; } // null error on server
+
+        if(NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerTeam>() != this) { return; } // only run this bit on local player
+        if (GameManager.Singleton.GetCurrentGamemode() == GameMode.CaptureTheFlag ||
+            GameManager.Singleton.GetCurrentGamemode() == GameMode.TeamDeathmatch)
         {
             if(team != Team.None)
             {
                 HUDUI.Singleton.SetTeams(team, GetOppositeTeam(team));
-            } 
+            }
         }
+        
     }
 
     public static Team GetOppositeTeam(Team team)
@@ -179,7 +187,7 @@ public class PlayerTeam : MonoBehaviour
         EditorApplication.delayCall += () =>
         {
             if (this == null) return;
-            if (!Application.isPlaying) return; // Prevent UpdateHealthColour() logic in edit-time
+            if (Application.isPlaying == false) return; // Prevent UpdateHealthColour() logic in edit-time
             SetTeamSide(team);
         };
 #endif
