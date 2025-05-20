@@ -3,7 +3,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 
-public class ArmourPanel : MaterialObject
+public class SpallableObject : MaterialObject
 {
     public static readonly float ProtectionMultiplier = 4000000; // Dumb global variable to get armour value in the same ballpark as projectile damage pools
     // Start is called once before the first execution of Update after the MonoBehaviour is created

@@ -82,7 +82,7 @@ public class Projectile : MaterialObject
 
         // DeMarre formula constants
         
-        float k = Material.Hardness + Material.GetMaterialToughnessCoefficient(0.2f);
+        float k = Material.Hardness + Material.GetMaterialToughnessCoefficient(36, 0.2f);
         float n = 1.4f;
 
         float mOverD2 = mass / (diameterM * diameterM);
@@ -160,7 +160,7 @@ public class Projectile : MaterialObject
         Vector3 entryPoint = entryHit.point;
         var panelGameObject = entryHit.collider.gameObject;
         // TODO: Generalize to DamageableComponent once implemented
-        var panel = panelGameObject.GetComponent<ArmourPanel>();
+        var panel = panelGameObject.GetComponent<SpallableObject>();
     
         Vector3 potentialDeflectAngle = Vector3.Reflect(direction, entryHit.normal);
         
@@ -199,7 +199,7 @@ public class Projectile : MaterialObject
         
         
         
-        var protection = thickness * (panel.Material.Hardness + panel.Material.GetMaterialToughnessCoefficient(0.75f)) * ArmourPanel.ProtectionMultiplier;
+        var protection = thickness * (panel.Material.Hardness + panel.Material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableObject.ProtectionMultiplier;
         float distance = GetMaximumPenetrationAgainstMaterial(panel.MaterialType);
         
         float lostEnergyRatio = (protection / _hpPool) / 1.3f;
@@ -264,7 +264,7 @@ public class Projectile : MaterialObject
         return direction;
     }
 
-    private float GetDeflectionFactor(ArmourPanel panel, float tanTheta)
+    private float GetDeflectionFactor(SpallableObject panel, float tanTheta)
     {
         // GOAL: APFSDS-like projectiles should deflect at ~11 degrees. WWII-esque projectiles should deflect around 60 degrees.
         float hardnessRatio = panel.Material.Hardness / Material.Hardness;
@@ -294,7 +294,7 @@ public class Projectile : MaterialObject
     {
         var material = MaterialDatabase.GetMaterial(mKey);
         
-        return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(0.2f)) * ArmourPanel.ProtectionMultiplier);
+        return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(18, 0.2f)) * SpallableObject.ProtectionMultiplier);
     }
     
     private void DrawMesh(Vector3 posA, Vector3 posB)

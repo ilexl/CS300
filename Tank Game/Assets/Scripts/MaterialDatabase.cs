@@ -54,9 +54,9 @@ public class Material
         ImpactResistance = impactResistance;
     }
 
-    public float GetMaterialToughnessCoefficient(float mul)
+    public float GetMaterialToughnessCoefficient(float resistanceFactor, float mul)
     {
-        return Math.Min((ImpactResistance / 36) / Hardness, 1) * Hardness * mul;
+        return Math.Min((ImpactResistance / resistanceFactor) / Hardness, 1) * Hardness * mul;
     }
 }
 
