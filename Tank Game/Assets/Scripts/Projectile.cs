@@ -22,20 +22,32 @@ public class Projectile : MaterialObject
     private const float debugDrawDuration = 0.1f;
     
     public static List<Projectile> Projectiles = new List<Projectile>();
-    public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM,
-        MaterialKey mKey)
+
+    public int penetrationCount = 0;
+
+    
+    public enum ProjectileType
+    {
+        bullet,
+        spall
+    }
+
+    private ProjectileType _type;     
+    
+    public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
     {
         if (Projectiles.Count >= 1000)
         {
             throw new Exception("Too many projectiles!");
         }
-        // Create an empty gameobject to start with
+        
         var projectile = new GameObject("Projectile");
         
         var projectileInstance = projectile.AddComponent<Projectile>();
-        
         projectileInstance.rb = projectile.AddComponent<Rigidbody>();
-        projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey);
+        
+        projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey, type);
+
         return projectile;
     }
     
@@ -45,8 +57,9 @@ public class Projectile : MaterialObject
         Projectiles.Add(this);
         _layerMask = LayerMask.GetMask("Armour");   // Why can't I make this static, unity?? Are you trying to make optimization impossible?
     }
-    public void SetProjectileProperties(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey)
+    public void SetProjectileProperties(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
     {
+        _type = type;
         transform.position = pos;
         _previousPos = pos;
         
@@ -68,7 +81,8 @@ public class Projectile : MaterialObject
         rb.linearVelocity = velocity;
 
         // DeMarre formula constants
-        float k = Material.Hardness;
+        
+        float k = Material.Hardness + Material.GetMaterialToughnessCoefficient(0.2f);
         float n = 1.4f;
 
         float mOverD2 = mass / (diameterM * diameterM);
@@ -76,8 +90,11 @@ public class Projectile : MaterialObject
 
         //Debug.Log("HP pool (penetration power) is " + _hpPool);
 
-        float maxPenetration = GetMaximumPenetrationAgainstMaterial(MaterialKey.HighCarbonSteel);
-        //Debug.Log("Maximum penetration is " + maxPenetration * 1000 + "mm" );
+        float maxPenetration = GetMaximumPenetrationAgainstMaterial(MaterialKey.RolledHomogenousSteel);
+        if (type == ProjectileType.bullet)
+        {
+            Debug.Log("Maximum penetration is " + maxPenetration * 1000 + "mm" );
+        }
     }
     
     public void FixedUpdate()
@@ -87,134 +104,221 @@ public class Projectile : MaterialObject
             Destroy();
         }
         
-        Vector3 to = transform.position - _previousPos;
-        float mag = to.magnitude;
-        Vector3 dir = to / mag;
+        
 
-        int attempts = 0;
+        int attempt = 0;
         while (true)
         {
-            if (++attempts >= 10)
+            
+            
+            if (++attempt >= 10)
             {
                 throw new Exception("Projectile failed to penetrate plate");
                 
             }
-            var didHit = Physics.Linecast(_previousPos, transform.position, out var hit, _layerMask);
-            if (!didHit) {break;}
+            Vector3 to = transform.position - _previousPos;
+            float mag = to.magnitude;
+            Vector3 dir = to / mag;
             
-            var stopped = PenetratePlate(hit, dir);
-            if (stopped) return;
+            var didHit = Physics.Linecast(_previousPos, transform.position, out var hit, _layerMask);
+
+            if (!didHit)
+            {
+                DrawMesh(_previousPos, transform.position);
+
+                break;
+            }
+            DrawMesh(_previousPos, hit.point);
+            var impactType = PenetratePlate(hit, dir);
+            
+            // Basically we want to keep attempting to step the projectile forward until it has either not hit anything in this substep or has non penned
+            if (impactType is ImpactType.NoImpact or ImpactType.NonPenetrate) {break;}
 
 
 
         }
-        Debug.DrawLine(_previousPos, transform.position, Color.green, debugDrawDuration);
+        
         
         _previousPos = transform.position;
     }
-    
-    private bool PenetratePlate(RaycastHit entryHit, Vector3 direction)
+
+   
+
+
+    private enum ImpactType
     {
-        
+        Penetrate,
+        NonPenetrate,
+        Deflect,
+        NoImpact
+    }
+
+    private ImpactType PenetratePlate(RaycastHit entryHit, Vector3 direction)
+    {
+        ImpactType impactType = ImpactType.Penetrate;
         
         Vector3 entryPoint = entryHit.point;
         var panelGameObject = entryHit.collider.gameObject;
         // TODO: Generalize to DamageableComponent once implemented
         var panel = panelGameObject.GetComponent<ArmourPanel>();
-
+    
         Vector3 potentialDeflectAngle = Vector3.Reflect(direction, entryHit.normal);
         
-        
-        // GOAL: APFSDS-like projectiles should deflect at ~11 degrees. WWII-esque projectiles should deflect around 60 degrees.
-        float hardnessRatio = panel.Material.Hardness / Material.Hardness;
-        float velocityFactor = 1f / rb.linearVelocity.sqrMagnitude;
-        float surfaceArea = Mathf.PI * Mathf.Pow(_diameter / 2f, 2);
-        float massSurfaceAreaRatio = surfaceArea / rb.mass;
-
-        float deflectFactorModifier = hardnessRatio * velocityFactor * massSurfaceAreaRatio * 300000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
-        // 100000
         float cosTheta = Mathf.Abs(Vector3.Dot(direction.normalized, entryHit.normal.normalized));
         float tanTheta = Mathf.Sqrt(1 - cosTheta * cosTheta) / cosTheta;
-        float deflectionFactor = deflectFactorModifier * tanTheta;
         
-        float impactAngleDegrees = Mathf.Acos(cosTheta) * Mathf.Rad2Deg;
-        Debug.Log("Impact angle: " + impactAngleDegrees + " degrees");
+        
+        var deflectionFactor = GetDeflectionFactor(panel, tanTheta);
+        
+        if (_type == ProjectileType.bullet) Debug.Log(deflectionFactor);
         if (deflectionFactor > 1f) // This is a deflection
         {
-
-            // Redirect projectile
-            direction = potentialDeflectAngle;
-            rb.linearVelocity = direction * rb.linearVelocity.magnitude;
-            transform.position = entryPoint + rb.linearVelocity / 60f;
-
-            // Calculate energy loss ratio based on deflection severity
-            float deflectEnergyLossRatio = 1f - Mathf.Exp(-cosTheta * 3f);
-
-
-            // Apply velocity loss respecting kinetic energy scaling
-            rb.linearVelocity *= Mathf.Sqrt(1f - deflectEnergyLossRatio);
-
-            // Apply HP pool loss based on lost energy (HP loss ∝ energy lost)
-            float lostEnergy = 0.5f * rb.mass * (Mathf.Pow(rb.linearVelocity.magnitude / Mathf.Sqrt(1f - deflectEnergyLossRatio), 2) - Mathf.Pow(rb.linearVelocity.magnitude, 2));
-            _hpPool -= lostEnergy;
-
-            // Clamp HP pool to non-negative
-            _hpPool = Mathf.Max(0f, _hpPool);
+            impactType = ImpactType.Deflect;
+            direction = ApplyDeflectionEffect(potentialDeflectAngle, entryPoint, cosTheta);
+            _previousPos = entryPoint;
+            return impactType;
         }
         else // This is projectile yaw (or possibly a non penetration)
         {
             // Calculate the diffraction from travelling through the plate
-            float deviationAngle = Mathf.Lerp(0f, 15f, deflectionFactor); // 0° at direct hit, 15° at grazing
-            Vector3 exitDirection = UnityEngine.Quaternion.AngleAxis(deviationAngle, Vector3.Cross(direction, entryHit.normal)) * direction;
-            Debug.DrawRay(entryPoint, exitDirection * 5f, Color.yellow, debugDrawDuration);
-            direction = exitDirection;
-            rb.linearVelocity = direction * rb.linearVelocity.magnitude;
-            transform.position = entryPoint + rb.linearVelocity / 60;
+            direction = ApplyDiffractionEffect(entryHit, direction, deflectionFactor, entryPoint);
         }
-        Debug.Log("Deflection factor: " + deflectionFactor);
         
         var backCastPos = entryPoint + direction * 10f;
         bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, panelGameObject.transform,  out var secondHit, Mathf.Infinity, _layerMask);
         if (!didHit)
         {
-            return false;
+            return ImpactType.NoImpact;
         }
         Vector3 exitPoint = secondHit.point;
         
         
         float thickness = Vector3.Dot(direction, exitPoint - entryPoint );
         //Debug.Log("LOS thickness: " + thickness);
-        var protection = thickness * panel.Material.Hardness * ArmourPanel.ProtectionMultiplier;
+        
+        
+        
+        
+        var protection = thickness * (panel.Material.Hardness + panel.Material.GetMaterialToughnessCoefficient(0.75f)) * ArmourPanel.ProtectionMultiplier;
         float distance = GetMaximumPenetrationAgainstMaterial(panel.MaterialType);
         
         float lostEnergyRatio = (protection / _hpPool) / 1.3f;
         lostEnergyRatio = Mathf.Clamp01(lostEnergyRatio); // prevent negative or >1
-
+    
         rb.linearVelocity *= Mathf.Sqrt(1f - lostEnergyRatio);
         _hpPool -= protection;
         //Debug.Log(_hpPool);
-        if (_hpPool <= 0)
+        if (_hpPool <= 0) impactType = ImpactType.NonPenetrate;
+    
+        penetrationCount++;
+    
+        switch (impactType)
         {
-            
-            // This draws into the object how far the projectile penetrated
-            Debug.DrawRay(entryPoint, direction * distance, Color.red, debugDrawDuration);
-            
-            Destroy();
-            return true;
+            case ImpactType.Penetrate:
+                _previousPos = exitPoint;
+                panel.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+                break;
+            case ImpactType.NonPenetrate:
+                Destroy();
+                break;
+            case ImpactType.Deflect:
+                _previousPos = entryPoint;
+                break;
         }
-
-        _previousPos = entryPoint;
-        
-        
-        panel.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
-        return false;
+    
+        return impactType;
     }
+    
+    
+    private Vector3 ApplyDiffractionEffect(RaycastHit entryHit, Vector3 direction, float deflectionFactor,
+        Vector3 entryPoint)
+    {
+        float deviationAngle = Mathf.Lerp(0f, 15f, deflectionFactor); // 0° at direct hit, 15° at grazing
+        Vector3 exitDirection = UnityEngine.Quaternion.AngleAxis(deviationAngle, Vector3.Cross(direction, entryHit.normal)) * direction;
+        direction = exitDirection;
+        rb.linearVelocity = direction * rb.linearVelocity.magnitude;
+            
+        transform.position = entryPoint + rb.linearVelocity / 60;
+        
+        return direction;
+    }
+
+    private Vector3 ApplyDeflectionEffect(Vector3 direction, Vector3 entryPoint, float cosTheta)
+    {
+        rb.linearVelocity = direction * rb.linearVelocity.magnitude;
+        transform.position = entryPoint + rb.linearVelocity / 60f;
+        
+        // Calculate energy loss ratio based on deflection severity
+        float deflectEnergyLossRatio = 1f - Mathf.Exp(-cosTheta * 3f);
+    
+    
+        // Apply velocity loss respecting kinetic energy scaling
+        rb.linearVelocity *= Mathf.Sqrt(1f - deflectEnergyLossRatio);
+    
+        // Apply HP pool loss based on lost energy (HP loss ∝ energy lost)
+        float lostEnergy = 0.5f * rb.mass * (Mathf.Pow(rb.linearVelocity.magnitude / Mathf.Sqrt(1f - deflectEnergyLossRatio), 2) - Mathf.Pow(rb.linearVelocity.magnitude, 2));
+        _hpPool -= lostEnergy;
+    
+        // Clamp HP pool to non-negative
+        _hpPool = Mathf.Max(0f, _hpPool);
+        return direction;
+    }
+
+    private float GetDeflectionFactor(ArmourPanel panel, float tanTheta)
+    {
+        // GOAL: APFSDS-like projectiles should deflect at ~11 degrees. WWII-esque projectiles should deflect around 60 degrees.
+        float hardnessRatio = panel.Material.Hardness / Material.Hardness;
+        float impactResistanceRatio = panel.Material.ImpactResistance / Material.ImpactResistance;
+        float velocityFactor = 1f / rb.linearVelocity.sqrMagnitude;
+        float surfaceArea = Mathf.PI * Mathf.Pow(_diameter / 2f, 2);
+        float massSurfaceAreaRatio = surfaceArea / rb.mass;
+    
+        float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 2000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
+        // 100000
+        
+        float deflectionFactor = deflectFactorModifier * tanTheta;
+        return deflectionFactor;
+    }
+
 
     public void Destroy()
     {
         Destroy(gameObject);
         Projectiles.Remove(this);
     }
+    
+    
+    
+    
+    private float GetMaximumPenetrationAgainstMaterial(MaterialKey mKey)
+    {
+        var material = MaterialDatabase.GetMaterial(mKey);
+        
+        return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(0.2f)) * ArmourPanel.ProtectionMultiplier);
+    }
+    
+    private void DrawMesh(Vector3 posA, Vector3 posB)
+    {
+        Vector3 shapeCenter = (posA + posB) / 2;
+        var mesh = ProjectileDamageMeshGenerator.Generate(posA,posB, _diameter / 2, 10);
+        GameObject negative = new GameObject("CylinderDisplay");
+        negative.AddComponent<MeshFilter>().mesh = mesh;
+        negative.AddComponent<MeshRenderer>();
+        //negative.transform.position = shapeCenter;
+        
+        // Destroy it after n seconds
+        Destroy(negative, 0.1f);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     // An attempt at CSG-based plate damage
     // private void DamagePlate(Collider[] colliders )    
@@ -265,8 +369,5 @@ public class Projectile : MaterialObject
     // }
 
 
-    private float GetMaximumPenetrationAgainstMaterial(MaterialKey mKey)
-    {
-        return _hpPool / (MaterialDatabase.GetMaterial(mKey).Hardness * ArmourPanel.ProtectionMultiplier);
-    }
+
 }
