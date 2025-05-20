@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 public class ArmourPanel : MaterialObject
 {
-    public static readonly float ProtectionMultiplier = 1800000; // Dumb global variable to get armour value in the same ballpark as projectile damage pools
+    public static readonly float ProtectionMultiplier = 4000000; // Dumb global variable to get armour value in the same ballpark as projectile damage pools
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -56,7 +56,7 @@ public class ArmourPanel : MaterialObject
     for (int i = 0; i < fragmentCount; i++)
     {
         // Fragment size with normal distribution approx using Box-Muller transform
-        float size = MathF.Max(0.01f, (float)NormalRandom(rng, baseFragmentSize, sizeStdDev));
+        float size = MathF.Max(0.0001f, (float)NormalRandom(rng, baseFragmentSize, sizeStdDev));
 
         // Fragment velocity magnitude with some randomness
         float speed = MathF.Max(0f, baseSpallSpeedFactor * projectileVelocity.magnitude +
