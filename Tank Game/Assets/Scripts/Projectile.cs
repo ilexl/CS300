@@ -294,7 +294,7 @@ public class Projectile : MaterialObject
     {
         var material = MaterialDatabase.GetMaterial(mKey);
         
-        return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(18, 0.2f)) * SpallableObject.ProtectionMultiplier);
+        return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableObject.ProtectionMultiplier);
     }
     
     private void DrawMesh(Vector3 posA, Vector3 posB)
