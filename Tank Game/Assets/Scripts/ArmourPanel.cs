@@ -138,6 +138,6 @@ private Vector3 RotateAroundAxis(Vector3 v, Vector3 axis, float angle)
     private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
     {
         // Create a new projectile using the current plate's material
-        Projectile.Create(position, velocity, size, size, MaterialType);
+        Projectile.Create(position, velocity, size, size, MaterialType, Projectile.ProjectileType.spall);
     }
 }

@@ -39,7 +39,7 @@ public class ProjectileSpawner : MaterialObject
         // var projectileInstance = Instantiate(projectilePrefab, transform);
         // projectileInstance.SetProjectileProperties(projectileVelocityMS * transform.forward, _diameterM, _lengthM, MaterialType);
         Projectile.Create(transform.position, projectileVelocityMS * transform.forward, _diameterM,
-            _lengthM, MaterialType);
+            _lengthM, MaterialType, Projectile.ProjectileType.bullet);
     }
 
     private void FixedUpdate()
