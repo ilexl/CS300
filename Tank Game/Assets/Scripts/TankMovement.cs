@@ -222,6 +222,17 @@ public class TankMovement : NetworkBehaviour
     [ServerRpc]
     void SendRotationsToServerServerRpc(Vector3[] turretEuler, Vector3[] cannonEuler)
     {
+        for (int i = 0; i < turrets.Count && i < turretEuler.Length; i++)
+        {
+            turrets[i].transform.localEulerAngles = new Vector3(0f, turretEuler[i].y, 0f);
+        }
+
+        for (int i = 0; i < cannons.Count && i < cannonEuler.Length; i++)
+        {
+            Transform cannonBarrel = cannons[i].transform.GetChild(0);
+            cannonBarrel.localEulerAngles = cannonEuler[i];
+        }
+
         SyncTurretAndCannonRotationsClientRpc(turretEuler, cannonEuler);
     }
 
