@@ -50,6 +50,7 @@ public class TankCombat : NetworkBehaviour
 
     private void OnHealthChanged(float previous, float current)
     {
+        Debug.Log($"Health updated to {current}");
         UpdateHealthBar();
     }
 
@@ -135,8 +136,35 @@ public class TankCombat : NetworkBehaviour
             currentHealth.Value = 0f;
 
         UpdateHealthBar();
-        // TODO: destroy tank if health is 0
+
+        if(currentHealth.Value <= 0f)
+        {
+            PlayerDeath(); // destroy tank if health is 0
+        }
     }
+
+    private void PlayerDeath()
+    {
+        Debug.Log($"Player {OwnerClientId} died");
+        InformAllPlayersOfDeath();
+    }
+
+    [ClientRpc]
+    private void InformPlayersOfDeathClientRpc(ulong deadClientId)
+    {
+        Debug.Log($"[Client] Player {deadClientId} has died.");
+        // TODO: Show killfeed, play sound, display explosion, etc.
+        if (IsOwner)
+        {
+            RespawnManager.Singleton.ReportPlayerDeathServerRpc();
+        }
+    }
+
+    private void InformAllPlayersOfDeath()
+    {
+        InformPlayersOfDeathClientRpc(OwnerClientId); // server -> clients
+    }
+
 
     public void UpdateHealthBar()
     {
@@ -147,6 +175,24 @@ public class TankCombat : NetworkBehaviour
         {
             HUDUI.Singleton.UpdateHealth(currentHealth.Value, maxHealth.Value);
         }
+    }
+
+    /// <summary>
+    /// Resets the player's health on the server.
+    /// Can only be called from the server.
+    /// </summary>
+    public void ResetHealth()
+    {
+        if (!IsServer)
+        {
+            Debug.LogWarning("ResetHealth was called from a non-server instance.");
+            return;
+        }
+
+        Debug.Log("Health Reset");
+
+        currentHealth.Value = maxHealth.Value;
+        UpdateHealthBar();
     }
 
 #if UNITY_EDITOR

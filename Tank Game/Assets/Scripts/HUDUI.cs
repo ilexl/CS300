@@ -115,6 +115,7 @@ public class HUDUI : MonoBehaviour
 
     public void ShowRespawnUI()
     {
+        if (NetworkManager.Singleton.IsServer) { return; }
         windowManager.ShowWindow(respawnWindow);
         SetCursorShown(true);
     }

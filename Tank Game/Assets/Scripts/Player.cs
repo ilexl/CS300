@@ -28,6 +28,12 @@ public class Player : NetworkBehaviour
         }
     }
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        ChangeTank((TankVarients)null);
+    }
+
     public void OnValidate()
     {
     #if UNITY_EDITOR
@@ -81,6 +87,11 @@ public class Player : NetworkBehaviour
     }
     public void ChangeTank(string tankName)
     {
+        if(tankName == null) // return null tank if string doesnt exist
+        {
+            ChangeTank((TankVarients)null);
+        }
+
         TankVarients tv = TankVarients.GetFromString(tankName);
         
         if (tv != null) 
@@ -93,10 +104,22 @@ public class Player : NetworkBehaviour
     }
     public void ChangeTank(TankVarients tank)
     {
+        currentTank = tank;
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+        
+        // disable the colliders
+        GetComponent<BoxCollider>().enabled = false;
+        GetComponent<Rigidbody>().useGravity = false; // disable gravity when not a tank
+
+
         if (tank == null)
         {
-            Debug.LogWarning("Cannot change tank to null");
-            if (HUDUI.Singleton is not null)
+            if (IsOwner) { return; }
+            if (LocalPlayer == false) { return; }  
+            if (HUDUI.Singleton != null)
             {
                 Debug.Log("Showing Respawn Window as tank cannot be null...");
                 HUDUI.Singleton.ShowRespawnUI();
@@ -111,10 +134,7 @@ public class Player : NetworkBehaviour
             Debug.LogWarning($"Failed to change tank to {tank.name}");
             return;
         }
-        foreach(Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
+        
 
         // hull
         if (tank.hullModel == null)
@@ -261,7 +281,10 @@ public class Player : NetworkBehaviour
             SetLayerAllChildren(transform, 0); // 0 is default
         }
 
-        currentTank = tank;
+        // enable the colliders
+        GetComponent<BoxCollider>().enabled = true; // enable collider when actually a tank
+        GetComponent<Rigidbody>().useGravity = true; // enable gravity when actually a tank
+
         Debug.Log($"Tank successfully changed to {tank.name}");
     }
 }

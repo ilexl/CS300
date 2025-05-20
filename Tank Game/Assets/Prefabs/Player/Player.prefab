@@ -150,7 +150,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a7d286b4584e4546aea0dbc0c92e9f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth:
+    m_InternalValue: 100
+  currentHealth:
+    m_InternalValue: 100
+  maxReload:
+    m_InternalValue: 5
+  currentReload:
+    m_InternalValue: 0
+  damage: 25
 --- !u!114 &1135166309345070894
 MonoBehaviour:
   m_ObjectHideFlags: 0

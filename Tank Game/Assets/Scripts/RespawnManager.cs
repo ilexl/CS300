@@ -19,10 +19,10 @@ public class RespawnManager : NetworkBehaviour
 
     void Start()
     {
-        StartCoroutine(Spawn());
+        StartCoroutine(WaitForNetwork());
     }
 
-    private System.Collections.IEnumerator Spawn()
+    private System.Collections.IEnumerator WaitForNetwork()
     {
         while (NetworkManager.Singleton == null)
         {
@@ -44,14 +44,19 @@ public class RespawnManager : NetworkBehaviour
 
         if (playerTeams.ContainsKey(clientId))
         {
-            Debug.LogWarning($"Client {clientId} already selected a team.");
-            return;
+            if (playerTeams[clientId] == team)
+            {
+                Debug.LogWarning($"Client {clientId} already in the team.");
+                return;
+            }
+            else
+            {
+                RemovePlayerTeam(clientId);
+            }
         }
 
         playerTeams[clientId] = team;
         Debug.Log($"Client {clientId} joined {team} team");
-
-        
 
         Vector3 spawnPos = GetRandomizedSpawnPosition(team);
         SendPlayerToSpawnClientRpc(clientId, spawnPos);
@@ -133,6 +138,12 @@ public class RespawnManager : NetworkBehaviour
             {
                 Debug.LogWarning($"Player object missing Player script for client {clientId}");
             }
+            if (tankName != null || tankName != "")
+            {
+                client.PlayerObject.GetComponent<TankMovement>().SetCanMoveOnServer(true);
+                //client.PlayerObject.GetComponent<TankCombat>().currentHealth = client.PlayerObject.GetComponent<TankCombat>().maxHealth;
+                client.PlayerObject.GetComponent<TankCombat>().ResetHealth();
+            }
         }
 
         // Broadcast to all clients (including requester)
@@ -165,6 +176,53 @@ public class RespawnManager : NetworkBehaviour
                     player.ChangeTank(tankName);
                 }
             }
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ReportPlayerDeathServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        Debug.Log($"[Server] Player {clientId} has died.");
+
+        // Inform all clients
+        InformPlayersOfDeathClientRpc(clientId);
+
+        // Remove the player's tank or disable control
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        {
+            var player = client.PlayerObject.GetComponent<Player>();
+            if (player != null)
+            {
+                player.ChangeTank((TankVarients)null);
+            }
+
+            var tankMovement = client.PlayerObject.GetComponent<TankMovement>();
+            if (tankMovement != null)
+            {
+                tankMovement.SetCanMoveOnServer(false);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void InformPlayersOfDeathClientRpc(ulong deadClientId)
+    {
+        Debug.Log($"[Client] Player {deadClientId} has died.");
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out var client))
+        {
+            var player = client.PlayerObject.GetComponent<Player>();
+            if (player != null)
+            {
+                player.ChangeTank((TankVarients)null);
+            }
+        }
+
+        if (NetworkManager.Singleton.LocalClientId == deadClientId)
+        {
+            // This is the player who died
+            HUDUI.Singleton?.ShowRespawnUI();
         }
     }
 }

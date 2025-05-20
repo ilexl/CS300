@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -14,7 +14,6 @@ public class TankMovement : NetworkBehaviour
     [SerializeField] float cannonElevationSpeed = 30f;
     [SerializeField] float minCannonAngle = -10f;
     [SerializeField] float maxCannonAngle = 20f;
-    [SerializeField] bool canMove = true;
     [SerializeField] Transform sniperCameraPos;
     [SerializeField] Transform debugAimObject;
     TankVarients currentTank;
@@ -33,8 +32,11 @@ public class TankMovement : NetworkBehaviour
     public Transform GetSniperCameraTransform() => sniperCameraPos;
     public Vector3 GetAimPoint() => aimPoint;
 
-    public bool CanMove() => canMove;
-    public void SetCanMove(bool set) => canMove = set;
+    private NetworkVariable<bool> canMove = new NetworkVariable<bool>(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    // REPLACEMENT for old SetCanMove method
+    public bool CanMove() => canMove.Value;
+    public void SetCanMove(bool set) => canMove.Value = set; // kept to avoid logic break (DO NOT USE directly in gameplay)
 
     public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons, GameObject SniperCameraPos)
     {
@@ -52,7 +54,7 @@ public class TankMovement : NetworkBehaviour
 
     void Update()
     {
-        if (!canMove) return;
+        if (CanMove() == false) return;
 
         if (hull == null || turrets == null || cannons == null || sniperCameraPos == null)
         {
@@ -248,4 +250,39 @@ public class TankMovement : NetworkBehaviour
     }
 
     public GameObject GetCannon(int cannonIndex) => cannons[cannonIndex];
+
+    public override void OnNetworkSpawn()
+    {
+        canMove.OnValueChanged += OnCanMoveChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        canMove.OnValueChanged -= OnCanMoveChanged;
+    }
+
+    private void OnCanMoveChanged(bool previousValue, bool newValue)
+    {
+        Debug.Log($"[Client {OwnerClientId}] CanMove changed: {previousValue} → {newValue}");
+    }
+
+    // Called locally to request the server to change canMove
+    public void RequestCanMoveChange(bool newValue)
+    {
+        RequestCanMoveChangeServerRpc(newValue);
+    }
+
+    // ServerRpc to accept client request
+    [ServerRpc]
+    private void RequestCanMoveChangeServerRpc(bool newValue, ServerRpcParams rpcParams = default)
+    {
+        SetCanMoveOnServer(newValue);
+    }
+
+    // Server method to set canMove for this player and sync to all
+    public void SetCanMoveOnServer(bool newValue)
+    {
+        canMove.Value = newValue;
+        Debug.Log($"[Server] Set CanMove for client {OwnerClientId} to {newValue}");
+    }
 }
