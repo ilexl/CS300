@@ -1,3 +1,4 @@
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +17,9 @@ public class HUDUI : MonoBehaviour
 
     [SerializeField] private GameObject healthBar;
     [SerializeField] private GameObject battleStatusBar;
+    [SerializeField] private GameObject healthBarText;
+    [SerializeField] private GameObject localTeamBSBText;
+    [SerializeField] private GameObject awayTeamBSBText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -125,6 +129,9 @@ public class HUDUI : MonoBehaviour
         Slider s = healthBar.GetComponent<Slider>();
         s.maxValue = maxHealth;
         s.value = currentHealth;
+
+        int healthPercentage = (int)(currentHealth / maxHealth * 100); // int to get whole numbers (no rounding)
+        healthBarText.GetComponent<TextMeshProUGUI>().text = $"{healthPercentage}% Health";
     }
 
     public void UpdateTeamColour(Team team)
@@ -165,10 +172,16 @@ public class HUDUI : MonoBehaviour
         blueButton.onClick.AddListener(() => SelectTeam(Team.Blue));
     }
 
-    public void UpdateBattleStatus(float value)
+    public void UpdateScore(float value)
     {
         value = Mathf.Clamp01(value); // slider value is 0->1
         battleStatusBar.GetComponent<Slider>().value = value;
+
+        int localScore = (int)(value * 100);
+        int awayScore = 100 - localScore;
+
+        localTeamBSBText.GetComponent<TextMeshProUGUI>().text = $"{localScore}";
+        awayTeamBSBText.GetComponent<TextMeshProUGUI>().text = $"{awayScore}";
     }
 
     public void SetTeams(Team local, Team away)

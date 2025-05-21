@@ -52,7 +52,10 @@ public class PlayerTeam : MonoBehaviour
                 HUDUI.Singleton.SetTeams(team, GetOppositeTeam(team));
             }
         }
-        
+
+        ScoreManager.Singleton.ForceUpdateScoreUI(); // update score given we are on a new team
+
+
     }
 
     public static Team GetOppositeTeam(Team team)

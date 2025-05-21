@@ -44,6 +44,14 @@ public class MultiplayerManager : MonoBehaviour
         Debug.Log($"Player {clientId} connected");
 
         // Player spawning is handled separately (e.g., after team selection)
+        // TODO: Client to be told about ALL required things
+
+        // Score cannot be initialised until player is in a team...
+
+        // All other players
+
+        // Anything else that occurs
+
     }
 
     public void RemovePlayer(ulong clientId)
