@@ -4506,7 +4506,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxScoreDifference: 100
+  BlueTeamScore:
+    m_InternalValue: 0
+  OrangeTeamScore:
+    m_InternalValue: 0
 --- !u!1 &1276555457
 GameObject:
   m_ObjectHideFlags: 0
@@ -4988,6 +4991,7 @@ GameObject:
   - component: {fileID: 1592061871}
   - component: {fileID: 1592061872}
   - component: {fileID: 1592061874}
+  - component: {fileID: 1592061877}
   m_Layer: 0
   m_Name: Networking
   m_TagString: Untagged
@@ -5110,6 +5114,8 @@ MultiplayerRolesData:
     m_RolesMask: 1
   - m_Object: {fileID: 1592061873}
     m_RolesMask: 2
+  - m_Object: {fileID: 1592061877}
+    m_RolesMask: 1
 --- !u!114 &1592061875
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5134,6 +5140,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8268e40d8d2d1b341819336ed778f1f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1592061877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1592061869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a348005e462dc6e4883c5c1d4ef1f60b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  URL: dev.legner.foo
+  transport: {fileID: 1592061872}
 --- !u!1 &1596461763
 GameObject:
   m_ObjectHideFlags: 0
