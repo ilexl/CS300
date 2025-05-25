@@ -62,6 +62,7 @@ public class RespawnManager : NetworkBehaviour
         SendPlayerToSpawnClientRpc(clientId, spawnPos);
 
         // Notify all clients that this player selected a team
+        NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<PlayerTeam>().SetTeamSide(team); // set the team
         NotifyTeamSelectedClientRpc(clientId, team);
     }
 
