@@ -21,6 +21,11 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private GameObject localTeamBSBText;
     [SerializeField] private GameObject awayTeamBSBText;
 
+    [Space(10)]
+
+    [SerializeField] private GameObject flagStatusHolder;
+    [SerializeField] private GameObject flagStatusPrefab;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -200,5 +205,22 @@ public class HUDUI : MonoBehaviour
                 image.color = PlayerTeam.GetNormalColour(away);
             }
         }
+    }
+
+    public GameObject CreateFlagUI(string flagLetter)
+    {
+        if (NetworkManager.Singleton.IsServer) { return null; }
+        GameObject flagUI = Instantiate(flagStatusPrefab, flagStatusHolder.transform);
+        flagUI.GetComponentInChildren<TextMeshProUGUI>().text = flagLetter.ToUpper();
+        flagUI.transform.GetChild(1).GetComponent<Image>().color = PlayerTeam.GetNormalColour(Team.None);
+        flagUI.transform.GetChild(1).GetComponent<Image>().fillAmount = 1; // max value
+        return flagUI;
+    }
+
+    public void UpdateFlagUIValues(GameObject flagUI, Team colour, float progress)
+    {
+        if(flagUI == null) { return; }
+        flagUI.transform.GetChild(1).GetComponent<Image>().fillAmount = progress;
+        flagUI.transform.GetChild(1).GetComponent<Image>().color = PlayerTeam.GetNormalColour(colour);
     }
 }

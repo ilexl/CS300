@@ -1,9 +1,12 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class CaptureFlag : NetworkBehaviour
 {
+    public string FlagLetter;
+
     [SerializeField] private Vector3 flagUpPos;
     [SerializeField] private Vector3 flagDownPos;
     [SerializeField] private GameObject flagObj;
@@ -20,6 +23,7 @@ public class CaptureFlag : NetworkBehaviour
     [SerializeField] private readonly HashSet<PlayerTeam> playersInZone = new HashSet<PlayerTeam>();
 
     private float targetLerp = 0f; // NEW: used to smooth flag movement
+    public GameObject flagUI;
 
     private void Start()
     {
@@ -36,12 +40,45 @@ public class CaptureFlag : NetworkBehaviour
 
         if (IsServer)
         {
-            GetComponent<NetworkObject>().Spawn(true);
+            if (GetComponent<NetworkObject>().IsSpawned == false) { GetComponent<NetworkObject>().Spawn(true); }
+
             Debug.Log("Flag spawned on network!");
             ResetFlag();
         }
 
         owningTeam.OnValueChanged += OnTeamChanged;
+        
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsClient)
+        {
+            flagUI = HUDUI.Singleton.CreateFlagUI(FlagLetter);
+            flagLerp.OnValueChanged += UpdateUIVisual;
+        }
+    }
+
+    private void UpdateUIVisual(float previousValue, float newValue)
+    {
+        if (flagUI == null || HUDUI.Singleton == null)
+            return;
+
+        Team displayTeam;
+        float progress = 1 - newValue;
+
+        if (capturingTeam != Team.None && newValue > previousValue)
+        {
+            // Capturing in progress (flag moving down)
+            displayTeam = capturingTeam;
+        }
+        else
+        {
+            // Reverting back up (flag moving up)
+            displayTeam = owningTeam.Value;
+        }
+
+        HUDUI.Singleton.UpdateFlagUIValues(flagUI, displayTeam, progress);
     }
 
     public void ResetFlag()

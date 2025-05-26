@@ -1,5 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
+using System.Collections.Generic;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,7 +13,7 @@ public class ScoreManager : NetworkBehaviour
 
     public NetworkVariable<int> BlueTeamScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> OrangeTeamScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
+    [SerializeField] List<CaptureFlag> flags = new();
     void Start()
     {
         Singleton = this;    
