@@ -15,17 +15,12 @@ public class GameManager : NetworkBehaviour
         return currentGameMode;
     }
 
-    void Awake()
-    {
-        Singleton = this;
-    }
-
     private void Start()
     {
-        StartCoroutine(Spawn());
+        StartCoroutine(WaitForNetwork());
     }
 
-    private System.Collections.IEnumerator Spawn()
+    private System.Collections.IEnumerator WaitForNetwork()
     {
         while (NetworkManager.Singleton == null)
         {
@@ -39,6 +34,7 @@ public class GameManager : NetworkBehaviour
             Debug.Log("Game Manager spawned on network.");
             SetGameMode(currentGameMode); // set gamemode for all clients as the servers selected gamemode
         }
+        Singleton = this;
     }
 
     // Server-side function to set the game mode and inform all clients

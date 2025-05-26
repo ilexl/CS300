@@ -19,22 +19,7 @@ public class RespawnManager : NetworkBehaviour
 
     void Start()
     {
-        StartCoroutine(WaitForNetwork());
-    }
-
-    private System.Collections.IEnumerator WaitForNetwork()
-    {
-        while (NetworkManager.Singleton == null)
-        {
-            Debug.Log("Waiting for NetworkManager...");
-            yield return null;
-        }
-
-        if (IsServer)
-        {
-            GetComponent<NetworkObject>().Spawn(true);
-            Debug.Log("Respawn Manager spawned on network!");
-        }
+        Singleton = this;
     }
 
     [ServerRpc(RequireOwnership = false)]
