@@ -30,6 +30,8 @@ public class CaptureFlag : NetworkBehaviour
         StartCoroutine(WaitForNetwork());
     }
 
+    public Team currentTeam => owningTeam.Value;
+
     private System.Collections.IEnumerator WaitForNetwork()
     {
         while (NetworkManager.Singleton == null)

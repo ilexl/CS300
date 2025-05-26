@@ -1,6 +1,8 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 
 
 #if UNITY_EDITOR
@@ -14,14 +16,34 @@ public class ScoreManager : NetworkBehaviour
     public NetworkVariable<int> BlueTeamScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> OrangeTeamScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     [SerializeField] List<CaptureFlag> flags = new();
+    private float timer;
+    private const float timerReset = 5f;
     void Start()
     {
         Singleton = this;    
     }
 
+    private void Update()
+    {
+        if (!IsServer) { return; } // only run on the server
+        timer -= Time.deltaTime;
+
+        if(timer <= 0f)
+        {
+            timer = timerReset;
+            // Change score
+
+            foreach (CaptureFlag flag in flags)
+            {
+                AddTeamScore(flag.currentTeam, 1);
+            }
+        }
+    }
+
     void Awake()
     {
         Singleton = this;
+        timer = timerReset;
     }
 
     int GetTeamScore(Team team)
@@ -96,6 +118,28 @@ public class ScoreManager : NetworkBehaviour
     {
         // Just simulate value change to trigger the same logic
         HandleAnyTeamScoreChanged(-1, -1); // values don't matter
+    }
+
+    void AddTeamScore(Team team, int value)
+    {
+        switch (team)
+        {
+            case Team.Blue:
+                {
+                    BlueTeamScore.Value += value;
+                    break;
+                }
+            case Team.Orange:
+                {
+                    OrangeTeamScore.Value += value;
+                    break;
+                }
+            case Team.None:
+            default:
+                {
+                    break;
+                }
+        }
     }
 
 #if UNITY_EDITOR
