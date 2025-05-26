@@ -26,7 +26,8 @@ namespace Ballistics
         Rubber,
         Nylon,
         WoodOak,
-        WoodPine
+        WoodPine,
+        HumanFlesh
     
     }
     public enum MaterialType
@@ -65,6 +66,7 @@ namespace Ballistics
         private static readonly Dictionary<MaterialKey, Material> Materials = new()
         {
             // STEELS
+            
             { MaterialKey.MildSteel,       new Material("Mild Steel (A36)",                 MaterialType.Metal, hardness: 4.5f, density: 7850, impactResistance: 150) },
             { MaterialKey.RolledHomogenousSteel, new Material("Rolled Homogeneous Steel",        MaterialType.Metal, hardness: 6.0f, density: 7850, impactResistance: 210) },
             { MaterialKey.HighCarbonSteel, new Material("High-Carbon Steel",              MaterialType.Metal, hardness: 6.5f, density: 7800,  impactResistance: 180) },
@@ -92,7 +94,10 @@ namespace Ballistics
             { MaterialKey.Rubber,           new Material("Rubber",                         MaterialType.Polymer,   hardness: 1.0f, density: 1100,  impactResistance: 200) },
             { MaterialKey.Nylon,            new Material("Nylon",                          MaterialType.Polymer,   hardness: 2.0f, density: 1200,  impactResistance: 100) },
             { MaterialKey.WoodOak,          new Material("Wood (Oak)",                     MaterialType.Organic,   hardness: 2.0f, density:  800,  impactResistance: 250) },
-            { MaterialKey.WoodPine,         new Material("Wood (Pine)",                    MaterialType.Organic,   hardness: 1.5f, density:  500,  impactResistance: 150) },  
+            { MaterialKey.WoodPine,         new Material("Wood (Pine)",                    MaterialType.Organic,   hardness: 1.5f, density:  500,  impactResistance: 150) },
+            { MaterialKey.HumanFlesh,       new Material("Human Flesh",                    MaterialType.Organic,   hardness: 1.5f, density:  985,  impactResistance: 25) },
+            
+            
         };
 
         public static Material GetMaterial(MaterialKey key)
