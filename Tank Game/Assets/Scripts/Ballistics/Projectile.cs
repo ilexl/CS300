@@ -26,8 +26,8 @@ namespace Ballistics
     
         public enum ProjectileType
         {
-            bullet,
-            spall
+            Bullet,
+            Spall
         }
 
         private ProjectileType _type;     
@@ -53,7 +53,7 @@ namespace Ballistics
         public void Start()
         {
             Projectiles.Add(this);
-            _layerMask = LayerMask.GetMask("Armour");   // Why can't I make this static, unity?? Are you trying to make optimization impossible?
+            _layerMask = LayerMask.GetMask("Damage System");   // Why can't I make this static, unity?? Are you trying to make optimization impossible?
         }
         public void SetProjectileProperties(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
@@ -89,7 +89,7 @@ namespace Ballistics
             //Debug.Log("HP pool (penetration power) is " + _hpPool);
 
             float maxPenetration = GetMaximumPenetrationAgainstMaterial(MaterialKey.RolledHomogenousSteel);
-            if (type == ProjectileType.bullet)
+            if (type == ProjectileType.Bullet)
             {
                 Debug.Log("Maximum penetration is " + maxPenetration * 1000 + "mm" );
             }
@@ -167,8 +167,8 @@ namespace Ballistics
         
         
             var deflectionFactor = GetDeflectionFactor(tankComp, tanTheta);
-        
-            if (_type == ProjectileType.bullet) Debug.Log(deflectionFactor);
+            if (tankComp is FunctionalTankModule) deflectionFactor *= 0.0002f;
+            //Debug.Log(deflectionFactor);
             if (deflectionFactor > 1f) // This is a deflection
             {
                 impactType = ImpactType.Deflect;
@@ -202,7 +202,8 @@ namespace Ballistics
         
             float lostEnergyRatio = (protection / _hpPool) / 1.3f;
             lostEnergyRatio = Mathf.Clamp01(lostEnergyRatio); // prevent negative or >1
-    
+
+            Vector3 previousVelocity = rb.linearVelocity;
             rb.linearVelocity *= Mathf.Sqrt(1f - lostEnergyRatio);
             _hpPool -= protection;
             //Debug.Log(_hpPool);
@@ -214,15 +215,15 @@ namespace Ballistics
             {
                 case ImpactType.Penetrate:
                     _previousPos = exitPoint;
-                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
                     break;
                 case ImpactType.NonPenetrate:
                     Destroy();
-                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
                     break;
                 case ImpactType.Deflect:
                     _previousPos = entryPoint;
-                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
                     break;
             }
     
@@ -273,7 +274,7 @@ namespace Ballistics
             float surfaceArea = Mathf.PI * Mathf.Pow(_diameter / 2f, 2);
             float massSurfaceAreaRatio = surfaceArea / rb.mass;
     
-            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 2000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
+            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 1000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
             // 100000
         
             float deflectionFactor = deflectFactorModifier * tanTheta;

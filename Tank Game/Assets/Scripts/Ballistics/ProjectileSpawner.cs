@@ -51,7 +51,7 @@ namespace Ballistics
             // var projectileInstance = Instantiate(projectilePrefab, transform);
             // projectileInstance.SetProjectileProperties(projectileVelocityMS * transform.forward, _diameterM, _lengthM, MaterialType);
             Projectile.Create(transform.position, projectileVelocityMS * transform.forward, _diameterM,
-                _lengthM, materialType, Projectile.ProjectileType.bullet);
+                _lengthM, materialType, Projectile.ProjectileType.Bullet);
         }
 
         private void FixedUpdate()

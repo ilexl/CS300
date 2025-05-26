@@ -28,6 +28,7 @@ public class SpallableTankModule : DamageableTankModule
     Vector3 exitPoint,
     float thickness,
     Vector3 projectileVelocity,
+    Vector3 previousVelocity, 
     float projectileDiameter)
 {
     // Parameters for spall generation
@@ -139,6 +140,6 @@ private Vector3 RotateAroundAxis(Vector3 v, Vector3 axis, float angle)
     private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
     {
         // Create a new projectile using the current plate's material
-        Projectile.Create(position, velocity, size, size, MaterialType, Projectile.ProjectileType.spall);
+        Projectile.Create(position, velocity, size, size, MaterialType, Projectile.ProjectileType.Spall);
     }
 }
