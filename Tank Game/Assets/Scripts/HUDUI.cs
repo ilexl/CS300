@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private Window pauseWindow;
     [SerializeField] private Window respawnWindow;
     [SerializeField] private Window settingsWindow;
+    [SerializeField] private Window endOfMatchWindow;
 
     [Space(10)]
 
@@ -25,6 +27,10 @@ public class HUDUI : MonoBehaviour
 
     [SerializeField] private GameObject flagStatusHolder;
     [SerializeField] private GameObject flagStatusPrefab;
+
+    [Space(10)]
+
+    [SerializeField] private TextMeshProUGUI endOfMatchText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -222,5 +228,11 @@ public class HUDUI : MonoBehaviour
         if(flagUI == null) { return; }
         flagUI.transform.GetChild(1).GetComponent<Image>().fillAmount = progress;
         flagUI.transform.GetChild(1).GetComponent<Image>().color = PlayerTeam.GetNormalColour(colour);
+    }
+
+    public void ShowGameOver(Team winner)
+    {
+        windowManager.ShowWindow(endOfMatchWindow);
+        endOfMatchText.text = $"{winner} team has won!";
     }
 }

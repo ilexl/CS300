@@ -1,6 +1,8 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
+using System;
+
 
 
 #if UNITY_EDITOR
@@ -100,7 +102,12 @@ public class ScoreManager : NetworkBehaviour
 
     private void HandleAnyTeamScoreChanged(int oldValue, int newValue)
     {
-        if (IsServer) { return; }
+        if (IsServer) 
+        {
+            CheckIfGameOver();
+            return; 
+        }
+
         NetworkObject localPlayerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         Team localTeam = localPlayerObject.GetComponent<PlayerTeam>().team;
 
@@ -110,6 +117,34 @@ public class ScoreManager : NetworkBehaviour
 
         float localScore = CalculateScoreForTeam(localTeam); // between 0f and 1f
         HUDUI.Singleton.UpdateScore(localScore);
+    }
+
+    private void CheckIfGameOver()
+    {
+        if(!IsServer) return;
+        int scoreDifference = Mathf.Abs(Mathf.Clamp(BlueTeamScore.Value - OrangeTeamScore.Value, -100, 100));
+        if(scoreDifference == 100)
+        {
+            // A team has one - trigger clients game over - they will figure out if they won
+            Team leadingTeam = BlueTeamScore.Value >= OrangeTeamScore.Value ? Team.Blue : Team.Orange;
+            GameOverClientRpc(leadingTeam);
+            #if UNITY_EDITOR
+            Debug.Log("Server Shutting Down!");
+            NetworkManager.Singleton.Shutdown();
+            #else
+            NetworkManager.Singleton.Shutdown();
+            Application.Quit();
+            #endif
+        }
+    }
+
+    [ClientRpc]
+    void GameOverClientRpc(Team winner)
+    {
+        if (IsServer) { return; }
+        Debug.Log("Game has ended!");
+        // code here for client
+        HUDUI.Singleton.ShowGameOver(winner);
     }
 
     public void ForceUpdateScoreUI()
