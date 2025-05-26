@@ -259,6 +259,15 @@ public class Player : NetworkBehaviour
         else
         {
             tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
+            if (NetworkManager.Singleton.LocalClient.PlayerObject != null)
+            {
+                if (NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Player>() == this)
+                {
+                    // run on local player
+                    tankMovement.SetPlayerCamera(Camera.main);
+                }
+            }
+            
             Debug.Log("TankMovement Script Updated!");
         }
 

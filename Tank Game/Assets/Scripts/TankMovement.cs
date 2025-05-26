@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using System.Runtime.CompilerServices;
 
 public class TankMovement : NetworkBehaviour
 {
@@ -50,6 +51,19 @@ public class TankMovement : NetworkBehaviour
     public void SetPlayerCamera(Camera camera)
     {
         playerCamera = camera;
+
+        // try set debug aim
+
+        var da = GameObject.FindGameObjectWithTag("DEBUGAIM");
+        if (da != null) 
+        { 
+            debugAimObject = da.transform;
+            Debug.Log("Debug Aim Found!");
+        }
+        else
+        {
+            Debug.Log("Debug Aim NOT Found...");
+        }
     }
 
     void Update()

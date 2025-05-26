@@ -76,11 +76,14 @@ public class TankCombat : NetworkBehaviour
             GameObject cannon = GetComponent<TankMovement>()?.GetCannon(0);
             if (cannon == null) return;
 
-            int layerMask = ~(1 << 10);
+
+            int layerMask = ~((1 << 2) | (1 << 10));
             RaycastHit hit;
 
-            if (Physics.Raycast(cannon.transform.position, cannon.transform.forward, out hit, 1000f, layerMask))
+            if (Physics.Raycast(cannon.transform.GetChild(0).position, cannon.transform.GetChild(0).forward, out hit, 10000f, layerMask))
             {
+                Debug.Log(hit.collider.name);
+                Debug.DrawLine(cannon.transform.GetChild(0).position, cannon.transform.GetChild(0).position + (cannon.transform.GetChild(0).forward * 1000f), Color.magenta, 30f);
                 NetworkObject targetNetObj = hit.collider.GetComponentInParent<NetworkObject>();
                 ulong targetClientId = targetNetObj != null ? targetNetObj.OwnerClientId : 0;
                 RequestShootServerRpc(targetClientId);
