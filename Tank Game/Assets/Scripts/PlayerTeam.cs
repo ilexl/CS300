@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.PackageManager;
@@ -17,6 +18,8 @@ public class PlayerTeam : MonoBehaviour
     public Team team = Team.None;
     [SerializeField] GameObject healthBarPrefab;
     public GameObject healthBarCurrent;
+    [SerializeField] GameObject minimapIconPrefab;
+    public GameObject minimapIconCurrent;
 
     public void Awake()
     {
@@ -149,6 +152,13 @@ public class PlayerTeam : MonoBehaviour
             HUDUI.Singleton.UpdateTeamColour(team);
             Debug.Log("Updated HUD Team Colour");
         }
+
+        if (minimapIconCurrent != null)
+        {
+
+            minimapIconCurrent.GetComponentInChildren<RawImage>().color = GetNormalColour(team);
+
+        }
     }
 
     static readonly Color32 GREYCOLOR = new Color32(246, 246, 246, 255);
@@ -194,5 +204,12 @@ public class PlayerTeam : MonoBehaviour
             SetTeamSide(team);
         };
 #endif
+    }
+
+    public void AddMinimapIcon()
+    {
+        if (NetworkManager.Singleton.IsServer) { return; }
+        minimapIconCurrent = Instantiate(minimapIconPrefab, this.transform);
+        minimapIconCurrent.GetComponentInChildren<RawImage>().color = GetNormalColour(team);
     }
 }

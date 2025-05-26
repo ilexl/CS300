@@ -2,6 +2,8 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using TMPro;
+using UnityEngine.UI;
 
 public class CaptureFlag : NetworkBehaviour
 {
@@ -21,6 +23,9 @@ public class CaptureFlag : NetworkBehaviour
     [SerializeField] private Team capturingTeam = Team.None;
 
     [SerializeField] private readonly HashSet<PlayerTeam> playersInZone = new HashSet<PlayerTeam>();
+    [SerializeField] private TextMeshProUGUI minimapLetter;
+    [SerializeField] private RawImage minimapCircle;
+
 
     private float targetLerp = 0f; // NEW: used to smooth flag movement
     public GameObject flagUI;
@@ -81,6 +86,13 @@ public class CaptureFlag : NetworkBehaviour
         }
 
         HUDUI.Singleton.UpdateFlagUIValues(flagUI, displayTeam, progress);
+
+        // update Minimap stuff here
+
+        if(minimapLetter == null || minimapCircle == null) { return; }
+        minimapLetter.text = FlagLetter;
+        minimapLetter.color = PlayerTeam.GetNormalColour(displayTeam);
+        minimapCircle.color = PlayerTeam.GetNormalColour(displayTeam);
     }
 
     public void ResetFlag()

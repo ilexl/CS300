@@ -175,6 +175,8 @@ MonoBehaviour:
   team: 0
   healthBarPrefab: {fileID: 2070612816741130148, guid: 12b7cbc2845cfb245ab6884b120585a3, type: 3}
   healthBarCurrent: {fileID: 0}
+  minimapIconPrefab: {fileID: 1531590569652458177, guid: 8e9176c0dad63234781b59dcd09bd1dd, type: 3}
+  minimapIconCurrent: {fileID: 0}
 --- !u!114 &1446215712490391783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,7 +203,6 @@ MonoBehaviour:
   cannonElevationSpeed: 30
   minCannonAngle: -10
   maxCannonAngle: 20
-  canMove: 1
   sniperCameraPos: {fileID: 0}
   debugAimObject: {fileID: 0}
 --- !u!114 &5072461580168938618

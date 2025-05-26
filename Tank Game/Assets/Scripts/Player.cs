@@ -285,6 +285,9 @@ public class Player : NetworkBehaviour
         GetComponent<BoxCollider>().enabled = true; // enable collider when actually a tank
         GetComponent<Rigidbody>().useGravity = true; // enable gravity when actually a tank
 
+        // add minimap icon
+        GetComponent<PlayerTeam>().AddMinimapIcon();
+
         Debug.Log($"Tank successfully changed to {tank.name}");
     }
 }
