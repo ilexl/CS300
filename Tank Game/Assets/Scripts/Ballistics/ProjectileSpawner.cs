@@ -4,6 +4,8 @@ namespace Ballistics
 {
     public class ProjectileSpawner : MonoBehaviour
     {
+
+        private ProjectileKey _previousProjectileKey;
         [SerializeField] 
         private ProjectileKey projectileType;
         public ProjectileKey ProjectileType
@@ -68,12 +70,18 @@ namespace Ballistics
         // This method is called in the editor when a value is changed in the Inspector
         private void OnValidate()
         {
-            var projectile = ProjectileDatabase.GetProjectile(projectileType);
-            materialType = projectile.MaterialKey;
-            projectileDiameterMm = projectile.DiameterMm;
-            projectileLengthMm = projectile.LengthMm;
-            projectileVelocityMS = projectile.VelocityMs;
-        
+            
+            if (_previousProjectileKey != projectileType)
+            {
+                var projectile = ProjectileDatabase.GetProjectile(projectileType);
+                materialType = projectile.MaterialKey;
+                projectileDiameterMm = projectile.DiameterMm;
+                projectileLengthMm = projectile.LengthMm;
+                projectileVelocityMS = projectile.VelocityMs;
+                _previousProjectileKey = projectileType;
+            }
+            
+
         }
     }
 }
