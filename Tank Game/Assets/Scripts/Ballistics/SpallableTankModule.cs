@@ -4,7 +4,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 
-public class SpallableObject : MaterialObject
+public class SpallableTankModule : DamageableTankModule
 {
     public static readonly float ProtectionMultiplier = 2650000; // Dumb global variable to get armour value in the same ballpark as projectile damage pools
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -23,7 +23,7 @@ public class SpallableObject : MaterialObject
     float a = 0.5f; // How cone size relates to armour matching
     float b = 0.75f; // How cone size scales by velocity
 
-    public void PostPenetration(
+    public override void PostPenetration(
     Vector3 entryPoint,
     Vector3 exitPoint,
     float thickness,

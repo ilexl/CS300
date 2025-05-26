@@ -158,15 +158,15 @@ namespace Ballistics
             Vector3 entryPoint = entryHit.point;
             var panelGameObject = entryHit.collider.gameObject;
             // TODO: Generalize to DamageableComponent once implemented
-            var panel = panelGameObject.GetComponent<SpallableObject>();
-    
+            var tankComp = panelGameObject.GetComponent<DamageableTankModule>();
+            
             Vector3 potentialDeflectAngle = Vector3.Reflect(direction, entryHit.normal);
         
             float cosTheta = Mathf.Abs(Vector3.Dot(direction.normalized, entryHit.normal.normalized));
             float tanTheta = Mathf.Sqrt(1 - cosTheta * cosTheta) / cosTheta;
         
         
-            var deflectionFactor = GetDeflectionFactor(panel, tanTheta);
+            var deflectionFactor = GetDeflectionFactor(tankComp, tanTheta);
         
             if (_type == ProjectileType.bullet) Debug.Log(deflectionFactor);
             if (deflectionFactor > 1f) // This is a deflection
@@ -197,8 +197,8 @@ namespace Ballistics
         
         
         
-            var protection = thickness * (panel.Material.Hardness + panel.Material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableObject.ProtectionMultiplier;
-            float distance = GetMaximumPenetrationAgainstMaterial(panel.MaterialType);
+            var protection = thickness * (tankComp.Material.Hardness + tankComp.Material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableTankModule.ProtectionMultiplier;
+            float distance = GetMaximumPenetrationAgainstMaterial(tankComp.MaterialType);
         
             float lostEnergyRatio = (protection / _hpPool) / 1.3f;
             lostEnergyRatio = Mathf.Clamp01(lostEnergyRatio); // prevent negative or >1
@@ -214,13 +214,15 @@ namespace Ballistics
             {
                 case ImpactType.Penetrate:
                     _previousPos = exitPoint;
-                    panel.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
                     break;
                 case ImpactType.NonPenetrate:
                     Destroy();
+                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
                     break;
                 case ImpactType.Deflect:
                     _previousPos = entryPoint;
+                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
                     break;
             }
     
@@ -262,7 +264,7 @@ namespace Ballistics
             return direction;
         }
 
-        private float GetDeflectionFactor(SpallableObject panel, float tanTheta)
+        private float GetDeflectionFactor(DamageableTankModule panel, float tanTheta)
         {
             // GOAL: APFSDS-like projectiles should deflect at ~11 degrees. WWII-esque projectiles should deflect around 60 degrees.
             float hardnessRatio = panel.Material.Hardness / Material.Hardness;
@@ -292,7 +294,7 @@ namespace Ballistics
         {
             var material = MaterialDatabase.GetMaterial(mKey);
         
-            return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableObject.ProtectionMultiplier);
+            return _hpPool / ((material.Hardness + material.GetMaterialToughnessCoefficient(18, 0.75f)) * SpallableTankModule.ProtectionMultiplier);
         }
     
         private void DrawMesh(Vector3 posA, Vector3 posB)
