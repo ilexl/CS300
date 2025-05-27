@@ -18,6 +18,9 @@ public class CameraControl : MonoBehaviour
     private float currentY = 0f;
     private float NomralFOV = 60f;
     private float SniperFOV = 40f;
+    private float sniperFOVMin = 20f; // Min FOV in sniper mode
+    private float sniperFOVMax = 60f; // Max FOV in sniper mode
+    private float sniperZoomSpeed = 20f; // Speed of zooming FOV in sniper mode
 
     private bool sniperModeCOV = false; // handles changes between sniper mode and normal mode ONLY
 
@@ -27,10 +30,21 @@ public class CameraControl : MonoBehaviour
         currentY -= Input.GetAxis("Mouse Y") * sensitivity;
         currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
 
-        // Handle Zooming
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        distance -= scroll * zoomSpeed;
-        distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        if (target != null && target.GetComponent<TankMovement>() != null &&
+            target.GetComponent<TankMovement>().SniperMode)
+        {
+            // Handle zooming via FOV in Sniper Mode
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            Camera.main.fieldOfView -= scroll * sniperZoomSpeed;
+            Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, sniperFOVMin, sniperFOVMax);
+        }
+        else
+        {
+            // Handle Zooming via distance in normal mode
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            distance -= scroll * zoomSpeed;
+            distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        }
     }
 
     void LateUpdate()
@@ -50,7 +64,6 @@ public class CameraControl : MonoBehaviour
         {
             CameraMovement();
         }
-        
     }
 
     void SniperMode()
@@ -58,7 +71,7 @@ public class CameraControl : MonoBehaviour
         // Sniper Mode
 
         // Change FOV to zoom (detect change of states)
-        if (sniperModeCOV is false)
+        if (!sniperModeCOV)
         {
             Camera.main.fieldOfView = SniperFOV;
             sniperModeCOV = true;
@@ -71,15 +84,9 @@ public class CameraControl : MonoBehaviour
             target.GetComponent<TankVisuals>().HideTankSniperMode();
         }
 
-
-
-        // Allow scrolling to change zoom (FOV)
-        // TODO: allow scrolling for zoom FOV
-
         // Move camera
         transform.position = target.GetComponent<TankMovement>().GetSniperCameraTransform().position; // always update position
         transform.localRotation = Quaternion.Euler(currentY, currentX, 0f);
-        
     }
 
     void CameraMovement()
@@ -89,28 +96,15 @@ public class CameraControl : MonoBehaviour
             Camera.main.fieldOfView = NomralFOV;
             sniperModeCOV = false;
 
-            // Attach camera to above again (move camera pos)
-            // TODO: Move camera faster as there is currently a delay
-
             // Hide models of tank while zoomed in
             target.GetComponent<TankVisuals>().ShowTankNormal();
         }
-        // Get the target's world position (the tank)
+
         Vector3 targetPosition = target.position + offset;
-
-        // Log the tank's world position to see where the camera is supposed to pivot
-        // Debug.Log($"Tank World Position: {target.position}");
-
         Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
         Vector3 desiredPosition = targetPosition - (rotation * Vector3.forward * distance);
 
-        // Log the desired camera position
-        // Debug.Log($"Desired Camera Position: {desiredPosition}");
-
-        // Smoothly move the camera towards the desired position
         transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
-
-        // Make the camera look at the target
         transform.LookAt(target.position + offset);
     }
 }
