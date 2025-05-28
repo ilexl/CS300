@@ -173,7 +173,7 @@ namespace Ballistics
             {
                 impactType = ImpactType.Deflect;
                 direction = ApplyDeflectionEffect(potentialDeflectAngle, entryPoint, cosTheta);
-                _previousPos = entryPoint;
+                _previousPos = entryPoint + direction * 0.00001f;
                 return impactType;
             }
             else // This is projectile yaw (or possibly a non penetration)
@@ -181,18 +181,33 @@ namespace Ballistics
                 // Calculate the diffraction from travelling through the plate
                 direction = ApplyDiffractionEffect(entryHit, direction, deflectionFactor, entryPoint);
             }
-        
-            var backCastPos = entryPoint + direction * 10f;
-            bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, panelGameObject.transform,  out var secondHit, Mathf.Infinity, _layerMask);
-            if (!didHit)
+
+
+            RaycastHit secondHit = new RaycastHit();
+            float backcastDist = 0.1f;
+            while (backcastDist <= 10f)
+            {
+                var backCastPos = entryPoint + direction * backcastDist;
+                bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, panelGameObject.transform, out secondHit, backcastDist * 1.1f, _layerMask);
+
+
+                if (didHit && secondHit.point != entryPoint) 
+                {
+                    break;
+                }
+                backcastDist *= 2f;
+            }
+
+            if (backcastDist > 10f)
             {
                 return ImpactType.NoImpact;
             }
-            Vector3 exitPoint = secondHit.point;
+            DebugUtils.DebugDrawSphere(entryPoint, 0.1f, Color.blue, 1f);
+            DebugUtils.DebugDrawSphere(secondHit.point, 0.1f, Color.green, 1f);
+            Vector3 exitPoint = secondHit.point  + direction * 0.00001f;
         
         
             float thickness = Vector3.Dot(direction, exitPoint - entryPoint );
-            //Debug.Log("LOS thickness: " + thickness);
         
         
         
