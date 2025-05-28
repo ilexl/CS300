@@ -5,7 +5,8 @@ namespace Ballistics
     public enum ProjectileKey
     {
         M62,
-        M829A4
+        M829A4,
+        T99APT,
     }
 
     public class ProjectileDefinition
@@ -32,7 +33,8 @@ namespace Ballistics
         private static readonly Dictionary<ProjectileKey, ProjectileDefinition> ProjectileDefinition = new()
         {
             { ProjectileKey.M62 , new ProjectileDefinition("M62 (US)", MaterialKey.HighCarbonSteel, 76.2f, 355, 792)},
-            { ProjectileKey.M829A4 , new ProjectileDefinition("M829A4 (US)", MaterialKey.DepletedUranium, 25f, 850, 1570)}
+            { ProjectileKey.M829A4 , new ProjectileDefinition("M829A4 (US)", MaterialKey.DepletedUranium, 25f, 850, 1570)},
+            { ProjectileKey.T99APT, new ProjectileDefinition("T99 AP-T (US)", MaterialKey.HighCarbonSteel, 120f, 650, 945)}
         };
 
         public static ProjectileDefinition GetProjectile(ProjectileKey key)
