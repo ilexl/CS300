@@ -49,7 +49,6 @@ namespace Ballistics
             base.PostPenetration(entryPoint, exitPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter);
             
             float damage = (projectileDiameter * 1000) * thickness * previousVelocity.magnitude;
-            Debug.Log("Damage: " + damage + "");
             Health -= damage;
         }
         public override void NonPenetration(Vector3 entryPoint, Vector3 exisPoint, float thickness, Vector3 projectileVelocity, Vector3 previousVelocity, 
@@ -59,9 +58,6 @@ namespace Ballistics
             base.NonPenetration(entryPoint, exisPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter);
             
             float damage = (projectileDiameter * 1000) * thickness * previousVelocity.magnitude;
-            Debug.Log("Damage: " + damage + "");
-            Debug.Log("Health: " + Health + "");
-            Debug.Log("HP (percentage): " + (HealthRatio * 100) + "%");
             Health -= damage;
         }
         #endregion
