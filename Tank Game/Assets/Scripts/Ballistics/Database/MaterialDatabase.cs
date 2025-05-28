@@ -95,7 +95,7 @@ namespace Ballistics
             { MaterialKey.Nylon,            new Material("Nylon",                          MaterialType.Polymer,   hardness: 2.0f, density: 1200,  impactResistance: 100) },
             { MaterialKey.WoodOak,          new Material("Wood (Oak)",                     MaterialType.Organic,   hardness: 2.0f, density:  800,  impactResistance: 250) },
             { MaterialKey.WoodPine,         new Material("Wood (Pine)",                    MaterialType.Organic,   hardness: 1.5f, density:  500,  impactResistance: 150) },
-            { MaterialKey.HumanFlesh,       new Material("Human Flesh",                    MaterialType.Organic,   hardness: 1.5f, density:  985,  impactResistance: 25) },
+            { MaterialKey.HumanFlesh,       new Material("Human Flesh",                    MaterialType.Organic,   hardness: 0.5f, density:  985,  impactResistance: 5) },
             
             
         };
