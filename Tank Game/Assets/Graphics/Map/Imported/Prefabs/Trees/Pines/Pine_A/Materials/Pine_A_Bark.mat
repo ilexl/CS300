@@ -31,7 +31,6 @@ Material:
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
-  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -66,7 +65,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - Diffusion_Profile: 3.5648174
+    - Diffusion_Profile: 3.8956573
     - EFFECT_BILLBOARD: 0
     - EFFECT_EXTRA_TEX: 1
     - _AddPrecomputedVelocity: 0
@@ -140,7 +139,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - Diffusion_Profile_Asset: {r: 0, g: 0, b: 0, a: 0.00018220427}
+    - Diffusion_Profile_Asset: {r: -8.695931e+30, g: -5.0949594e+31, b: -0.010710085, a: -0.0000000055696536}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _Diffusion_Profile_Asset: {r: 0, g: 0, b: 0, a: 0}
