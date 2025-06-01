@@ -9,7 +9,7 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Armour
+  - Damage System
   - Water
   - UI
   - Terrain
