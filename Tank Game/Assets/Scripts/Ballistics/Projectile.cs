@@ -202,8 +202,6 @@ namespace Ballistics
             {
                 return ImpactType.NoImpact;
             }
-            DebugUtils.DebugDrawSphere(entryPoint, 0.1f, Color.blue, 1f);
-            DebugUtils.DebugDrawSphere(secondHit.point, 0.1f, Color.green, 1f);
             Vector3 exitPoint = secondHit.point  + direction * 0.00001f;
         
         
