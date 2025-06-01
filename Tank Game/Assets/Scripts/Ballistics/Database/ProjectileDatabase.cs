@@ -34,7 +34,7 @@ namespace Ballistics
         {
             { ProjectileKey.M62 , new ProjectileDefinition("M62 (US)", MaterialKey.HighCarbonSteel, 76.2f, 355, 792)},
             { ProjectileKey.M829A4 , new ProjectileDefinition("M829A4 (US)", MaterialKey.DepletedUranium, 25f, 850, 1570)},
-            { ProjectileKey.T99APT, new ProjectileDefinition("T99 AP-T (US)", MaterialKey.HighCarbonSteel, 120f, 650, 945)}
+            { ProjectileKey.T99APT, new ProjectileDefinition("T99 AP-T (US)", MaterialKey.HighCarbonSteel, 120f, 965, 945)}
         };
 
         public static ProjectileDefinition GetProjectile(ProjectileKey key)
