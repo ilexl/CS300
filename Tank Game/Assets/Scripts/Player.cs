@@ -253,18 +253,20 @@ public class Player : NetworkBehaviour
         // update tank movement script
         if (tankMovement == null || tankVisuals == null)
         {
-            Debug.Log("Player missing movement or visual scripts. " +
+            Debug.LogWarning("Player missing movement or visual scripts. " +
                 "This may be intended but stops some code frome executing");
         }
         else
         {
             tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
-            if (NetworkManager.Singleton.LocalClient.PlayerObject != null)
-            {
-                if (NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Player>() == this)
+            if(NetworkManager.Singleton != null) {
+                if (NetworkManager.Singleton.LocalClient.PlayerObject != null)
                 {
-                    // run on local player
-                    tankMovement.SetPlayerCamera(Camera.main);
+                    if (NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Player>() == this)
+                    {
+                        // run on local player
+                        tankMovement.SetPlayerCamera(Camera.main);
+                    }
                 }
             }
             
@@ -295,7 +297,10 @@ public class Player : NetworkBehaviour
         GetComponent<Rigidbody>().useGravity = true; // enable gravity when actually a tank
 
         // add minimap icon
-        GetComponent<PlayerTeam>().AddMinimapIcon();
+        if(GetComponent<PlayerTeam>() != null)
+        {
+            GetComponent<PlayerTeam>().AddMinimapIcon();
+        }
 
         Debug.Log($"Tank successfully changed to {tank.name}");
     }
