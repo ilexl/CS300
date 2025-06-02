@@ -21,6 +21,9 @@ public class RaycastThicknessTool
 
     private static void HandleRaycast(Vector2 mousePosition)
     {
+        if (EditorApplication.isPlaying && EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isUpdating) return; // Prevents execution during asset imports
+        if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
         // Convert mouse position to world ray
         Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
 
