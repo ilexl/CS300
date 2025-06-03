@@ -11,19 +11,54 @@ public enum Team
     Orange
 }
 
-public class PlayerTeam : MonoBehaviour
+public class PlayerTeam : NetworkBehaviour
 {
-    public Team team = Team.None;
-    [SerializeField] GameObject healthBarPrefab;
+    private NetworkVariable<Team> networkTeam = new NetworkVariable<Team>(
+        Team.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    [SerializeField] private GameObject healthBarPrefab;
     public GameObject healthBarCurrent;
-    [SerializeField] GameObject minimapIconPrefab;
+    [SerializeField] private GameObject minimapIconPrefab;
     public GameObject minimapIconCurrent;
 
-    public void Awake()
+    public override void OnNetworkSpawn()
     {
-        if (healthBarPrefab is null)
+        if (IsClient)
         {
-            // try load from resources
+            networkTeam.OnValueChanged += OnTeamChanged;
+            team = networkTeam.Value;
+            UpdateHealthColour();
+        }
+
+        if (IsServer)
+        {
+            team = networkTeam.Value;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsClient)
+        {
+            networkTeam.OnValueChanged -= OnTeamChanged;
+        }
+    }
+
+    private void OnTeamChanged(Team previous, Team current)
+    {
+        team = current;
+        UpdateHealthColour();
+    }
+
+    public Team team = Team.None;
+
+    private void Awake()
+    {
+        if (healthBarPrefab == null)
+        {
             GameObject load = Resources.Load<GameObject>("PlayerSetup/HealthBar");
             if (load != null)
             {
@@ -34,51 +69,40 @@ public class PlayerTeam : MonoBehaviour
         }
     }
 
-    public void SetTeamSide(Team team)
+    public void SetTeamSide(Team newTeam)
     {
-        this.team = team;
-        Debug.Log($"Player set to team {this.team}");
+        if (IsServer)
+        {
+            networkTeam.Value = newTeam;
+        }
+
+        team = newTeam;
+        Debug.Log($"Player set to team {team}");
         UpdateHealthColour();
 
-        if(NetworkManager.Singleton == null) { return; } // cant execute if no network
-        if(NetworkManager.Singleton.LocalClient == null) { return; } // cant execute on server
-        if(NetworkManager.Singleton.LocalClient.PlayerObject == null) { return; } // null error on server
+        if (!IsOwner || GameManager.Singleton == null || HUDUI.Singleton == null)
+            return;
 
-        if(NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerTeam>() != this) { return; } // only run this bit on local player
         if (GameManager.Singleton.GetCurrentGamemode() == GameMode.CaptureTheFlag ||
             GameManager.Singleton.GetCurrentGamemode() == GameMode.TeamDeathmatch)
         {
-            if(team != Team.None)
+            if (team != Team.None)
             {
                 HUDUI.Singleton.SetTeams(team, GetOppositeTeam(team));
             }
         }
 
-        ScoreManager.Singleton.ForceUpdateScoreUI(); // update score given we are on a new team
-
-
+        ScoreManager.Singleton.ForceUpdateScoreUI();
     }
 
     public static Team GetOppositeTeam(Team team)
     {
-        if (team == Team.None)
+        return team switch
         {
-            Debug.LogError("Cannot return opposite team for Team.None...");
-            return Team.None;
-        }
-
-        switch (team)
-        {
-            case Team.Blue:
-                return Team.Orange;
-            case Team.Orange:
-                return Team.Blue;
-            default:
-                {
-                    Debug.LogError("Team not found...");
-                    return Team.None;
-                }
-        }
+            Team.Blue => Team.Orange,
+            Team.Orange => Team.Blue,
+            _ => Team.None,
+        };
     }
 
     public void UpdateHealthBar(float current, float max = 0)
@@ -95,7 +119,7 @@ public class PlayerTeam : MonoBehaviour
         }
 
         Slider s = healthBarCurrent.GetComponentInChildren<Slider>();
-        if (s == null) return; // Will be null on server
+        if (s == null) return;
 
         if (max != 0) s.maxValue = max;
         s.minValue = 0;
@@ -104,7 +128,6 @@ public class PlayerTeam : MonoBehaviour
 
     private void UpdateHealthColour()
     {
-        // Prevent running in edit mode with invalid scene state
         if (!Application.isPlaying) return;
 
         if (healthBarCurrent != null)
@@ -116,46 +139,38 @@ public class PlayerTeam : MonoBehaviour
 #endif
         }
 
-        // Ensure parent is a scene object
         if (gameObject.scene.name == null)
         {
             Debug.LogWarning("Skipping instantiation because GameObject is not in a scene.");
             return;
         }
 
-        // Only instantiate under valid runtime conditions
         healthBarCurrent = Instantiate(healthBarPrefab);
-        healthBarCurrent.transform.SetParent(transform, false); // Avoid parenting errors
+        healthBarCurrent.transform.SetParent(transform, false);
 
         var images = healthBarCurrent.GetComponentsInChildren<Image>();
         foreach (Image image in images)
         {
             if (image.gameObject.name == "Fill")
             {
-                Debug.Log("Normal Color Set");
                 image.color = GetNormalColour(team);
             }
             if (image.gameObject.name == "Background")
             {
-                Debug.Log("Dark Color Set");
                 image.color = GetDarkerColour(team);
             }
         }
 
         healthBarCurrent.SetActive(!GetComponent<Player>().LocalPlayer);
 
-        if (GetComponent<Player>().LocalPlayer)
+        if (GetComponent<Player>().LocalPlayer && HUDUI.Singleton != null)
         {
-            if (HUDUI.Singleton == null) return;
             HUDUI.Singleton.UpdateTeamColour(team);
-            Debug.Log("Updated HUD Team Colour");
         }
 
         if (minimapIconCurrent != null)
         {
-
             minimapIconCurrent.GetComponentInChildren<RawImage>().color = GetNormalColour(team);
-
         }
     }
 
@@ -198,7 +213,7 @@ public class PlayerTeam : MonoBehaviour
         EditorApplication.delayCall += () =>
         {
             if (this == null) return;
-            if (Application.isPlaying == false) return; // Prevent UpdateHealthColour() logic in edit-time
+            if (!Application.isPlaying) return;
             SetTeamSide(team);
         };
 #endif
@@ -206,8 +221,9 @@ public class PlayerTeam : MonoBehaviour
 
     public void AddMinimapIcon()
     {
-        if (NetworkManager.Singleton.IsServer) { return; }
-        minimapIconCurrent = Instantiate(minimapIconPrefab, this.transform);
+        if (IsServer) return;
+
+        minimapIconCurrent = Instantiate(minimapIconPrefab, transform);
         minimapIconCurrent.GetComponentInChildren<RawImage>().color = GetNormalColour(team);
     }
 }
