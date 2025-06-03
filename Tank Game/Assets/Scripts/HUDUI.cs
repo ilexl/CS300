@@ -125,7 +125,25 @@ public class HUDUI : MonoBehaviour
 
     public void LeaveMatch()
     {
-        SceneManager.LoadScene("MainMenu");
+        StartCoroutine(ShutdownThenLoadScene("MainMenu"));
+    }
+
+    private System.Collections.IEnumerator ShutdownThenLoadScene(string sceneName)
+    {
+        // Shut down network
+        NetworkManager.Singleton.Shutdown();
+
+        // Optional: Wait a short time to ensure disconnect messages, despawns, etc. propagate
+        yield return new WaitForSeconds(0.5f);
+
+        // Destroy the NetworkManager so it doesn't persist across scenes
+        Destroy(NetworkManager.Singleton.gameObject);
+
+        // Wait another frame to ensure Destroy is processed
+        yield return null;
+
+        // Now load the main menu scene
+        SceneManager.LoadScene(sceneName);
     }
 
     public void ShowRespawnUI()
