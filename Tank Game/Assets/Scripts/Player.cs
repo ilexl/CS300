@@ -2,9 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 using System;
-using Unity.Netcode.Components;
-
-
+using Unity.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,7 +15,9 @@ public class Player : NetworkBehaviour
     [SerializeField] PlayerTeam playerTeam;
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
-    public bool LocalPlayer = false; // TODO: fix for multiplayer as defaults to false with no checks currently
+    public bool LocalPlayer = false;
+    private NetworkVariable<FixedString64Bytes> currentTankName = new NetworkVariable<FixedString64Bytes>(string.Empty, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     public TankVarients TankVarient
     {
         get { return currentTank; }
@@ -31,7 +31,20 @@ public class Player : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        ChangeTank((TankVarients)null);
+        if (IsOwner)
+        {
+            // If this is the owner, it can set the tank later
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(currentTankName.Value.ToString()))
+        {
+            ChangeTank(currentTankName.Value.ToString());
+        }
+        else
+        {
+            ChangeTank((TankVarients)null);
+        }
     }
 
     public void OnValidate()
@@ -87,7 +100,12 @@ public class Player : NetworkBehaviour
     }
     public void ChangeTank(string tankName)
     {
-        if(tankName == null) // return null tank if string doesnt exist
+        if (IsOwner)
+        {
+            currentTankName.Value = tankName ?? string.Empty;
+        }
+        
+        if (tankName == null) // return null tank if string doesnt exist
         {
             ChangeTank((TankVarients)null);
         }
@@ -109,7 +127,19 @@ public class Player : NetworkBehaviour
         {
             Destroy(child.gameObject);
         }
-        
+
+        if (IsOwner)
+        {
+            if(tank == null)
+            {
+                currentTankName.Value = string.Empty;
+            }
+            else
+            {
+                currentTankName.Value = tank.tankName;
+            }
+        }
+
         // disable the colliders
         GetComponent<BoxCollider>().enabled = false;
         GetComponent<Rigidbody>().useGravity = false; // disable gravity when not a tank
