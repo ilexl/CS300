@@ -15,25 +15,32 @@ public class CameraMainMenu : MonoBehaviour
 
     private float currentX = 0f;
     private float currentY = 0f;
+    public static bool mouseBusy = false;
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.None;
+        mouseBusy = false;
     }
 
     void Update()
     {
-        if(Input.GetMouseButton(0) || Input.GetMouseButton(1))
+        if (mouseBusy) { return; }
+        if(Cursor.lockState == CursorLockMode.Locked || Input.GetMouseButton(0) || Input.GetMouseButton(1))
         {
-            currentX += Input.GetAxis("Mouse X") * sensitivity;
-            currentY -= Input.GetAxis("Mouse Y") * sensitivity;
-        }
-        currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
+            if(Input.GetMouseButton(0) || Input.GetMouseButton(1))
+            {
+                currentX += Input.GetAxis("Mouse X") * sensitivity;
+                currentY -= Input.GetAxis("Mouse Y") * sensitivity;
+            }
+            currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
 
+        }
         // Handle Zooming
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         distance -= scroll * zoomSpeed;
         distance = Mathf.Clamp(distance, minDistance, maxDistance);
+
     }
 
     void LateUpdate()
