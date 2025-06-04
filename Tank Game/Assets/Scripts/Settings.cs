@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Linq;
+
 
 
 
@@ -429,7 +431,139 @@ public class Settings : MonoBehaviour
     }
     public void ApplySettings()
     {
-        // tbc for each individual setting...
+        int targetWidth = Screen.currentResolution.width;
+        int targetHeight = Screen.currentResolution.height;
+        double targetRefreshRate = Screen.currentResolution.refreshRateRatio.value;
+        FullScreenMode targetFullScreenMode = Screen.fullScreenMode;
+
+
+        foreach (Setting setting in settings)
+        {
+            string name = setting.GetName();
+            string value = setting.GetCurrentValue();
+
+            switch (name)
+            {
+                // Video
+                case "Video-Resolution":
+                    string[] res = value.Split('x');
+                    if (res.Length == 2 && int.TryParse(res[0], out int width) && int.TryParse(res[1], out int height))
+                    {
+                        targetWidth = width;
+                        targetHeight = height;
+                    }
+                    break;
+
+                case "Video-Fullscreen":
+                    switch (value)
+                    {
+                        case "Fullscreen":
+                            targetFullScreenMode = FullScreenMode.ExclusiveFullScreen;
+                            break;
+                        case "Borderless":
+                            targetFullScreenMode = FullScreenMode.FullScreenWindow;
+                            break;
+                        case "Windowed":
+                            targetFullScreenMode = FullScreenMode.Windowed;
+                            break;
+                    }
+                    break;
+
+                case "Video-VSync":
+                    switch (value)
+                    {
+                        case "Off": QualitySettings.vSyncCount = 0; break;
+                        case "Half": QualitySettings.vSyncCount = 2; break;
+                        case "On": QualitySettings.vSyncCount = 1; break;
+                    }
+                    break;
+
+                case "Video-RefreshRate":
+                    if (double.TryParse(value, out double refreshRate))
+                    {
+                        targetRefreshRate = refreshRate;
+                    }
+                    break;
+
+                // Graphics
+                case "Graphics-TextureQuality":
+                    // Example: map string to int
+                    // QualitySettings.masterTextureLimit = value == "Low" ? 2 : value == "Medium" ? 1 : 0;
+                    break;
+
+                case "Graphics-ShadowQuality":
+                    // QualitySettings.shadows = ShadowQuality.All;
+                    break;
+
+                case "Graphics-ReflectionQuality":
+                    break;
+
+                case "Graphics-ParticleQuality":
+                    break;
+
+                case "Graphics-AntiAliasing":
+                    break;
+
+                case "Graphics-AmbiantOcclusion":
+                    break;
+
+                case "Graphics-DepthOfField":
+                    break;
+
+                // Audio
+                case "Audio-Master":
+                    // AudioListener.volume = int.Parse(value) / 100f;
+                    break;
+                case "Audio-Effects":
+                    // AudioManager.Instance.SetVolume("Effects", int.Parse(value) / 100f);
+                    break;
+                case "Audio-Engines":
+                    // AudioManager.Instance.SetVolume("Engines", int.Parse(value) / 100f);
+                    break;
+                case "Audio-MusicMenu":
+                    // AudioManager.Instance.SetVolume("MusicMenu", int.Parse(value) / 100f);
+                    break;
+                case "Audio-MusicGame":
+                    // AudioManager.Instance.SetVolume("MusicGame", int.Parse(value) / 100f);
+                    break;
+
+                // Camera
+                case "Camera-FOV":
+                    Camera.main.fieldOfView = float.Parse(value);
+                    break;
+                case "Camera-LookSensitivity":
+                    // PlayerController.LookSensitivity = float.Parse(value);
+                    break;
+                case "Camera-AimSensitivity":
+                    // PlayerController.AimSensitivity = float.Parse(value);
+                    break;
+                case "Camera-AxisInverted":
+                    // PlayerController.InvertY = bool.Parse(value);
+                    break;
+
+                // Controls
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+
+        ApplyResolution(targetWidth, targetHeight, targetFullScreenMode, targetRefreshRate);
+    }
+
+    public void ApplyResolution(int width, int height, FullScreenMode mode, double targetHz)
+    {
+        // Try to find the closest supported refresh rate
+        RefreshRate closestRate = Screen.resolutions
+            .Where(r => r.width == width && r.height == height)
+            .OrderBy(r => Math.Abs(r.refreshRateRatio.value - targetHz))
+            .FirstOrDefault()
+            .refreshRateRatio;
+
+        // Apply resolution using RefreshRate
+        Screen.SetResolution(width, height, mode, closestRate);
     }
 
     public void TestCodeSnippet()
