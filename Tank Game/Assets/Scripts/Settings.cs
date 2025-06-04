@@ -1,6 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
+using System.Collections;
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -8,20 +12,61 @@ using UnityEditor;
 
 public class Settings : MonoBehaviour
 {
+    public static Settings Singleton;
     [SerializeField] private GameObject settingPrefabUI;
     [SerializeField] private Transform videoHolder, graphicsHolder, audioHolder, controlsHolder, cameraHolder, otherHolder;
+    [SerializeField] private GameObject controlRebindablePrefab;
+    [SerializeField] private Window ChangeControlWindow;
     List<Setting> settings;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        Singleton = this;
         LoadSettings();
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    public void ShowChangeControl(Setting setting, Action callback)
     {
-        
+        ChangeControlWindow.Show();
+
+        // Start listening for input
+        StartCoroutine(WaitForControlInput(input =>
+        {
+            // input is a string like "KeyCode.Space" or "GamepadButton.X"
+            setting.UpdateCurrentValue(input);
+
+            // Now call the callback to notify it's done
+            callback?.Invoke();
+            ChangeControlWindow.Hide();
+        }));
+    }
+
+    private IEnumerator WaitForControlInput(Action<string> onInputReceived)
+    {
+        bool inputReceived = false;
+        string detectedInput = null;
+
+        while (!inputReceived)
+        {
+            // Example: key press detection
+            foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+            {
+                if (Input.GetKeyDown(key))
+                {
+                    detectedInput = key.ToString();
+                    inputReceived = true;
+                    break;
+                }
+            }
+
+            // Extend this for gamepad input, mouse buttons, etc. as needed
+            Debug.Log("Waiting for input");
+            yield return null; // wait until next frame
+        }
+
+        // Send the detected input string to the callback
+        onInputReceived?.Invoke(detectedInput);
     }
 
     private List<Setting> GetSettingsList()
@@ -62,7 +107,7 @@ public class Settings : MonoBehaviour
         list.Add(new Setting("Control-ShootSecondary", "Spacebar")); // Spacebar Shoot (Machine Gun)
         list.Add(new Setting("Control-CameraZoom", "Mouse 1")); // M2 Aim (Zoom)
         list.Add(new Setting("Control-SniperMode", "Shift")); // Shift Aim (Sniper)
-        list.Add(new Setting("Control-name", "Esc")); // Esc Back
+        list.Add(new Setting("Control-Pause/Back", "Esc")); // Esc Back
         // ...
 
         // Camera
@@ -240,6 +285,14 @@ public class Settings : MonoBehaviour
         }
         #endregion
 
+        // Control
+        #region Control
+        if (setting.GetName().Contains("Control-"))
+        {
+
+        }
+        #endregion
+
         if (options.Count == 0) { Debug.LogWarning($"Setting {setting.GetName()} has no options, this needs to be set in GetSettingsOptions manually..."); }
         return options;
     }
@@ -309,17 +362,24 @@ public class Settings : MonoBehaviour
             string type = (setting.GetName().Split('-'))[0];
 
             // alternating list colours need to be reset here for each category created
-            if (currentType != type)
+            if (currentType != type && type != "Control")
             {
                 currentType = type;
                 SettingUI.ResetColourCount();
             }
+            else if (currentType != type && type == "Control")
+            {
+                currentType = type;
+                EditableControl.ResetColourCount();
+            }
 
-            if (type == "Controls") { parentType = controlsHolder; }
-            if (parentType is not null)
+            if (type == "Control") { parentType = controlsHolder; }
+            if (parentType != null)
             {
                 // control needs it own script as it is special...
-
+                GameObject ui = Instantiate(controlRebindablePrefab, parentType);
+                ui.name = setting.GetName();
+                ui.GetComponent<EditableControl>().Setup(setting);
                 continue;
             }
 
@@ -329,7 +389,7 @@ public class Settings : MonoBehaviour
             if (type == "Camera") { parentType = cameraHolder; }
             if (type == "Other") { parentType = otherHolder; }
 
-            if(parentType is not null)
+            if(parentType != null)
             {
                 GameObject ui = Instantiate(settingPrefabUI, parentType);
                 ui.name = setting.GetName();
