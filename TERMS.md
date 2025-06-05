@@ -1,6 +1,6 @@
 # Terms and Conditions – Armoured Division
 
-_Last updated: [Insert Date]_
+_Last updated: 06/06/2025_
 
 Welcome to **Armoured Division**. By downloading, installing, or playing this game, you agree to the following Terms and Conditions. If you do not agree, please do not use the game.
 
