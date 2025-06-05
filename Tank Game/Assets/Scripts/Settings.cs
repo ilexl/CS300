@@ -1,6 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
+using System.Collections;
+using System.Linq;
+
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -8,20 +14,61 @@ using UnityEditor;
 
 public class Settings : MonoBehaviour
 {
+    public static Settings Singleton;
     [SerializeField] private GameObject settingPrefabUI;
     [SerializeField] private Transform videoHolder, graphicsHolder, audioHolder, controlsHolder, cameraHolder, otherHolder;
+    [SerializeField] private GameObject controlRebindablePrefab;
+    [SerializeField] private Window ChangeControlWindow;
     List<Setting> settings;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        Singleton = this;
         LoadSettings();
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    public void ShowChangeControl(Setting setting, Action callback)
     {
-        
+        ChangeControlWindow.Show();
+
+        // Start listening for input
+        StartCoroutine(WaitForControlInput(input =>
+        {
+            // input is a string like "KeyCode.Space" or "GamepadButton.X"
+            setting.UpdateCurrentValue(input);
+
+            // Now call the callback to notify it's done
+            callback?.Invoke();
+            ChangeControlWindow.Hide();
+        }));
+    }
+
+    private IEnumerator WaitForControlInput(Action<string> onInputReceived)
+    {
+        bool inputReceived = false;
+        string detectedInput = null;
+
+        while (!inputReceived)
+        {
+            // Example: key press detection
+            foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+            {
+                if (Input.GetKeyDown(key))
+                {
+                    detectedInput = key.ToString();
+                    inputReceived = true;
+                    break;
+                }
+            }
+
+            // Extend this for gamepad input, mouse buttons, etc. as needed
+            Debug.Log("Waiting for input");
+            yield return null; // wait until next frame
+        }
+
+        // Send the detected input string to the callback
+        onInputReceived?.Invoke(detectedInput);
     }
 
     private List<Setting> GetSettingsList()
@@ -62,7 +109,7 @@ public class Settings : MonoBehaviour
         list.Add(new Setting("Control-ShootSecondary", "Spacebar")); // Spacebar Shoot (Machine Gun)
         list.Add(new Setting("Control-CameraZoom", "Mouse 1")); // M2 Aim (Zoom)
         list.Add(new Setting("Control-SniperMode", "Shift")); // Shift Aim (Sniper)
-        list.Add(new Setting("Control-name", "Esc")); // Esc Back
+        list.Add(new Setting("Control-Pause/Back", "Esc")); // Esc Back
         // ...
 
         // Camera
@@ -240,6 +287,14 @@ public class Settings : MonoBehaviour
         }
         #endregion
 
+        // Control
+        #region Control
+        if (setting.GetName().Contains("Control-"))
+        {
+
+        }
+        #endregion
+
         if (options.Count == 0) { Debug.LogWarning($"Setting {setting.GetName()} has no options, this needs to be set in GetSettingsOptions manually..."); }
         return options;
     }
@@ -309,17 +364,24 @@ public class Settings : MonoBehaviour
             string type = (setting.GetName().Split('-'))[0];
 
             // alternating list colours need to be reset here for each category created
-            if (currentType != type)
+            if (currentType != type && type != "Control")
             {
                 currentType = type;
                 SettingUI.ResetColourCount();
             }
+            else if (currentType != type && type == "Control")
+            {
+                currentType = type;
+                EditableControl.ResetColourCount();
+            }
 
-            if (type == "Controls") { parentType = controlsHolder; }
-            if (parentType is not null)
+            if (type == "Control") { parentType = controlsHolder; }
+            if (parentType != null)
             {
                 // control needs it own script as it is special...
-
+                GameObject ui = Instantiate(controlRebindablePrefab, parentType);
+                ui.name = setting.GetName();
+                ui.GetComponent<EditableControl>().Setup(setting);
                 continue;
             }
 
@@ -329,7 +391,7 @@ public class Settings : MonoBehaviour
             if (type == "Camera") { parentType = cameraHolder; }
             if (type == "Other") { parentType = otherHolder; }
 
-            if(parentType is not null)
+            if(parentType != null)
             {
                 GameObject ui = Instantiate(settingPrefabUI, parentType);
                 ui.name = setting.GetName();
@@ -369,7 +431,139 @@ public class Settings : MonoBehaviour
     }
     public void ApplySettings()
     {
-        // tbc for each individual setting...
+        int targetWidth = Screen.currentResolution.width;
+        int targetHeight = Screen.currentResolution.height;
+        double targetRefreshRate = Screen.currentResolution.refreshRateRatio.value;
+        FullScreenMode targetFullScreenMode = Screen.fullScreenMode;
+
+
+        foreach (Setting setting in settings)
+        {
+            string name = setting.GetName();
+            string value = setting.GetCurrentValue();
+
+            switch (name)
+            {
+                // Video
+                case "Video-Resolution":
+                    string[] res = value.Split('x');
+                    if (res.Length == 2 && int.TryParse(res[0], out int width) && int.TryParse(res[1], out int height))
+                    {
+                        targetWidth = width;
+                        targetHeight = height;
+                    }
+                    break;
+
+                case "Video-Fullscreen":
+                    switch (value)
+                    {
+                        case "Fullscreen":
+                            targetFullScreenMode = FullScreenMode.ExclusiveFullScreen;
+                            break;
+                        case "Borderless":
+                            targetFullScreenMode = FullScreenMode.FullScreenWindow;
+                            break;
+                        case "Windowed":
+                            targetFullScreenMode = FullScreenMode.Windowed;
+                            break;
+                    }
+                    break;
+
+                case "Video-VSync":
+                    switch (value)
+                    {
+                        case "Off": QualitySettings.vSyncCount = 0; break;
+                        case "Half": QualitySettings.vSyncCount = 2; break;
+                        case "On": QualitySettings.vSyncCount = 1; break;
+                    }
+                    break;
+
+                case "Video-RefreshRate":
+                    if (double.TryParse(value, out double refreshRate))
+                    {
+                        targetRefreshRate = refreshRate;
+                    }
+                    break;
+
+                // Graphics
+                case "Graphics-TextureQuality":
+                    // Example: map string to int
+                    // QualitySettings.masterTextureLimit = value == "Low" ? 2 : value == "Medium" ? 1 : 0;
+                    break;
+
+                case "Graphics-ShadowQuality":
+                    // QualitySettings.shadows = ShadowQuality.All;
+                    break;
+
+                case "Graphics-ReflectionQuality":
+                    break;
+
+                case "Graphics-ParticleQuality":
+                    break;
+
+                case "Graphics-AntiAliasing":
+                    break;
+
+                case "Graphics-AmbiantOcclusion":
+                    break;
+
+                case "Graphics-DepthOfField":
+                    break;
+
+                // Audio
+                case "Audio-Master":
+                    // AudioListener.volume = int.Parse(value) / 100f;
+                    break;
+                case "Audio-Effects":
+                    // AudioManager.Instance.SetVolume("Effects", int.Parse(value) / 100f);
+                    break;
+                case "Audio-Engines":
+                    // AudioManager.Instance.SetVolume("Engines", int.Parse(value) / 100f);
+                    break;
+                case "Audio-MusicMenu":
+                    // AudioManager.Instance.SetVolume("MusicMenu", int.Parse(value) / 100f);
+                    break;
+                case "Audio-MusicGame":
+                    // AudioManager.Instance.SetVolume("MusicGame", int.Parse(value) / 100f);
+                    break;
+
+                // Camera
+                case "Camera-FOV":
+                    Camera.main.fieldOfView = float.Parse(value);
+                    break;
+                case "Camera-LookSensitivity":
+                    // PlayerController.LookSensitivity = float.Parse(value);
+                    break;
+                case "Camera-AimSensitivity":
+                    // PlayerController.AimSensitivity = float.Parse(value);
+                    break;
+                case "Camera-AxisInverted":
+                    // PlayerController.InvertY = bool.Parse(value);
+                    break;
+
+                // Controls
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+
+        ApplyResolution(targetWidth, targetHeight, targetFullScreenMode, targetRefreshRate);
+    }
+
+    public void ApplyResolution(int width, int height, FullScreenMode mode, double targetHz)
+    {
+        // Try to find the closest supported refresh rate
+        RefreshRate closestRate = Screen.resolutions
+            .Where(r => r.width == width && r.height == height)
+            .OrderBy(r => Math.Abs(r.refreshRateRatio.value - targetHz))
+            .FirstOrDefault()
+            .refreshRateRatio;
+
+        // Apply resolution using RefreshRate
+        Screen.SetResolution(width, height, mode, closestRate);
     }
 
     public void TestCodeSnippet()
