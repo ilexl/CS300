@@ -1,11 +1,13 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "NewTank", menuName = "Tank/Create New Tank")]
 [System.Serializable]
 public class TankVarients : ScriptableObject
 {
     public string tankName;
+    public string Nation, Rank, Icon;
 
     [Header("Cannons")]
     public GameObject[] cannonModels;
@@ -65,6 +67,16 @@ public class TankVarients : ScriptableObject
         }
 
         return tank;
+    }
+
+    public static Texture GetTextureFromString(string imageName)
+    {
+        Texture raw = Resources.Load<Texture>($"Tanks/Icons/{imageName}");
+        if ( raw == null)
+        {
+            raw = Resources.Load<Texture>($"Tanks/Icons/Placeholder");
+        }
+        return raw; 
     }
     
 
