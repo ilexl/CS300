@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using System;
+using UnityEngine.SceneManagement;
+
+
 
 
 #if UNITY_EDITOR
@@ -26,6 +30,7 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         // Create drag visual
         dragVisualInstance = Instantiate(this.gameObject, transform.root);
+        dragVisualInstance.GetComponent<TankCard>().canChange = false;
         dragVisualRect = dragVisualInstance.GetComponent<RectTransform>();
         dragVisualInstance.GetComponent<RawImage>().raycastTarget = false;
         dragVisualInstance.GetComponent<TankCard>().enabled = false;
@@ -80,15 +85,15 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     void Start()
     {
-        if(holder == false)
+        if(holder == false && canChange)
         {
             if(tankVarient != null)
             {
-                SetCard(tankVarient);
+                SetCardNoPref(tankVarient);
             }
             else
             {
-                ResetCard();
+                ResetCardNoPref();
             }
         }
     }
@@ -99,14 +104,31 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         tankImage.texture = TankVarients.GetTextureFromString("");
         tankName.text = "Empty";
         tankRank.text = "";
+        SetPrefs();
+    }
+
+    void ResetCardNoPref()
+    {
+        tankVarient = null;
+        tankImage.texture = TankVarients.GetTextureFromString("");
+        tankName.text = "Empty";
+        tankRank.text = "";
     }
 
     public void SetCard(TankVarients tank)
     {
         tankVarient = tank;
-        tankImage.texture = TankVarients.GetTextureFromString(tank.Icon);
-        tankName.text = tank.tankName;
-        tankRank.text = tank.Rank;
+        if(tankVarient != null)
+        {
+            tankImage.texture = TankVarients.GetTextureFromString(tank.Icon);
+            tankName.text = tank.tankName;
+            tankRank.text = tank.Rank;
+            SetPrefs();
+        }
+        else
+        {
+            ResetCard();
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -114,6 +136,49 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (holder && eventData.button == PointerEventData.InputButton.Right)
         {
             ResetCard();
+        }
+        if (SceneManager.GetActiveScene().name == "MainMenu" && holder && eventData.button == PointerEventData.InputButton.Left)
+        {
+            if (tankVarient != null) { FindAnyObjectByType<Player>().ChangeTank(tankVarient); }
+        }
+    }
+
+    string GetPrefString()
+    {
+        string prefString = $"TankCard-{name}";
+        return prefString;
+    }
+
+    public void LoadPrefs()
+    {
+        string tankName = PlayerPrefs.GetString(GetPrefString(), "");
+        TankVarients t = TankVarients.GetFromString(tankName);
+        SetCardNoPref(t); // dont want to cause an infinite loop by saving again!!!
+        //Resources.UnloadAsset(t);
+    }
+
+    void SetCardNoPref(TankVarients tank)
+    {
+        tankVarient = tank;
+        if (tankVarient != null)
+        {
+            tankImage.texture = TankVarients.GetTextureFromString(tank.Icon);
+            tankName.text = tank.tankName;
+            tankRank.text = tank.Rank;
+        }
+        else
+        {
+            ResetCardNoPref();
+        }
+    }
+
+    void SetPrefs()
+    {
+        if (tankVarient == null) { PlayerPrefs.DeleteKey(GetPrefString()); }
+        else { PlayerPrefs.SetString(GetPrefString(), tankVarient.tankName); }
+        if(TankSelection.Singleton != null)
+        {
+            TankSelection.Singleton.SavedPrefsToCards();
         }
     }
 }

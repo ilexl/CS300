@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class TankSelection : MonoBehaviour
 {
+    public static TankSelection Singleton;
     [SerializeField][Range(1f, 20f)] int unlockedSlots;
     [SerializeField] List<RectTransform> TankList;
     [SerializeField] GameObject holderPrefab;
@@ -12,15 +13,19 @@ public class TankSelection : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        Singleton = this;
         RecalculateTankListWidth();
+        SavedPrefsToCards();
     }
 
-    public void UpdateAtIndex(int index)
+    public void SavedPrefsToCards()
     {
-        foreach (Transform t in TankList)
+        foreach (RectTransform transform in TankList)
         {
-            int children = t.childCount;
-            if(children != unlockedSlots) { Debug.LogError("slots != unlocked slots"); }
+            foreach (Transform child in transform)
+            {
+                child.GetComponent<TankCard>().LoadPrefs();
+            }
         }
     }
 
@@ -112,7 +117,7 @@ public class TankSelection : MonoBehaviour
                 for (int i = 0; i < unlockedSlots; i++)
                 {
                     GameObject go = Instantiate(holderPrefab, transform);
-                    go.name = i.ToString();
+                    go.name = (i+1).ToString();
                     go.GetComponent<TankCard>().holder = true;
                     go.GetComponent<TankCard>().canChange = (SceneManager.GetActiveScene().name == "MainMenu"); // can only change in main menu
                 }

@@ -53,9 +53,10 @@ public class TankVarients : ScriptableObject
     /// <returns>TankVarients if found, otherwise null</returns>
     public static TankVarients GetFromString(string tankName)
     {
+        Resources.UnloadUnusedAssets();
         if (string.IsNullOrWhiteSpace(tankName))
         {
-            Debug.LogWarning("Tank name is null or empty.");
+            //Debug.LogWarning("Tank name is null or empty.");
             return null;
         }
 
@@ -71,6 +72,7 @@ public class TankVarients : ScriptableObject
 
     public static Texture GetTextureFromString(string imageName)
     {
+        Resources.UnloadUnusedAssets();
         Texture raw = Resources.Load<Texture>($"Tanks/Icons/{imageName}");
         if ( raw == null)
         {
