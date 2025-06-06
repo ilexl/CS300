@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holder: 0
+  canChange: 1
   tankImage: {fileID: 1180398932241680463}
   tankRank: {fileID: 4627761555578384554}
   tankName: {fileID: 4443278826755488386}

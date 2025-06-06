@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TankSelection : MonoBehaviour
 {
@@ -113,6 +114,7 @@ public class TankSelection : MonoBehaviour
                     GameObject go = Instantiate(holderPrefab, transform);
                     go.name = i.ToString();
                     go.GetComponent<TankCard>().holder = true;
+                    go.GetComponent<TankCard>().canChange = (SceneManager.GetActiveScene().name == "MainMenu"); // can only change in main menu
                 }
 
                 RecalculateTankListWidth();

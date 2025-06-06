@@ -11,8 +11,8 @@ using UnityEditor;
 [System.Serializable]
 public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-
     [SerializeField] public bool holder = false;
+    [SerializeField] public bool canChange = true;
     [SerializeField] public RawImage tankImage;
     [SerializeField] public TextMeshProUGUI tankRank, tankName;
     [SerializeField] public TankVarients tankVarient;
@@ -50,7 +50,7 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             dropTarget = eventData.pointerEnter.GetComponentInParent<TankCard>();
         }
 
-        if (dropTarget != null && dropTarget.holder)
+        if (dropTarget != null && dropTarget.holder && dropTarget.canChange)
         {
             dropTarget.SetCard(tankVarient);
         }
@@ -127,6 +127,10 @@ public class EDITOR_TankCard : Editor
     {
         TankCard tc = (TankCard)target;
         tc.holder = EditorGUILayout.Toggle(label: "Holder", tc.holder);
+        if (tc.holder)
+        {
+            tc.canChange = EditorGUILayout.Toggle(label: "Can Change?", tc.canChange);
+        }
         EditorGUILayout.Space(10);
         tc.tankImage = (RawImage)EditorGUILayout.ObjectField("CARD Tank Image", tc.tankImage, typeof(RawImage), true);
         tc.tankRank = (TextMeshProUGUI)EditorGUILayout.ObjectField("CARD Tank Rank", tc.tankRank, typeof(TextMeshProUGUI), true);
