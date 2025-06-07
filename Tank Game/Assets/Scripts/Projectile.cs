@@ -1,3 +1,4 @@
+using Ballistics;
 using System;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
@@ -51,7 +52,7 @@ public class Projectile : MaterialObject
 
         Debug.Log("HP pool (penetration power) is " + _hpPool);
 
-        float maxPenetration = _hpPool / (MaterialDatabase.GetMaterial(MaterialKey.HighCarbonSteel).Hardness * ArmourPanel.ProtectionMultiplier);
+        float maxPenetration = _hpPool / (MaterialDatabase.GetMaterial(MaterialKey.HighCarbonSteel).Hardness * SpallableTankModule.ProtectionMultiplier);
         Debug.Log("Maximum penetration is " + maxPenetration * 1000 + "mm" );
     }
     
@@ -90,7 +91,7 @@ public class Projectile : MaterialObject
 
         var plateGameObject = collider.gameObject;
         // TODO: Generalize to DamageableComponent once implemented
-        var panel = plateGameObject.GetComponent<ArmourPanel>();
+        var panel = plateGameObject.GetComponent<SpallableTankModule>();
         
         var backCastPos = entryPoint + direction * 10f;
         bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, plateGameObject.transform,  out var secondHit, Mathf.Infinity, _layerMask);
@@ -104,7 +105,7 @@ public class Projectile : MaterialObject
         Debug.DrawLine(entryPoint, secondHit.point, Color.red, 50);
         float thickness = Vector3.Dot(direction, exitPoint - entryPoint );
         Debug.Log("LOS thickness: " + thickness);
-        var protection = thickness * panel.Material.Hardness * ArmourPanel.ProtectionMultiplier;
+        var protection = thickness * panel.Material.Hardness * SpallableTankModule.ProtectionMultiplier;
         _hpPool -= protection;
         Debug.Log(_hpPool);
         if (_hpPool <= 0)
@@ -114,7 +115,7 @@ public class Projectile : MaterialObject
             return false;
         }
 
-        panel.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, _diameter);
+        panel.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, Vector3.zero, _diameter);
         return true;
     }
 

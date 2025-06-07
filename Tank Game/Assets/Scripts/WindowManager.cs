@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEditor.PackageManager.UI;
+
 #region using editor
 #if UNITY_EDITOR
 using UnityEditor;
@@ -67,6 +69,7 @@ public class WindowManager : MonoBehaviour
     /// <param sendName="window">The window to show</param>
     public void ShowWindow(Window window)
     {
+        Debug.Log($"Showing window {window}");
         foreach(Window _window in Windows)
         {
             if(_window == window)
@@ -86,7 +89,7 @@ public class WindowManager : MonoBehaviour
     /// <param sendName="windowIndex">The index in windows to show</param>
     public void ShowWindow(int windowIndex)
     {
-        if(windowIndex >= Windows.Length)
+        if (windowIndex >= Windows.Length)
         {
 #if UNITY_EDITOR
             Debug.LogError("Index out of range - " + windowIndex + " for Windows in WM...");
@@ -95,6 +98,7 @@ public class WindowManager : MonoBehaviour
         else
         {
             ShowWindow(Windows[windowIndex]);
+            Debug.Log($"Showing window {Windows[windowIndex]}");
         }
     }
 
@@ -109,6 +113,7 @@ public class WindowManager : MonoBehaviour
         {
             if(window.GetName() == windowName)
             {
+                Debug.Log($"Showing window {window}");
                 ShowWindow(window);
                 found = true;
             }
@@ -130,6 +135,7 @@ public class WindowManager : MonoBehaviour
     /// <param sendName="window">The window to show</param>
     public void ShowOnly(Window window)
     {
+        Debug.Log($"Showing only window {window}");
         foreach (Window _window in Windows)
         {
             if (_window == window)
@@ -153,6 +159,7 @@ public class WindowManager : MonoBehaviour
         }
         else
         {
+            Debug.Log($"Showing only window {Windows[windowIndex]}");
             ShowOnly(Windows[windowIndex]);
         }
     }
@@ -168,6 +175,7 @@ public class WindowManager : MonoBehaviour
         {
             if (window.GetName() == windowName)
             {
+                Debug.Log($"Showing only window {window}");
                 ShowOnly(window);
                 found = true;
             }
@@ -187,7 +195,8 @@ public class WindowManager : MonoBehaviour
     /// </summary>
     public void HideAll()
     {
-        foreach(Window window in Windows)
+        Debug.Log($"Hiding all windows");
+        foreach (Window window in Windows)
         {
             window.Hide();
         }
@@ -200,6 +209,7 @@ public class WindowManager : MonoBehaviour
     /// </summary>
     public void ShowAll()
     {
+        Debug.Log($"Showing all windows");
         foreach (Window window in Windows)
         {
             window.Show();
@@ -214,6 +224,8 @@ public class WindowManager : MonoBehaviour
     /// <param sendName="window">The window to hide</param>
     public void HideOnly(Window window)
     {
+        Debug.Log($"Hiding only window {window}");
+
         foreach (Window _window in Windows)
         {
             if (_window == window)
@@ -237,6 +249,7 @@ public class WindowManager : MonoBehaviour
         }
         else
         {
+            Debug.Log($"Hiding only window {Windows[windowIndex]}");
             HideOnly(Windows[windowIndex]);
         }
     }
@@ -252,6 +265,7 @@ public class WindowManager : MonoBehaviour
         {
             if (window.GetName() == windowName)
             {
+                Debug.Log($"Hiding only window {window}");
                 HideOnly(window);
                 found = true;
             }
