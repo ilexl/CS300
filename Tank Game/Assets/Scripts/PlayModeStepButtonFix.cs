@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Reflection;
 using UnityEngine;
@@ -103,3 +104,4 @@ public static class PlayModeStepButtonFix
         _cachedToolbar = root;
     }
 }
+#endif
