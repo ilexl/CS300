@@ -179,6 +179,8 @@ public class Player : NetworkBehaviour
             return;
         }
         hull.transform.localPosition = tank.hullPosition;
+        hull.transform.localRotation = Quaternion.Euler(tank.hullRotation);
+        GetComponent<BoxCollider>().size = new Vector3(tank.hullWidth, tank.hullHeight, tank.hullLength);
 
         // turrets
         List<GameObject> turrets = new List<GameObject>();
@@ -221,6 +223,7 @@ public class Player : NetworkBehaviour
                 t.transform.localEulerAngles = Vector3.zero;
             }
             #endregion
+            holder.transform.localRotation = Quaternion.Euler(tank.turretRotations[i]);
             turrets.Add(holder);
         }
 
@@ -238,6 +241,7 @@ public class Player : NetworkBehaviour
             }
             #endregion
             GameObject holder = Instantiate(holderPrefab, turrets[turretIndex].transform);
+            
             try { holder.transform.localPosition = tank.cannonPivotPoints[i]; }
             #region catch
             catch (IndexOutOfRangeException)
@@ -261,7 +265,7 @@ public class Player : NetworkBehaviour
                 c.transform.localPosition = Vector3.zero;
             }
             #endregion
-            try { c.transform.localEulerAngles = tank.cannonRotations[i]; }
+            try { c.transform.localRotation = Quaternion.Euler(tank.cannonRotations[i]); }
             #region catch
             catch (IndexOutOfRangeException)
             {
