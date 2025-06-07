@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Maus
   m_EditorClassIdentifier: 
   tankName: Maus
+  Nation: 
+  Rank: 
+  Icon: 
   cannonModels:
   - {fileID: 3170276044312012370, guid: a1305464d5dcd1246afa411512fdc221, type: 3}
   - {fileID: 3332158073181034661, guid: bf101498e9ffa434ca6835264fd37f3d, type: 3}
@@ -47,9 +50,9 @@ MonoBehaviour:
   turretRotations:
   - {x: 270, y: 0, z: 0}
   hullModel: {fileID: 6091899036476872224, guid: c379784e60df5744eab108008da68d1a, type: 3}
-  hullWidth: 0
-  hullLength: 0
-  hullHeight: 0
+  hullWidth: 3.65
+  hullLength: 9
+  hullHeight: 2
   hullRotation: {x: 0, y: 0, z: 0}
   hullPosition: {x: 0, y: 0, z: 0}
   modelScale: {x: 0.6, y: 0.6, z: 0.6}

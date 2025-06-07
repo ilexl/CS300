@@ -16,28 +16,43 @@ MonoBehaviour:
   Nation: Dev
   Rank: I
   Icon: Dev-Tank-1
-  cannonModels: []
-  cannonDiameters: []
-  cannonLengths: []
-  cannonPivotPoints: []
-  cannonPositions: []
-  cannonRotations: []
-  cannonAttachedToTurretIndexs: 
-  turretModels: []
-  turretWidths: []
-  turretLengths: []
-  turretHeights: []
-  turretPivotPoints: []
-  turretPositions: []
-  turretRotations: []
-  hullModel: {fileID: 0}
-  hullWidth: 0
-  hullLength: 0
-  hullHeight: 0
-  hullRotation: {x: 0, y: 0, z: 0}
-  hullPosition: {x: 0, y: 0, z: 0}
-  modelScale: {x: 0, y: 0, z: 0}
-  turretRotationSpeed: []
-  gunAimSpeed: []
-  tankMoveSpeed: 0
+  cannonModels:
+  - {fileID: 1519524234666590506, guid: 0e47f55bfc0e33a4ba9a8f79121aa41c, type: 3}
+  cannonDiameters:
+  - 0
+  cannonLengths:
+  - 0
+  cannonPivotPoints:
+  - {x: 0, y: 0.45, z: 1}
+  cannonPositions:
+  - {x: 0, y: 0, z: 0}
+  cannonRotations:
+  - {x: 0, y: 0, z: 0}
+  cannonAttachedToTurretIndexs: 00000000
+  turretModels:
+  - {fileID: 3912888497453725671, guid: 06370f655540e304cb5254ac3d162532, type: 3}
+  turretWidths:
+  - 0
+  turretLengths:
+  - 0
+  turretHeights:
+  - 0
+  turretPivotPoints:
+  - {x: 0, y: 0.65, z: 2.5}
+  turretPositions:
+  - {x: 0, y: 0.65, z: 2.5}
+  turretRotations:
+  - {x: 0, y: 180, z: 0}
+  hullModel: {fileID: 2269248419853982553, guid: 771bb3815f28f334284b9608b7162b6a, type: 3}
+  hullWidth: 4.6
+  hullLength: 7.7
+  hullHeight: 1.5
+  hullRotation: {x: 0, y: 180, z: 0}
+  hullPosition: {x: 0, y: 1, z: 3}
+  modelScale: {x: 1, y: 1, z: 1}
+  turretRotationSpeed:
+  - 1
+  gunAimSpeed:
+  - 1
+  tankMoveSpeed: 1
   cameraPosSniper: {x: 0, y: 0, z: 0}
