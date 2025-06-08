@@ -42,8 +42,8 @@ public class TankVarients : ScriptableObject
     [Tooltip("in m/s")] public float tankMoveSpeed;
     public Vector3 cameraPosSniper;
 
-
-
+    [Header("Description")]
+    public string description;
 
 
     /// <summary>
