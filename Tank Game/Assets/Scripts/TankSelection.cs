@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class TankSelection : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class TankSelection : MonoBehaviour
     [SerializeField][Range(1f, 20f)] int unlockedSlots;
     [SerializeField] List<RectTransform> TankList;
     [SerializeField] GameObject holderPrefab;
+    [SerializeField] Button battleBtn;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -25,6 +27,18 @@ public class TankSelection : MonoBehaviour
             foreach (Transform child in transform)
             {
                 child.GetComponent<TankCard>().LoadPrefs();
+            }
+        }
+
+        if(battleBtn != null)
+        {
+            if (CheckIfSlotsEmpty())
+            {
+                battleBtn.interactable = false;
+            }
+            else
+            {
+                battleBtn.interactable = true;
             }
         }
     }
@@ -54,6 +68,22 @@ public class TankSelection : MonoBehaviour
             // TODO: UI stats on selected tank
         }
     
+    }
+
+    public bool CheckIfSlotsEmpty()
+    {
+        foreach (RectTransform transform in TankList)
+        {
+            foreach (Transform child in transform)
+            {
+                if(child.GetComponent<TankCard>().tankVarient != null)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true; // true == empty == no cards contain valid tanks
     }
 
     void RecalculateTankListWidth()
