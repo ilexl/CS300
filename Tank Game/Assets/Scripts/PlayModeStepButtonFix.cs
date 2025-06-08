@@ -10,7 +10,6 @@ using Object = UnityEngine.Object;
 /// <summary>
 /// Allow users to access Playmode 'step by step' button even if MultiplayerPlaymode is active.
 /// </summary>
-[InitializeOnLoad]
 public static class PlayModeStepButtonFix
 {
     private static VisualElement _cachedToolbar;
@@ -29,11 +28,13 @@ public static class PlayModeStepButtonFix
 
     static PlayModeStepButtonFix()
     {
+        return;
         EditorApplication.playModeStateChanged += OnPlaymodeChanged;
     }
 
     private static void OnPlaymodeChanged(PlayModeStateChange mode)
     {
+        return;
         if (mode == PlayModeStateChange.EnteredPlayMode)
         {
             EditorApplication.delayCall += () => EnableStepPlaymodeButton();
@@ -42,6 +43,7 @@ public static class PlayModeStepButtonFix
 
     public static void EnableStepPlaymodeButton()
     {
+        return;
         if (Toolbar == null)
             return;
 
@@ -69,6 +71,7 @@ public static class PlayModeStepButtonFix
 
     private static void FetchToolbar()
     {
+        return;
         Assembly unityEditorAssembly = typeof(EditorWindow).Assembly;
         Type GUIViewType = unityEditorAssembly.GetType("UnityEditor.Toolbar");
 
