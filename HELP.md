@@ -1,24 +1,32 @@
-# FAQ
+# Help: Controls and Gameplay Basics
 
 ---
 
-## Troubleshooting
+## 🎮 Controls
 
-**Q: The game won’t launch. What should I do?**  
-A: Ensure you have the required graphics drivers and software dependencies installed. Check system requirements in the [`README.md`](./README.md).
+| Action               | Key / Control     |
+|:---------------------|:------------------|
+| Move Forward         | `W`               |
+| Move Backward        | `S`               |
+| Turn Left            | `A`               |
+| Turn Right           | `D`               |
+| Rotate Turret        | `Mouse`           |
+| Fire Main Gun        | `Left Mouse Button`|
+| Fire Secondary Gun   | `Space Bar`       |
+| Zoom Optics          | `Right Mouse Button`|
+| Pause                | `Esc`             |
 
-**Q: Multiplayer connection issues — how can I fix them?**  
-A: Verify your network settings and make sure the designated port is open. See installation notes in the [`README.md`](./README.md) and network setup in [`NetworkingSetup.md`](./NetworkingSetup.md).
-
-**Q: Controls are not responding. What now?**  
-A: Check input device configuration in the settings menu. For the full control scheme, see [`HELP.md`](./HELP.md).
+*This table will be updated as the control scheme is finalized.*
 
 ---
 
-## General Questions
+## 🎮 Gameplay Basics
 
-**Q: What is the main gamemode?**  
-A: The game currently features **Capture the Flag**. For gameplay details, see [`HELP.md`](./HELP.md).
+### Gamemode: Capture the Flag
 
-**Q: Can I customize controls?**  
-A: Control customization is planned. For now, see default controls in [`HELP.md`](./HELP.md).
+- Two teams compete to capture the opposing team’s flag and return it to their base.
+- Players can respawn after being destroyed, according to the mode’s respawn rules.
+- The match is won by the team that reaches the required number of flag captures within the time limit or has the most captures when time expires.
+- Damage is location-based; critical areas like ammunition storage are more vulnerable.
+
+For more troubleshooting tips, see [`FAQ.md`](./FAQ.md).
