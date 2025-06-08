@@ -32,7 +32,7 @@ This project is a multiplayer tank combat game built as part of CS300. The game 
 
 ---
 
-## 📃 License
+## 📃 [License](./LICENSE)
 
 Copyright (c) 2025 William Tetzlaff, Alex Legner
 
