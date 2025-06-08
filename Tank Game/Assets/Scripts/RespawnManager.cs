@@ -6,7 +6,6 @@ public class RespawnManager : NetworkBehaviour
 {
     public static RespawnManager Singleton { get; private set; }
 
-    [SerializeField] TankVarients tempTankRespawn;
     [SerializeField] Transform TeamOrangeRespawn, TeamBlueRespawn;
     [SerializeField] float spawnRadius = 5f;
 

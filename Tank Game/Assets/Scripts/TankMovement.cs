@@ -2,6 +2,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Runtime.CompilerServices;
+using UnityEngine.UIElements;
 
 public class TankMovement : NetworkBehaviour
 {
@@ -24,7 +25,7 @@ public class TankMovement : NetworkBehaviour
 
     private Vector3 lastServerPosition;
     private Quaternion lastServerRotation;
-    private float correctionThreshold = 1.5f;
+    private float correctionThreshold = 5f;
 
     private List<Quaternion> turretRotations = new List<Quaternion>();
     private List<Quaternion> cannonRotations = new List<Quaternion>();
@@ -66,6 +67,11 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    public void ForceUpdateServerPos(Vector3 pos)
+    {
+        lastServerPosition = pos;
+    }
+
     void Update()
     {
         if (CanMove() == false) return;
@@ -92,6 +98,7 @@ public class TankMovement : NetworkBehaviour
         if (IsServer && !IsOwner)
         {
             ServerValidateClientMovement();
+            lastServerPosition = transform.position;
         }
     }
 
@@ -124,12 +131,13 @@ public class TankMovement : NetworkBehaviour
     void ServerValidateClientMovement()
     {
         if (hull == null) return;
+        if (canMove.Value == false) return;   
 
-        float distance = Vector3.Distance(hull.transform.position, lastServerPosition);
+        float distance = Vector3.Distance(transform.position, lastServerPosition);
         if (distance > correctionThreshold)
         {
-            hull.transform.position = lastServerPosition;
-            hull.transform.rotation = lastServerRotation;
+            transform.position = lastServerPosition;
+            transform.rotation = lastServerRotation;
             Debug.LogWarning($"Correcting client movement. Distance was {distance}.");
         }
     }

@@ -29,6 +29,33 @@ public class TankSelection : MonoBehaviour
         }
     }
 
+    public void SelectTank(TankCard card)
+    {
+        if (card.tankVarient == null) { return; }
+        RespawnManager rm = FindAnyObjectByType<RespawnManager>();
+        if (rm != null)
+        {
+            // respawn manager only active in game
+
+            // set tank to respawn in
+            rm.RequestTankChange(card.tankVarient.tankName);
+
+            // set UI to team selection
+            HUDUI.Singleton.ShowRespawnUI();
+
+        }
+        else
+        {
+            // main menu
+            
+            // change display tank
+            FindAnyObjectByType<Player>().ChangeTank(card.tankVarient); 
+        
+            // TODO: UI stats on selected tank
+        }
+    
+    }
+
     void RecalculateTankListWidth()
     {
         foreach(RectTransform holder in TankList)
@@ -123,8 +150,8 @@ public class TankSelection : MonoBehaviour
                 }
 
                 RecalculateTankListWidth();
+                SavedPrefsToCards();
 
-                
             }
             
         };

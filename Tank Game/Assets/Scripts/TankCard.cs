@@ -137,9 +137,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             ResetCard();
         }
-        if (SceneManager.GetActiveScene().name == "MainMenu" && holder && eventData.button == PointerEventData.InputButton.Left)
+        if (holder && eventData.button == PointerEventData.InputButton.Left)
         {
-            if (tankVarient != null) { FindAnyObjectByType<Player>().ChangeTank(tankVarient); }
+            if(tankVarient != null) { TankSelection.Singleton.SelectTank(this); }
         }
     }
 

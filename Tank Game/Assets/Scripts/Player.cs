@@ -45,6 +45,10 @@ public class Player : NetworkBehaviour
         {
             ChangeTank((TankVarients)null);
         }
+
+        if (LocalPlayer) { transform.position = new Vector3(0, 40, 0); }
+        GetComponent<TankMovement>().ForceUpdateServerPos(transform.position);
+
     }
 
     public void OnValidate()
@@ -86,6 +90,8 @@ public class Player : NetworkBehaviour
         {
             Camera.main.GetComponent<CameraControl>().target = transform;
         }
+        if (LocalPlayer) { transform.position = new Vector3(0, 40, 0); }
+        GetComponent<TankMovement>().ForceUpdateServerPos(transform.position);
     }
 
     void SetLayerAllChildren(Transform root, int layer)

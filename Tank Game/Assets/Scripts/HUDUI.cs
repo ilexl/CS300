@@ -14,6 +14,7 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private Window respawnWindow;
     [SerializeField] private Window settingsWindow;
     [SerializeField] private Window endOfMatchWindow;
+    [SerializeField] private Window tankSelectionWindow;
 
     [Space(10)]
 
@@ -36,8 +37,8 @@ public class HUDUI : MonoBehaviour
     void Start()
     {
         Singleton = this;
-        SetCursorShown(false);
-        ShowRespawnUI();
+        SetCursorShown(true);
+        windowManager.ShowWindow(tankSelectionWindow);
         SetupJoinButtons();
     }
 
@@ -75,7 +76,7 @@ public class HUDUI : MonoBehaviour
         }
 
         // check respawn
-        if (respawnWindow.isActiveAndEnabled)
+        if (respawnWindow.isActiveAndEnabled || tankSelectionWindow.isActiveAndEnabled)
         {
             // do nothing as respawn cannot be exited out of with esc
             return;
