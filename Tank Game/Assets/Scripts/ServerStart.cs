@@ -6,6 +6,12 @@ public class StartServer : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if(NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            Debug.LogError("Network Manager already exists - stopping execution...");
+            gameObject.SetActive(false);
+            return;
+        }
         Debug.Log("Server");
         StartCoroutine(WaitForNetworkManager());
     }
