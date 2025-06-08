@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Test Tank 2
   m_EditorClassIdentifier: 
   tankName: Test Tank 2
-  Nation: Dev
-  Rank: 2
-  icon: {fileID: 0}
+  Nation: 
+  Rank: 
+  Icon: 
   cannonModels: []
   cannonDiameters: []
   cannonLengths: []
