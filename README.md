@@ -19,7 +19,7 @@ This project is a multiplayer tank combat game built as part of CS300. The game 
 **System Requirements:**
 
 - Ryzen 5 1600 or Intel equivalent.
-- Geforce GT 710 or AMD equivalent.
+- Geforce GT 1050 or AMD equivalent.
 - Compatible graphics API (DirectX / Vulkan / OpenGL)
 
 ---
