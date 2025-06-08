@@ -18,12 +18,6 @@ public class MainMenu : MonoBehaviour
         searching = false;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     private System.Collections.IEnumerator TryConnectToServer(string ip, int port)
     {
         while (searching)
