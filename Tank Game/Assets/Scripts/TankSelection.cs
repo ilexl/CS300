@@ -65,7 +65,8 @@ public class TankSelection : MonoBehaviour
             // change display tank
             FindAnyObjectByType<Player>().ChangeTank(card.tankVarient); 
         
-            // TODO: UI stats on selected tank
+            // UI stats on selected tank
+            MainMenu.Singleton.SetSelectedVehicleText(card.tankVarient.description);
         }
     
     }

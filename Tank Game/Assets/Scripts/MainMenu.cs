@@ -1,8 +1,11 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField] TextMeshProUGUI selectedVehicleText;
+    public static MainMenu Singleton;
     bool searching = false;
     public void StartMatchMaking()
     {
@@ -10,12 +13,16 @@ public class MainMenu : MonoBehaviour
         StartCoroutine(TryConnectToServer("dev.legner.foo", 7777));
     }
 
-
+    public void SetSelectedVehicleText(string text)
+    {
+        selectedVehicleText.text = text;
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         searching = false;
+        Singleton = this;
     }
 
     private System.Collections.IEnumerator TryConnectToServer(string ip, int port)
