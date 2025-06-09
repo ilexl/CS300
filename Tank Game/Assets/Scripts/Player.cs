@@ -95,17 +95,6 @@ public class Player : NetworkBehaviour
             transform.position = new Vector3(0, 0, 0);
         }
     }
-
-    void SetLayerAllChildren(Transform root, int layer)
-    {
-        root.gameObject.layer = layer;
-        var children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        foreach (var child in children)
-        {
-            // Debug.Log(child.name);
-            child.gameObject.layer = layer;
-        }
-    }
     public void ChangeTank(string tankName)
     {
         if (IsOwner)
@@ -313,25 +302,6 @@ public class Player : NetworkBehaviour
             }
             
             Debug.Log("TankMovement Script Updated!");
-        }
-
-        if(playerTeam is null)
-        {
-            Debug.LogWarning("PlayerTeam Script is missing and health bar will not work...");
-        }
-        else
-        {
-            playerTeam.SetTeamSide(playerTeam.team); // set to whatever it already is
-        }
-
-        // set all layers to local or default
-        if (LocalPlayer)
-        {
-            SetLayerAllChildren(transform, 10); // 10 is local player
-        }
-        else
-        {
-            SetLayerAllChildren(transform, 0); // 0 is default
         }
 
         // enable the colliders
