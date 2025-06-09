@@ -43,19 +43,19 @@ namespace Ballistics
         
         #region penetrationEffects
         public override void PostPenetration(Vector3 entryPoint, Vector3 exitPoint, float thickness, Vector3 projectileVelocity, Vector3 previousVelocity, 
-            float projectileDiameter)
+            float projectileDiameter, System.Random rng)
         {
             DebugUtils.DebugDrawSphere(entryPoint, 0.1f, Color.red, 1);
-            base.PostPenetration(entryPoint, exitPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter);
+            base.PostPenetration(entryPoint, exitPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter, rng);
             
             float damage = (projectileDiameter * 1000) * thickness * previousVelocity.magnitude;
             Health -= damage;
         }
         public override void NonPenetration(Vector3 entryPoint, Vector3 exisPoint, float thickness, Vector3 projectileVelocity, Vector3 previousVelocity, 
-            float projectileDiameter)
+            float projectileDiameter, System.Random rng)
         {
             DebugUtils.DebugDrawSphere(entryPoint, 0.1f, Color.red, 1);
-            base.NonPenetration(entryPoint, exisPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter);
+            base.NonPenetration(entryPoint, exisPoint, thickness, projectileVelocity, previousVelocity, projectileDiameter, rng);
             
             float damage = (projectileDiameter * 1000) * thickness * previousVelocity.magnitude;
             Health -= damage;

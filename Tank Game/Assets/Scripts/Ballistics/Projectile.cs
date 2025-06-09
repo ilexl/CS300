@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Ballistics.Database;
 using UnityEngine;
+using Random = System.Random;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Ballistics
@@ -14,6 +16,7 @@ namespace Ballistics
     
         private Vector3 _previousPos;
         private Rigidbody rb;
+        private System.Random rng;
 
         private int _framesAlive;
         private const int MaxFramesAlive = 60;
@@ -32,8 +35,25 @@ namespace Ballistics
 
         private ProjectileType _type;     
     
-        public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
+        
+        
+        
+        
+        public static GameObject Create(Vector3 pos, Vector3 direction, long seed, ProjectileDefinition projectileDefinition)
         {
+            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, seed, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
+            return projectile;
+        }
+        public static GameObject Create(Vector3 pos, Vector3 velocity, long seed, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
+        {
+            
+            var projectile = Create(pos, velocity, new Random((int)seed), diameterM, lengthM, mKey, type);
+            return projectile;
+        }
+        
+        public static GameObject Create(Vector3 pos, Vector3 velocity, Random rng, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
+        {
+            
             if (Projectiles.Count >= 100000)
             {
                 throw new Exception("Too many projectiles!");
@@ -45,15 +65,12 @@ namespace Ballistics
             projectileInstance.rb = projectile.AddComponent<Rigidbody>();
         
             projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey, type);
-
+            projectileInstance.rng = rng;
             return projectile;
         }
+        
 
-        public static GameObject Create(Vector3 pos, Vector3 direction, ProjectileDefinition projectileDefinition)
-        {
-            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
-            return projectile;
-        }
+        
 
 
         public void Start()
@@ -239,15 +256,15 @@ namespace Ballistics
             {
                 case ImpactType.Penetrate:
                     _previousPos = exitPoint;
-                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
                 case ImpactType.NonPenetrate:
                     Destroy();
-                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
                 case ImpactType.Deflect:
                     _previousPos = entryPoint;
-                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
             }
     
