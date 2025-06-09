@@ -108,8 +108,24 @@ public class TankMovement : NetworkBehaviour
 
     void HandleHullMovement()
     {
-        float moveInput = Input.GetAxis("Vertical");
-        float rotateInput = Input.GetAxis("Horizontal");
+        float moveInput = 0;
+        float rotateInput = 0;
+        if (Input.GetKey(Settings.Singleton.KeyCodeFromSetting("Control-Left")))
+        {
+            rotateInput -= 1;
+        }
+        if (Input.GetKey(Settings.Singleton.KeyCodeFromSetting("Control-Right")))
+        {
+            rotateInput += 1;
+        }
+        if (Input.GetKey(Settings.Singleton.KeyCodeFromSetting("Control-Forward")))
+        {
+            moveInput += 1;
+        }
+        if (Input.GetKey(Settings.Singleton.KeyCodeFromSetting("Control-Back")))
+        {
+            moveInput -= 1;
+        }
 
         if (moveInput < 0) rotateInput *= -1;
 
@@ -290,7 +306,7 @@ public class TankMovement : NetworkBehaviour
 
     void SniperCheck()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift)) sniperMode = !sniperMode;
+        if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-SniperMode"))) sniperMode = !sniperMode;
     }
 
     public GameObject GetCannon(int cannonIndex) => cannons[cannonIndex];
