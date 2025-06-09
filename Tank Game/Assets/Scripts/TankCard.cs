@@ -35,6 +35,13 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         dragVisualInstance.GetComponent<RawImage>().raycastTarget = false;
         dragVisualInstance.GetComponent<TankCard>().enabled = false;
 
+        // Set anchors and pivot to center for free movement
+        dragVisualRect = dragVisualInstance.GetComponent<RectTransform>();
+        dragVisualRect.anchorMin = new Vector2(0.5f, 0.5f);
+        dragVisualRect.anchorMax = new Vector2(0.5f, 0.5f);
+        dragVisualRect.pivot = new Vector2(0.5f, 0.5f);
+        dragVisualRect.SetParent(transform.root, true); // ensure it's not under layout
+
         UpdateDragVisualPosition(eventData);
         CameraMainMenu.mouseBusy = true;
     }

@@ -56,3 +56,5 @@ MonoBehaviour:
   - 1
   tankMoveSpeed: 1
   cameraPosSniper: {x: 0, y: 0, z: 0}
+  description: This is an example of a tank description.\nStats and other information
+    would go here...

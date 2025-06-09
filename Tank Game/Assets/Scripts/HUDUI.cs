@@ -49,8 +49,9 @@ public class HUDUI : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-Pause/Back")))
         {
+            Debug.Log("Escape Logic");
             EscLogic();
         }
     }

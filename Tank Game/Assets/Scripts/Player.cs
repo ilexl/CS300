@@ -31,11 +31,6 @@ public class Player : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        if (IsOwner)
-        {
-            // If this is the owner, it can set the tank later
-            return;
-        }
 
         if (!string.IsNullOrEmpty(currentTankName.Value.ToString()))
         {
@@ -46,9 +41,12 @@ public class Player : NetworkBehaviour
             ChangeTank((TankVarients)null);
         }
 
-        if (LocalPlayer) { transform.position = new Vector3(0, 40, 0); }
-        GetComponent<TankMovement>().ForceUpdateServerPos(transform.position);
-
+        if (IsOwner)
+        {
+            GetComponent<TankMovement>().ForceUpdateServerPos(new Vector3(0, 0, 0), Quaternion.identity);
+            transform.position = new Vector3(0, 0, 0);
+        }
+        GetComponent<Rigidbody>().useGravity = true;
     }
 
     public void OnValidate()
@@ -85,13 +83,17 @@ public class Player : NetworkBehaviour
 
     private void Start()
     {
+        GetComponent<Rigidbody>().useGravity = false;
         LocalPlayer = GetComponent<NetworkObject>().IsOwner;
         if(LocalPlayer)
         {
             Camera.main.GetComponent<CameraControl>().target = transform;
         }
-        if (LocalPlayer) { transform.position = new Vector3(0, 40, 0); }
-        GetComponent<TankMovement>().ForceUpdateServerPos(transform.position);
+        if (LocalPlayer) 
+        { 
+            GetComponent<TankMovement>().ForceUpdateServerPos(new Vector3(0, 0, 0), Quaternion.identity);
+            transform.position = new Vector3(0, 0, 0);
+        }
     }
 
     void SetLayerAllChildren(Transform root, int layer)

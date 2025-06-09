@@ -65,7 +65,8 @@ public class TankCombat : NetworkBehaviour
 
         if (!IsOwner) return;
 
-        if (Input.GetMouseButtonDown(0))
+        //if (Input.GetMouseButtonDown(0))
+        if(Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-ShootPrimary")))
         {
             if (currentReload.Value > 0f)
             {
