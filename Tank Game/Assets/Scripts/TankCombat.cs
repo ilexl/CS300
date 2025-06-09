@@ -109,7 +109,6 @@ public class TankCombat : NetworkBehaviour
     [ClientRpc]
     private void BroadcastShotClientRpc(ulong shooterClientId, long seed, Vector3 pos, Vector3 dir, int projectile)
     {
-        if (IsServer) { return; } // DO NOT SPAWN PROJECTILE ON THE SERVER
         ProjectileDefinition projectileDefinition = ProjectileDatabase.GetProjectile(ProjectileKey.T99APT);
         Projectile.Create(pos, dir, seed, projectileDefinition);
     }
