@@ -48,8 +48,14 @@ namespace Ballistics
 
             return projectile;
         }
-    
-    
+
+        public static GameObject Create(Vector3 pos, Vector3 direction, ProjectileDefinition projectileDefinition)
+        {
+            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
+            return projectile;
+        }
+
+
         public void Start()
         {
             Projectiles.Add(this);
