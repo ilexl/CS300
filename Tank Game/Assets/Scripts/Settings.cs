@@ -27,7 +27,12 @@ public class Settings : MonoBehaviour
         Singleton = this;
         LoadSettings();
     }
-    
+
+    private void Awake()
+    {
+        Start();
+    }
+
     public void ShowChangeControl(Setting setting, Action callback)
     {
         ChangeControlWindow.Show();
