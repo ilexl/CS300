@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Ballistics
+namespace Ballistics.Database
 {
     public enum ProjectileKey
     {

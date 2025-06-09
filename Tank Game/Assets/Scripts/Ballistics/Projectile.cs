@@ -34,7 +34,7 @@ namespace Ballistics
     
         public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
-            if (Projectiles.Count >= 1000)
+            if (Projectiles.Count >= 100000)
             {
                 throw new Exception("Too many projectiles!");
             }
@@ -105,6 +105,8 @@ namespace Ballistics
         
 
             int attempt = 0;
+
+            float time = 1;
             while (true)
             {
             
@@ -117,9 +119,12 @@ namespace Ballistics
                 Vector3 to = transform.position - _previousPos;
                 float mag = to.magnitude;
                 Vector3 dir = to / mag;
-            
+                transform.position = _previousPos + to * time;
                 var didHit = Physics.Linecast(_previousPos, transform.position, out var hit, _layerMask);
 
+                var hitTime = (hit.point - _previousPos).magnitude / mag;
+                time -= hitTime;
+                
                 if (!didHit)
                 {
                     DrawMesh(_previousPos, transform.position);
@@ -127,7 +132,7 @@ namespace Ballistics
                     break;
                 }
                 DrawMesh(_previousPos, hit.point);
-                var impactType = PenetratePlate(hit, dir);
+                var impactType = PenetratePlate(hit, dir, ref time);
             
                 // Basically we want to keep attempting to step the projectile forward until it has either not hit anything in this substep or has non penned
                 if (impactType is ImpactType.NoImpact or ImpactType.NonPenetrate) {break;}
@@ -151,7 +156,7 @@ namespace Ballistics
             NoImpact
         }
 
-        private ImpactType PenetratePlate(RaycastHit entryHit, Vector3 direction)
+        private ImpactType PenetratePlate(RaycastHit entryHit, Vector3 direction, ref float time)
         {
             ImpactType impactType = ImpactType.Penetrate;
         
@@ -287,7 +292,7 @@ namespace Ballistics
             float surfaceArea = Mathf.PI * Mathf.Pow(_diameter / 2f, 2);
             float massSurfaceAreaRatio = surfaceArea / rb.mass;
     
-            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 1000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
+            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 3000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
             // 100000
         
             float deflectionFactor = deflectFactorModifier * tanTheta;
