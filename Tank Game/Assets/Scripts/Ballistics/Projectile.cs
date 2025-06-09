@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Ballistics.Database;
 using UnityEngine;
+using Random = System.Random;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Ballistics
@@ -14,6 +16,7 @@ namespace Ballistics
     
         private Vector3 _previousPos;
         private Rigidbody rb;
+        private System.Random rng;
 
         private int _framesAlive;
         private const int MaxFramesAlive = 60;
@@ -32,9 +35,26 @@ namespace Ballistics
 
         private ProjectileType _type;     
     
+        
+        
+        
+        
+        public static GameObject Create(Vector3 pos, Vector3 direction, long seed, ProjectileDefinition projectileDefinition)
+        {
+            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, seed, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
+            return projectile;
+        }
         public static GameObject Create(Vector3 pos, Vector3 velocity, long seed, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
-            if (Projectiles.Count >= 1000)
+            
+            var projectile = Create(pos, velocity, new Random((int)seed), diameterM, lengthM, mKey, type);
+            return projectile;
+        }
+        
+        public static GameObject Create(Vector3 pos, Vector3 velocity, Random rng, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
+        {
+            
+            if (Projectiles.Count >= 100000)
             {
                 throw new Exception("Too many projectiles!");
             }
@@ -45,15 +65,12 @@ namespace Ballistics
             projectileInstance.rb = projectile.AddComponent<Rigidbody>();
         
             projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey, type);
-
+            projectileInstance.rng = rng;
             return projectile;
         }
+        
 
-        public static GameObject Create(Vector3 pos, Vector3 direction, long seed, ProjectileDefinition projectileDefinition)
-        {
-            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, seed, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
-            return projectile;
-        }
+        
 
 
         public void Start()
@@ -111,6 +128,8 @@ namespace Ballistics
         
 
             int attempt = 0;
+
+            float time = 1;
             while (true)
             {
             
@@ -123,9 +142,12 @@ namespace Ballistics
                 Vector3 to = transform.position - _previousPos;
                 float mag = to.magnitude;
                 Vector3 dir = to / mag;
-            
+                transform.position = _previousPos + to * time;
                 var didHit = Physics.Linecast(_previousPos, transform.position, out var hit, _layerMask);
 
+                var hitTime = (hit.point - _previousPos).magnitude / mag;
+                time -= hitTime;
+                
                 if (!didHit)
                 {
                     DrawMesh(_previousPos, transform.position);
@@ -133,7 +155,7 @@ namespace Ballistics
                     break;
                 }
                 DrawMesh(_previousPos, hit.point);
-                var impactType = PenetratePlate(hit, dir);
+                var impactType = PenetratePlate(hit, dir, ref time);
             
                 // Basically we want to keep attempting to step the projectile forward until it has either not hit anything in this substep or has non penned
                 if (impactType is ImpactType.NoImpact or ImpactType.NonPenetrate) {break;}
@@ -157,7 +179,7 @@ namespace Ballistics
             NoImpact
         }
 
-        private ImpactType PenetratePlate(RaycastHit entryHit, Vector3 direction)
+        private ImpactType PenetratePlate(RaycastHit entryHit, Vector3 direction, ref float time)
         {
             ImpactType impactType = ImpactType.Penetrate;
         
@@ -234,15 +256,15 @@ namespace Ballistics
             {
                 case ImpactType.Penetrate:
                     _previousPos = exitPoint;
-                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.PostPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
                 case ImpactType.NonPenetrate:
                     Destroy();
-                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.NonPenetration(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
                 case ImpactType.Deflect:
                     _previousPos = entryPoint;
-                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter);
+                    tankComp.Deflection(entryPoint, exitPoint, thickness, rb.linearVelocity, previousVelocity, _diameter, rng);
                     break;
             }
     
@@ -293,7 +315,7 @@ namespace Ballistics
             float surfaceArea = Mathf.PI * Mathf.Pow(_diameter / 2f, 2);
             float massSurfaceAreaRatio = surfaceArea / rb.mass;
     
-            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 1000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
+            float deflectFactorModifier = hardnessRatio * impactResistanceRatio * velocityFactor * massSurfaceAreaRatio * 3000000000; // Don't we all love magic numbers?? (I really don't know what I'm doing but it looks good on screen!!)
             // 100000
         
             float deflectionFactor = deflectFactorModifier * tanTheta;

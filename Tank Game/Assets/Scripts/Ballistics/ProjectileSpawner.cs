@@ -1,3 +1,4 @@
+using Ballistics.Database;
 using UnityEngine;
 
 namespace Ballistics
@@ -35,7 +36,7 @@ namespace Ballistics
         private float _volume;
     
 
-        private int _frame = 0;
+        private int _frame = 59;
         private int fireDelay = 60;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
 

@@ -10,9 +10,10 @@ namespace Ballistics
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-        
+            Debug.Log(gameObject.layer);
         }
-
+        
+        
         // Update is called once per frame
         void Update()
         {
@@ -29,7 +30,7 @@ namespace Ballistics
             float thickness,
             Vector3 projectileVelocity,
             Vector3 previousVelocity, 
-            float projectileDiameter)
+            float projectileDiameter, System.Random rng)
         {
             // Parameters for spall generation
             float baseFragmentCount = thickness * projectileDiameter * 10000f; // tune multiplier for density
@@ -50,8 +51,7 @@ namespace Ballistics
 
             // Convert to radians for use
             float spallConeAngleRad = spallConeAngleDeg * Mathf.Deg2Rad;
-    
-            System.Random rng = new System.Random();
+            
 
             Vector3 penetrationDirection = Vector3.Normalize(exitPoint - entryPoint);
 
@@ -74,7 +74,7 @@ namespace Ballistics
                 // velocity = fragmentVelocity
                 // size = size
 
-                SpawnSpallFragment(exitPoint, fragmentVelocity, size);
+                SpawnSpallFragment(exitPoint, fragmentVelocity, size, rng);
             }
         }
 
@@ -137,10 +137,10 @@ namespace Ballistics
             return v * cos + Vector3.Cross(axis, v) * sin + axis * (Vector3.Dot(axis, v) * (1 - cos));
         }
 
-        private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
+        private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size, System.Random rng)
         {
             // Create a new projectile using the current plate's material
-            Projectile.Create(position, velocity, 0, size, size, MaterialType, Projectile.ProjectileType.Spall);
+            Projectile.Create(position, velocity, rng, size, size, MaterialType, Projectile.ProjectileType.Spall);
         }
     }
 }
