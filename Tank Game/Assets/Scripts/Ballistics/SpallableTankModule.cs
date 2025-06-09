@@ -140,7 +140,7 @@ namespace Ballistics
         private void SpawnSpallFragment(Vector3 position, Vector3 velocity, float size)
         {
             // Create a new projectile using the current plate's material
-            Projectile.Create(position, velocity, size, size, MaterialType, Projectile.ProjectileType.Spall);
+            Projectile.Create(position, velocity, 0, size, size, MaterialType, Projectile.ProjectileType.Spall);
         }
     }
 }

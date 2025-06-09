@@ -32,7 +32,7 @@ namespace Ballistics
 
         private ProjectileType _type;     
     
-        public static GameObject Create(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
+        public static GameObject Create(Vector3 pos, Vector3 velocity, long seed, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
             if (Projectiles.Count >= 1000)
             {
@@ -49,9 +49,9 @@ namespace Ballistics
             return projectile;
         }
 
-        public static GameObject Create(Vector3 pos, Vector3 direction, ProjectileDefinition projectileDefinition)
+        public static GameObject Create(Vector3 pos, Vector3 direction, long seed, ProjectileDefinition projectileDefinition)
         {
-            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
+            var projectile = Create(pos, direction * projectileDefinition.VelocityMs, seed, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
             return projectile;
         }
 

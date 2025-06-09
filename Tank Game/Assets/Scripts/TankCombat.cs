@@ -1,5 +1,9 @@
 using UnityEngine;
 using Unity.Netcode;
+using Ballistics;
+using System;
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -73,64 +77,38 @@ public class TankCombat : NetworkBehaviour
                 Debug.Log($"Reloading... {currentReload.Value:F1}s remain.");
                 return;
             }
+            
+            Shoot();
 
-            GameObject cannon = GetComponent<TankMovement>()?.GetCannon(0);
-            if (cannon == null) return;
-
-
-            int layerMask = ~((1 << 2) | (1 << 10));
-            RaycastHit hit;
-
-            if (Physics.Raycast(cannon.transform.GetChild(0).position, cannon.transform.GetChild(0).forward, out hit, 10000f, layerMask))
-            {
-                Debug.Log(hit.collider.name);
-                Debug.DrawLine(cannon.transform.GetChild(0).position, cannon.transform.GetChild(0).position + (cannon.transform.GetChild(0).forward * 1000f), Color.magenta, 30f);
-                NetworkObject targetNetObj = hit.collider.GetComponentInParent<NetworkObject>();
-                ulong targetClientId = targetNetObj != null ? targetNetObj.OwnerClientId : 0;
-                RequestShootServerRpc(targetClientId);
-            }
-            else
-            {
-                RequestShootServerRpc(0);
-            }
         }
+    }
+
+    void Shoot()
+    {
+        GameObject cannon = GetComponent<TankMovement>()?.GetCannon(0);
+        if (cannon == null) return;
+
+        RequestShootServerRpc(cannon.transform.GetChild(0).position + (cannon.transform.GetChild(0).forward * 10), cannon.transform.GetChild(0).forward, (int)ProjectileKey.T99APT);
     }
 
     [ServerRpc]
-    private void RequestShootServerRpc(ulong targetClientId, ServerRpcParams rpcParams = default)
+    private void RequestShootServerRpc(Vector3 pos, Vector3 dir, int projectile, ServerRpcParams rpcParams = default)
     {
         ulong shooterClientId = rpcParams.Receive.SenderClientId;
+        if (!NetworkManager.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)) return; // ensure player is valid
 
-        if (!NetworkManager.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)) return;
+        // do server stuff here
+        long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        TankCombat shooterCombat = shooterClient.PlayerObject.GetComponent<TankCombat>();
-        if (shooterCombat == null || shooterCombat.currentReload.Value > 0f)
-        {
-            Debug.Log("Server rejected shot: still reloading or invalid shooter.");
-            return;
-        }
-
-        shooterCombat.currentReload.Value = shooterCombat.maxReload.Value;
-
-        if (targetClientId != 0 &&
-            NetworkManager.ConnectedClients.TryGetValue(targetClientId, out var targetClient))
-        {
-            TankCombat targetCombat = targetClient.PlayerObject.GetComponent<TankCombat>();
-            if (targetCombat != null)
-            {
-                targetCombat.ApplyDamage(damage);
-            }
-        }
-
-        BroadcastShotClientRpc(shooterClientId, targetClientId);
+        // tell all the players
+        BroadcastShotClientRpc(shooterClientId, ms, pos, dir, projectile);
     }
 
     [ClientRpc]
-    private void BroadcastShotClientRpc(ulong shooterClientId, ulong targetClientId)
+    private void BroadcastShotClientRpc(ulong shooterClientId, long seed, Vector3 pos, Vector3 dir, int projectile)
     {
-        Debug.Log($"[Client] Player {shooterClientId} shot at {(targetClientId != 0 ? $"target {targetClientId}" : "nothing")}");
-
-        // TODO: play firing animation, sound, or effects
+        ProjectileDefinition projectileDefinition = ProjectileDatabase.GetProjectile(ProjectileKey.T99APT);
+        Projectile.Create(pos, dir, seed, projectileDefinition);
     }
 
     public void ApplyDamage(float amount)

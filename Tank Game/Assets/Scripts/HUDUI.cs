@@ -1,3 +1,4 @@
+using Codice.Client.Common.FsNodeReaders;
 using System;
 using TMPro;
 using Unity.Netcode;
@@ -36,6 +37,7 @@ public class HUDUI : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        windowManager.ShowOnly(settingsWindow);
         Singleton = this;
         SetCursorShown(true);
         windowManager.ShowWindow(tankSelectionWindow);
@@ -44,7 +46,7 @@ public class HUDUI : MonoBehaviour
 
     private void Awake()
     {
-        Singleton = this;
+        Start();
     }
 
     private void Update()
