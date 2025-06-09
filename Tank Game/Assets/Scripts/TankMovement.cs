@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using System.Runtime.CompilerServices;
-using UnityEngine.UIElements;
 
 public class TankMovement : NetworkBehaviour
 {
@@ -67,9 +65,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
-    public void ForceUpdateServerPos(Vector3 pos)
+    public void ForceUpdateServerPos(Vector3 pos, Quaternion rot)
     {
-        lastServerPosition = pos;
+        SubmitPositionToServerServerRpc(pos, rot);
     }
 
     void Update()
@@ -121,11 +119,18 @@ public class TankMovement : NetworkBehaviour
         SubmitPositionToServerServerRpc(hull.transform.position, hull.transform.rotation);
     }
 
-    [ServerRpc]
-    void SubmitPositionToServerServerRpc(Vector3 position, Quaternion rotation)
+    [ServerRpc (RequireOwnership=false)]
+    public void SubmitPositionToServerServerRpc(Vector3 position, Quaternion rotation)
     {
         lastServerPosition = position;
         lastServerRotation = rotation;
+    }
+
+    [ClientRpc]
+    void MovePlayerBackClientRpc(Vector3 pos, Quaternion rot)
+    {
+        transform.position = pos;
+        transform.rotation = rot;
     }
 
     void ServerValidateClientMovement()
@@ -136,8 +141,14 @@ public class TankMovement : NetworkBehaviour
         float distance = Vector3.Distance(transform.position, lastServerPosition);
         if (distance > correctionThreshold)
         {
-            transform.position = lastServerPosition;
-            transform.rotation = lastServerRotation;
+            float x = Mathf.Clamp(transform.position.x, transform.position.x - correctionThreshold, transform.position.x + correctionThreshold);
+            float y = Mathf.Clamp(transform.position.y, transform.position.y - correctionThreshold, transform.position.y + correctionThreshold);
+            float z = Mathf.Clamp(transform.position.z, transform.position.z - correctionThreshold, transform.position.z + correctionThreshold);
+
+            Vector3 clampedPosition = new Vector3(x, y, z);
+
+            MovePlayerBackClientRpc(clampedPosition, lastServerRotation);
+            lastServerPosition = clampedPosition;
             Debug.LogWarning($"Correcting client movement. Distance was {distance}.");
         }
     }
