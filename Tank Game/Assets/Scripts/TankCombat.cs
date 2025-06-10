@@ -3,11 +3,8 @@ using Unity.Netcode;
 using Ballistics;
 using System;
 using Ballistics.Database;
-using Codice.CM.Common;
-
-
-
-
+using System.Collections.Generic;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,11 +14,15 @@ public class TankCombat : NetworkBehaviour
 {
     public NetworkVariable<float> maxHealth = new(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<float> currentHealth = new(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    int maxCrew = 100;
 
     public NetworkVariable<float> maxReload = new(5f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<float> currentReload = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    [SerializeField] float damage = 25f;
+    [SerializeField] List<FunctionalTankModule> tankModules = new List<FunctionalTankModule>();
+    public NetworkVariable<bool> canShoot = new(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<bool> canDrive = new(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
 
     public float MaxHealth => maxHealth.Value;
     public float CurrentHealth => currentHealth.Value;
@@ -88,10 +89,13 @@ public class TankCombat : NetworkBehaviour
 
     void Shoot()
     {
-        GameObject cannon = GetComponent<TankMovement>()?.GetCannon(0);
-        if (cannon == null) return;
+        if (canShoot.Value)
+        {
+            GameObject cannon = GetComponent<TankMovement>()?.GetCannon(0);
+            if (cannon == null) return;
 
-        RequestShootServerRpc(cannon.transform.GetChild(0).position + (cannon.transform.GetChild(0).forward * 10), cannon.transform.GetChild(0).forward, (int)ProjectileKey.T99APT);
+            RequestShootServerRpc(cannon.transform.GetChild(0).position + (cannon.transform.GetChild(0).forward * 10), cannon.transform.GetChild(0).forward, (int)ProjectileKey.T99APT);
+        }
     }
 
     [ServerRpc]
@@ -167,6 +171,127 @@ public class TankCombat : NetworkBehaviour
             HUDUI.Singleton.UpdateHealth(currentHealth.Value, maxHealth.Value);
         }
     }
+
+    public void Setup()
+    {
+        tankModules = new List<FunctionalTankModule>();
+        tankModules = GetComponentsInChildren<FunctionalTankModule>().ToList();
+        // get all FunctionalTankModule and types
+
+        int _maxCrew = 0;
+        foreach (var tankModule in tankModules)
+        {
+            Debug.Log($"{tankModule.gameObject} is of type {tankModule.CurrentType}");
+            switch (tankModule.CurrentType)
+            {
+                case FunctionalTankModule.Type.Commander:
+                case FunctionalTankModule.Type.Driver:
+                case FunctionalTankModule.Type.Gunner:
+                case FunctionalTankModule.Type.Loader:
+                    {
+                        _maxCrew++;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        HUDUI.Singleton.UpdateComponentsUI(tankModules);
+        maxCrew = _maxCrew;
+    }
+
+    public void ComponentHealthUpdate(FunctionalTankModule component)
+    {
+        switch (component.CurrentType)
+        {
+            case FunctionalTankModule.Type.Engine:
+            case FunctionalTankModule.Type.Transmission:
+                if (IsServer)
+                {
+                    bool _canDrive = true; // assume both working
+                    foreach(var tankModule in tankModules)
+                    {
+                        // if either dont work - return cannot drive
+                        if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canDrive = false; }
+                        if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canDrive = false; }
+                    }
+                    canDrive.Value = _canDrive; 
+                }
+                break;
+            case FunctionalTankModule.Type.Barrel:
+            case FunctionalTankModule.Type.Breach:
+                if (IsServer)
+                {
+                    bool _canShoot = true; // assume both working
+                    foreach (var tankModule in tankModules)
+                    {
+                        // if either dont work - return cannot shoot
+                        if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canShoot = false; }
+                        if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canShoot = false; }
+                    }
+                    canShoot.Value = _canShoot;
+                }
+                break;
+            case FunctionalTankModule.Type.Ammo:
+                if (IsServer)
+                {
+                    if(component.Health == 0)
+                    {
+                        ApplyDamage(99999); // force kill player
+                    }
+                }
+                break;
+            case FunctionalTankModule.Type.Commander:
+            case FunctionalTankModule.Type.Driver:
+            case FunctionalTankModule.Type.Gunner:
+            case FunctionalTankModule.Type.Loader:
+                if (IsServer)
+                {
+                    int aliveCrew = GetAliveCrew();
+                    currentHealth.Value = aliveCrew * (maxCrew / 100);
+                }
+                break;
+            case FunctionalTankModule.Type.Wheel:
+            case FunctionalTankModule.Type.Track:
+            case FunctionalTankModule.Type.None:
+            default:
+                {
+                    Debug.Log("Module Type damaged not implemented...");
+                }
+                break;
+        }
+
+        // in all cases the entire UI should be refreshed...
+        HUDUI.Singleton.UpdateComponentsUI(tankModules);
+    }
+
+    private int GetAliveCrew()
+    {
+        int aliveCrew = 0;
+        foreach (var tankModule in tankModules)
+        {
+            switch (tankModule.CurrentType)
+            {
+                case FunctionalTankModule.Type.Commander:
+                case FunctionalTankModule.Type.Driver:
+                case FunctionalTankModule.Type.Gunner:
+                case FunctionalTankModule.Type.Loader:
+                    {
+                        if(tankModule.Health != 0)
+                        {
+                            aliveCrew++;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return aliveCrew;
+    }
+
+
 
     /// <summary>
     /// Resets the player's health on the server.

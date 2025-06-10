@@ -294,6 +294,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 0
+  CurrentType: 5
   destroyOnHealthGone: 0
   initialHealth: 10000
   health: 0
@@ -474,6 +475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 0
+  CurrentType: 6
   destroyOnHealthGone: 0
   initialHealth: 10000
   health: 0

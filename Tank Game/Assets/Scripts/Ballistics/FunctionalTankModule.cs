@@ -5,7 +5,7 @@ namespace Ballistics
 {
     public class FunctionalTankModule : DamageableTankModule
     {
-
+        public Type CurrentType;
         public bool destroyOnHealthGone = true;
         [SerializeField]
         private float initialHealth;
@@ -14,15 +14,40 @@ namespace Ballistics
         
         private Renderer _renderer;
         private bool _colourNeedsUpdating = false;
-        
-        
+
+        #region Enum
+        public enum Type
+        {
+            None, 
+            // parts
+            Engine,
+            Transmission,
+            Track,
+            Wheel,
+            Barrel,
+            Breach,
+            Ammo,
+            // crew
+            Commander,
+            Driver,
+            Gunner,
+            Loader
+        }
+
+        #endregion
+
+
         #region Properties
         public float Health { 
             get => health;
             set
             {
                 float oldHealth = health;
-                
+                if(transform.root.GetComponent<TankCombat>() != null)
+                {
+                    transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
+                }
+
                 health = value;
                 ComponentDamaged(oldHealth);
                 if (health <= 0)
@@ -30,8 +55,8 @@ namespace Ballistics
                     ComponentDestroyed();
                 }
             }
-            
         }
+
         public float HealthRatio
         {
             get => health / initialHealth;
@@ -66,7 +91,6 @@ namespace Ballistics
         public void ComponentDestroyed()
         {
             Debug.Log("Component Destroyed");
-            transform.root.GetComponent<TankCombat>().ApplyDamage(25f);
             if (destroyOnHealthGone)
                 Destroy(gameObject);
         }

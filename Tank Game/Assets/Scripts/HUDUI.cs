@@ -1,5 +1,5 @@
-using Codice.Client.Common.FsNodeReaders;
-using System;
+using Ballistics;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -256,5 +256,10 @@ public class HUDUI : MonoBehaviour
     {
         windowManager.ShowWindow(endOfMatchWindow);
         endOfMatchText.text = $"{winner} team has won!";
+    }
+
+    public void UpdateComponentsUI(List<FunctionalTankModule> modules)
+    {
+
     }
 }

@@ -304,6 +304,11 @@ public class Player : NetworkBehaviour
             Debug.Log("TankMovement Script Updated!");
         }
 
+        if (GetComponent<TankCombat>() != null)
+        {
+            GetComponent<TankCombat>().Setup();
+        }
+
         // enable the colliders
         GetComponent<BoxCollider>().enabled = true; // enable collider when actually a tank
         GetComponent<Rigidbody>().useGravity = true; // enable gravity when actually a tank

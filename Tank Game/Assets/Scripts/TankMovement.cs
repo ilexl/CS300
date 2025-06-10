@@ -129,10 +129,14 @@ public class TankMovement : NetworkBehaviour
 
         if (moveInput < 0) rotateInput *= -1;
 
-        hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
-        hull.transform.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
+        if (GetComponent<TankCombat>().canDrive.Value)
+        {
+            hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);
+            hull.transform.Rotate(Vector3.up * rotateInput * rotationSpeed * Time.deltaTime);
 
-        SubmitPositionToServerServerRpc(hull.transform.position, hull.transform.rotation);
+            SubmitPositionToServerServerRpc(hull.transform.position, hull.transform.rotation);
+        }
+
     }
 
     [ServerRpc (RequireOwnership=false)]

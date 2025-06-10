@@ -1537,7 +1537,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: c22777d6e868e4f2fb421913386b154e, type: 2}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: -4873201673010912819, guid: 748223e02d646eb45a7054cc89506bbf, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 748223e02d646eb45a7054cc89506bbf, type: 3}
@@ -2438,6 +2439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 0
+  CurrentType: 1
   destroyOnHealthGone: 0
   initialHealth: 10000
   health: 0
@@ -2733,6 +2735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 22
+  CurrentType: 8
   destroyOnHealthGone: 0
   initialHealth: 1000
   health: 0
@@ -3413,6 +3416,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 22
+  CurrentType: 8
   destroyOnHealthGone: 0
   initialHealth: 1000
   health: 0
@@ -4675,6 +4679,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 0
+  CurrentType: 2
   destroyOnHealthGone: 0
   initialHealth: 10000
   health: 0
