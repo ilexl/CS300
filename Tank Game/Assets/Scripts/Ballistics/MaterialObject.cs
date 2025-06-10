@@ -27,5 +27,12 @@ namespace Ballistics
             // Ensure your material database lookup is valid.
             _material = MaterialDatabase.GetMaterial(materialType);
         }
+
+        private void Awake()
+        {
+            // Ensure your material database lookup is valid.
+            _material = MaterialDatabase.GetMaterial(materialType);
+        }
+        
     }
 }
