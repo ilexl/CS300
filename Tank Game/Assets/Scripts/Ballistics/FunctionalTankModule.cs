@@ -107,6 +107,7 @@ namespace Ballistics
         {
             _renderer = GetComponent<Renderer>();
             
+            if(initialHealth <= 0) { initialHealth = 100; } // default to 100
             Health = initialHealth;
         }
         private void Update()
