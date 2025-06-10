@@ -213,6 +213,7 @@ public class TankCombat : NetworkBehaviour
 
     public void ComponentHealthUpdate(FunctionalTankModule component)
     {
+        Debug.Log("ComponentHealthUpdate called for {component.gameObject}");
         switch (component.CurrentType)
         {
             case FunctionalTankModule.Type.Engine:
