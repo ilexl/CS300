@@ -6,7 +6,7 @@ namespace Ballistics
     public class FunctionalTankModule : DamageableTankModule
     {
         public Type CurrentType;
-        bool healthInit = false;
+        [SerializeField] bool healthInit = false;
         public bool destroyOnHealthGone = true;
         [SerializeField]
         private float initialHealth;
@@ -91,7 +91,7 @@ namespace Ballistics
         #region Events
         public void ComponentDestroyed()
         {
-            Debug.Log("Component Destroyed");
+            Debug.Log($"Component Destroyed | {gameObject} | {CurrentType}");
             if (destroyOnHealthGone)
                 Destroy(gameObject);
         }
