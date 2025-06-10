@@ -3,6 +3,8 @@ using Unity.Netcode;
 using Ballistics;
 using System;
 using Ballistics.Database;
+using Codice.CM.Common;
+
 
 
 
@@ -81,7 +83,6 @@ public class TankCombat : NetworkBehaviour
             }
             
             Shoot();
-
         }
     }
 
@@ -102,6 +103,10 @@ public class TankCombat : NetworkBehaviour
         // do server stuff here
         long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
+        // server also creates this and simulates
+        ProjectileDefinition projectileDefinition = ProjectileDatabase.GetProjectile(ProjectileKey.T99APT);
+        Projectile.Create(pos, dir, ms, projectileDefinition);
+
         // tell all the players
         BroadcastShotClientRpc(shooterClientId, ms, pos, dir, projectile);
     }
@@ -115,6 +120,8 @@ public class TankCombat : NetworkBehaviour
 
     public void ApplyDamage(float amount)
     {
+        if(!IsServer) return; // only the server will run this code
+
         currentHealth.Value -= amount;
         if (currentHealth.Value < 0f)
             currentHealth.Value = 0f;

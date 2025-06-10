@@ -65,6 +65,8 @@ namespace Ballistics
         #region Events
         public void ComponentDestroyed()
         {
+            Debug.Log("Component Destroyed");
+            transform.root.GetComponent<TankCombat>().ApplyDamage(25f);
             if (destroyOnHealthGone)
                 Destroy(gameObject);
         }
