@@ -26,9 +26,8 @@ public class CameraControl : MonoBehaviour
 
     void Update()
     {
-        var input = Input.mousePositionDelta;
-        currentX += input.x * sensitivity;
-        currentY -= input.y * sensitivity;
+        currentX += Input.GetAxis("Mouse X") * sensitivity;
+        currentY -= Input.GetAxis("Mouse Y") * sensitivity;
         currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
 
         if (target != null && target.GetComponent<TankMovement>() != null &&
