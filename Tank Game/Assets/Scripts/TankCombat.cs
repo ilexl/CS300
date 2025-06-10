@@ -109,10 +109,6 @@ public class TankCombat : NetworkBehaviour
         // do server stuff here
         long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        // server also creates this and simulates
-        ProjectileDefinition projectileDefinition = ProjectileDatabase.GetProjectile(ProjectileKey.T99APT);
-        Projectile.Create(pos, dir, ms, projectileDefinition);
-
         // tell all the players
         BroadcastShotClientRpc(shooterClientId, ms, pos, dir, projectile);
     }
@@ -214,69 +210,91 @@ public class TankCombat : NetworkBehaviour
     public void ComponentHealthUpdate(FunctionalTankModule component)
     {
         Debug.Log("ComponentHealthUpdate called for {component.gameObject}");
-        switch (component.CurrentType)
+        if (IsServer)
         {
-            case FunctionalTankModule.Type.Engine:
-            case FunctionalTankModule.Type.Transmission:
-                if (IsServer)
-                {
-                    bool _canDrive = true; // assume both working
-                    foreach(var tankModule in tankModules)
+            switch (component.CurrentType)
+            {
+                case FunctionalTankModule.Type.Engine:
+                case FunctionalTankModule.Type.Transmission:
                     {
-                        // if either dont work - return cannot drive
-                        if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canDrive = false; }
-                        if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canDrive = false; }
+                        bool _canDrive = true; // assume both working
+                        foreach (var tankModule in tankModules)
+                        {
+                            // if either dont work - return cannot drive
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canDrive = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canDrive = false; }
+                        }
+                        canDrive.Value = _canDrive;
                     }
-                    canDrive.Value = _canDrive; 
-                }
-                break;
-            case FunctionalTankModule.Type.Barrel:
-            case FunctionalTankModule.Type.Breach:
-                if (IsServer)
-                {
-                    bool _canShoot = true; // assume both working
-                    foreach (var tankModule in tankModules)
+                    break;
+                case FunctionalTankModule.Type.Barrel:
+                case FunctionalTankModule.Type.Breach:
                     {
-                        // if either dont work - return cannot shoot
-                        if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canShoot = false; }
-                        if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canShoot = false; }
+                        bool _canShoot = true; // assume both working
+                        foreach (var tankModule in tankModules)
+                        {
+                            // if either dont work - return cannot shoot
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canShoot = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canShoot = false; }
+                        }
+                        canShoot.Value = _canShoot;
                     }
-                    canShoot.Value = _canShoot;
-                }
-                break;
-            case FunctionalTankModule.Type.Ammo:
-                if (IsServer)
-                {
-                    if(component.Health == 0)
+                    break;
+                case FunctionalTankModule.Type.Ammo:
                     {
-                        ApplyDamage(99999); // force kill player
+                        if (component.Health == 0)
+                        {
+                            ApplyDamage(99999); // force kill player
+                        }
                     }
-                }
-                break;
-            case FunctionalTankModule.Type.Commander:
-            case FunctionalTankModule.Type.Driver:
-            case FunctionalTankModule.Type.Gunner:
-            case FunctionalTankModule.Type.Loader:
-                if (IsServer)
-                {
-                    int aliveCrew = GetAliveCrew();
-                    currentHealth.Value = aliveCrew * (maxCrew / 100);
-                }
-                break;
-            case FunctionalTankModule.Type.Wheel:
-            case FunctionalTankModule.Type.Track:
-            case FunctionalTankModule.Type.None:
-            default:
-                {
-                    Debug.Log("Module Type damaged not implemented...");
-                }
-                break;
+                    break;
+                case FunctionalTankModule.Type.Commander:
+                case FunctionalTankModule.Type.Driver:
+                case FunctionalTankModule.Type.Gunner:
+                case FunctionalTankModule.Type.Loader:
+                    {
+                        int aliveCrew = GetAliveCrew();
+                        currentHealth.Value = aliveCrew * (maxCrew / 100);
+                    }
+                    break;
+                case FunctionalTankModule.Type.Wheel:
+                case FunctionalTankModule.Type.Track:
+                case FunctionalTankModule.Type.None:
+                default:
+                    {
+                        Debug.Log("Module Type damaged not implemented...");
+                    }
+                    break;
+            }
         }
-
-        // in all cases the entire UI should be refreshed...
-        if(HUDUI.Singleton != null)
+        else if(IsOwner == false) // we should not apply own health - other player will tell the server what was hit
         {
-            HUDUI.Singleton.UpdateComponentsUI(tankModules);
+            // in all cases the entire UI should be refreshed...
+            if (HUDUI.Singleton != null)
+            {
+                HUDUI.Singleton.UpdateComponentsUI(tankModules);
+            }
+
+            UpdateHealthServerRpc(tankModules.IndexOf(component), component.Health);
+        }
+    }
+
+    [ServerRpc]
+    void UpdateHealthServerRpc(int index, float newHealth)
+    {
+        FunctionalTankModule tankModule = tankModules[index];
+        tankModule.Health = newHealth;
+        UpdateHealthClientRpc();
+    }
+
+    void UpdateHealthClientRpc()
+    {
+        if (IsOwner)
+        {
+            if (HUDUI.Singleton != null)
+            {
+                HUDUI.Singleton.UpdateComponentsUI(tankModules);
+            }
         }
     }
 
