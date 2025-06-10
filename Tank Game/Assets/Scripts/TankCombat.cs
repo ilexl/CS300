@@ -287,6 +287,7 @@ public class TankCombat : NetworkBehaviour
         UpdateHealthClientRpc();
     }
 
+    [ClientRpc]
     void UpdateHealthClientRpc()
     {
         if (IsOwner)
