@@ -196,9 +196,14 @@ public class TankCombat : NetworkBehaviour
                     break;
             }
         }
-
-        HUDUI.Singleton.UpdateComponentsUI(tankModules);
+        if (HUDUI.Singleton != null)
+        {
+            HUDUI.Singleton.UpdateComponentsUI(tankModules);
+        }
         maxCrew = _maxCrew;
+        maxHealth.Value = 100f;
+        currentHealth.Value = 100f;
+        Debug.Log($"Player has {maxCrew} crew members");
     }
 
     public void ComponentHealthUpdate(FunctionalTankModule component)
@@ -263,7 +268,10 @@ public class TankCombat : NetworkBehaviour
         }
 
         // in all cases the entire UI should be refreshed...
-        HUDUI.Singleton.UpdateComponentsUI(tankModules);
+        if(HUDUI.Singleton != null)
+        {
+            HUDUI.Singleton.UpdateComponentsUI(tankModules);
+        }
     }
 
     private int GetAliveCrew()
