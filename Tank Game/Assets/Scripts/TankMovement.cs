@@ -177,6 +177,7 @@ public class TankMovement : NetworkBehaviour
     {
         if (playerCamera == null && IsOwner) playerCamera = Camera.main;
         if (playerCamera == null) return;
+        if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-Freelook"))) { return; } // free look camera
 
         int layerMask = ~((1 << 2) | (1 << 3));
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
