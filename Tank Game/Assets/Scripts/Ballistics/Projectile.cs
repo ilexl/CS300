@@ -202,7 +202,7 @@ namespace Ballistics
                 impactType = ImpactType.Deflect;
                 direction = ApplyDeflectionEffect(potentialDeflectAngle, entryPoint, cosTheta);
                 _previousPos = entryPoint + direction * 0.00001f;
-                Debug.Log("Richochet...");
+                //Debug.Log("Richochet...");
                 return impactType;
             }
             else // This is projectile yaw (or possibly a non penetration)
@@ -217,8 +217,8 @@ namespace Ballistics
             while (backcastDist <= 10f)
             {
                 var backCastPos = entryPoint + direction * backcastDist;
-                bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, panelGameObject.transform, out secondHit, backcastDist * 1.1f, _layerMask);
-
+                bool didHit = RaycastUtility.RaycastToSpecificObject(backCastPos, -direction, panelGameObject, out secondHit, backcastDist * 2f, _layerMask);
+            
 
                 if (didHit && secondHit.point != entryPoint) 
                 {
@@ -229,7 +229,7 @@ namespace Ballistics
 
             if (backcastDist > 10f)
             {
-                Debug.Log("Missed???");
+                //Debug.Log("Missed???");
                 return ImpactType.NoImpact;
             }
             Vector3 exitPoint = secondHit.point  + direction * 0.00001f;
@@ -254,7 +254,7 @@ namespace Ballistics
     
             penetrationCount++;
     
-            Debug.Log(impactType);
+            //Debug.Log(impactType);
             switch (impactType)
             {
                 case ImpactType.Penetrate:

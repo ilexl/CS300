@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class RaycastUtility : MonoBehaviour
+public static class RaycastUtility
 {
     /// <summary>
     /// Checks if a specific object was hit by a ray using RaycastAll.
@@ -14,17 +14,17 @@ public class RaycastUtility : MonoBehaviour
     public static bool RaycastToSpecificObject(
         Vector3 origin,
         Vector3 direction,
-        Transform targetObject,
+        GameObject targetObject,
         out RaycastHit hit,
         float maxDistance = Mathf.Infinity,
-        LayerMask? layerMask = null)
+        int layerMask = -1)
     {
         // Perform RaycastAll
         RaycastHit[] hits;
 
-        if (layerMask.HasValue)
+        if (layerMask != -1)
         {
-            hits = Physics.RaycastAll(origin, direction, maxDistance, layerMask.Value);
+            hits = Physics.RaycastAll(origin, direction, maxDistance, layerMask);
         }
         else
         {
@@ -35,7 +35,8 @@ public class RaycastUtility : MonoBehaviour
         foreach (RaycastHit _hit in hits)
         {
             // Check if the hit object matches the target
-            if (_hit.transform == targetObject)
+            
+            if (_hit.collider.gameObject == targetObject)
             {
                 hit = _hit;
                 return true; // Target object was hit

@@ -2555,7 +2555,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 1
+  m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1080079535172883905, guid: 748223e02d646eb45a7054cc89506bbf, type: 3}
 --- !u!4 &1701943229565235014 stripped
@@ -2660,7 +2660,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2269248419853982553}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90a614bc55ed1a841a4a1ef6cfa4169e, type: 3}
   m_Name: 
