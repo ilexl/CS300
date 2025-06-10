@@ -44,11 +44,6 @@ namespace Ballistics
             set
             {
                 float oldHealth = health;
-                if(transform.root.GetComponent<TankCombat>() != null && healthInit == true)
-                {
-                    transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
-                }
-
                 health = value;
                 ComponentDamaged(oldHealth);
                 if (health <= 0)
@@ -91,6 +86,11 @@ namespace Ballistics
         #region Events
         public void ComponentDestroyed()
         {
+            
+            if (transform.root.GetComponent<TankCombat>() != null && healthInit == true)
+            {
+                transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
+            }
             Debug.Log($"Component Destroyed | {gameObject} | {CurrentType}");
             if (destroyOnHealthGone)
                 Destroy(gameObject);
@@ -98,6 +98,10 @@ namespace Ballistics
         
         private void ComponentDamaged(float oldHealth)
         {
+            if (transform.root.GetComponent<TankCombat>() != null && healthInit == true)
+            {
+                transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
+            }
             _colourNeedsUpdating = true;
         }
         #endregion
