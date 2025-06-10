@@ -279,7 +279,7 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership=false)]
     void UpdateHealthServerRpc(int index, float newHealth)
     {
         FunctionalTankModule tankModule = tankModules[index];
