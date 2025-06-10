@@ -174,7 +174,7 @@ public class TankMovement : NetworkBehaviour
         if (playerCamera == null && IsOwner) playerCamera = Camera.main;
         if (playerCamera == null) return;
 
-        int layerMask = 1 << 3;
+        int layerMask = ~((1 << 2) | (1 << 3));
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
 
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, layerMask))
@@ -236,7 +236,7 @@ public class TankMovement : NetworkBehaviour
             if (debugAimObject != null)
             {
                 Ray ray = new Ray(cannonBarrel.position, cannonBarrel.forward);
-                int layerMask = 1 << 3;
+                int layerMask = ~((1 << 2) | (1 << 3));
                 if (Physics.Raycast(ray, out RaycastHit currentHit, 1000f, layerMask))
                 {
                     Debug.DrawLine(cannonBarrel.position, currentHit.point, Color.yellow);
