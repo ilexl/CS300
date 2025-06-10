@@ -6,6 +6,7 @@ namespace Ballistics
     public class FunctionalTankModule : DamageableTankModule
     {
         public Type CurrentType;
+        bool healthInit = false;
         public bool destroyOnHealthGone = true;
         [SerializeField]
         private float initialHealth;
@@ -43,7 +44,7 @@ namespace Ballistics
             set
             {
                 float oldHealth = health;
-                if(transform.root.GetComponent<TankCombat>() != null)
+                if(transform.root.GetComponent<TankCombat>() != null && healthInit == true)
                 {
                     transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
                 }
@@ -105,10 +106,12 @@ namespace Ballistics
         #region UnityLogic
         private void Start()
         {
+            healthInit = false;
             _renderer = GetComponent<Renderer>();
             
             if(initialHealth <= 0) { initialHealth = 100; } // default to 100
             Health = initialHealth;
+            healthInit = true;
         }
         private void Update()
         {
