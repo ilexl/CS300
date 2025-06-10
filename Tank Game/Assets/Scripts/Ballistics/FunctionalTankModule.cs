@@ -85,6 +85,10 @@ namespace Ballistics
         }
         private void Update()
         {
+            if (_renderer == null)
+            {
+                return; // no renderer on server
+            }
 
             if (_colourNeedsUpdating)
             {
