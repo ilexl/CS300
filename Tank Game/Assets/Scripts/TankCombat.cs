@@ -209,7 +209,7 @@ public class TankCombat : NetworkBehaviour
 
     public void ComponentHealthUpdate(FunctionalTankModule component)
     {
-        Debug.Log("ComponentHealthUpdate called for {component.gameObject}");
+        Debug.Log($"ComponentHealthUpdate called for {component.gameObject}");
         if (IsServer)
         {
             switch (component.CurrentType)
@@ -221,10 +221,11 @@ public class TankCombat : NetworkBehaviour
                         foreach (var tankModule in tankModules)
                         {
                             // if either dont work - return cannot drive
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canDrive = false; }
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canDrive = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canDrive = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canDrive = false; }
                         }
                         canDrive.Value = _canDrive;
+                        Debug.Log($"Can drive set to {_canDrive}");
                     }
                     break;
                 case FunctionalTankModule.Type.Barrel:
@@ -234,10 +235,11 @@ public class TankCombat : NetworkBehaviour
                         foreach (var tankModule in tankModules)
                         {
                             // if either dont work - return cannot shoot
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health == 0) { _canShoot = false; }
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health == 0) { _canShoot = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canShoot = false; }
+                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canShoot = false; }
                         }
                         canShoot.Value = _canShoot;
+                        Debug.Log($"Can shoot set to {_canShoot}");
                     }
                     break;
                 case FunctionalTankModule.Type.Ammo:
