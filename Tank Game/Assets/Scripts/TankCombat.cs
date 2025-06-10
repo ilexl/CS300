@@ -46,9 +46,11 @@ public class TankCombat : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
+        maxHealth.Value = 100f;
+        currentHealth.Value = 100f;
         currentHealth.OnValueChanged += OnHealthChanged;
         UpdateHealthBar(); // Show initial state
+
     }
 
     public override void OnNetworkDespawn()
