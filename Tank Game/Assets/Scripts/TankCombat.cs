@@ -71,9 +71,12 @@ public class TankCombat : NetworkBehaviour
     {
         Debug.Log($"Health updated to {current}");
         UpdateHealthBar();
-        if(current <= 0f)
+        if (IsServer)
         {
-            Debug.Log("Test");
+            if(current <= 0f)
+            {
+                InformAllPlayersOfDeathServerRpc();
+            }
         }
     }
 
@@ -202,25 +205,6 @@ public class TankCombat : NetworkBehaviour
         Projectile.Create(pos, dir, seed, projectileDefinition);
     }
 
-    public void ApplyDamage(float amount)
-    {
-        if(IsServer) // only the server will run this code
-        {
-            currentHealth.Value -= amount;
-            if (currentHealth.Value < 0f)
-                currentHealth.Value = 0f;
-            if (currentHealth.Value <= 0f)
-            {
-                PlayerDeath(); // destroy tank if health is 0
-            }
-        }
-    }
-
-    private void PlayerDeath()
-    {
-        Debug.Log($"Player {OwnerClientId} died");
-        InformAllPlayersOfDeathServerRpc();
-    }
 
     [ClientRpc]
     private void InformPlayersOfDeathClientRpc(ulong deadClientId)
