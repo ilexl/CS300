@@ -75,6 +75,7 @@ public class TankCombat : NetworkBehaviour
         {
             if(current <= 0f)
             {
+                Debug.Log("Killing Player!!");
                 InformAllPlayersOfDeathServerRpc();
             }
         }
@@ -209,6 +210,7 @@ public class TankCombat : NetworkBehaviour
     [ClientRpc]
     private void InformPlayersOfDeathClientRpc(ulong deadClientId)
     {
+        Debug.Log($"Client told by server to kill player");
         Debug.Log($"[Client] Player {deadClientId} has died.");
         // TODO: Show killfeed, play sound, display explosion, etc.
         if (IsOwner)
@@ -220,8 +222,10 @@ public class TankCombat : NetworkBehaviour
     [ServerRpc]
     private void InformAllPlayersOfDeathServerRpc()
     {
+        Debug.Log("All players being told to kill player");
         InformPlayersOfDeathClientRpc(OwnerClientId); // server -> clients
         RespawnManager.Singleton.ReportPlayerDeathServerRpc();
+        Debug.Log("All players have been told to kill player");
     }
 
 
