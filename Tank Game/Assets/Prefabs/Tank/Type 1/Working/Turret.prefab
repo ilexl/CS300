@@ -2288,7 +2288,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 22
-  CurrentType: 10
+  CurrentType: 11
+  healthInit: 0
   destroyOnHealthGone: 0
   initialHealth: 1000
   health: 0
@@ -2407,7 +2408,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 22
-  CurrentType: 9
+  CurrentType: 10
+  healthInit: 0
   destroyOnHealthGone: 0
   initialHealth: 1000
   health: 0
@@ -2476,7 +2478,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialType: 22
-  CurrentType: 7
+  CurrentType: 8
+  healthInit: 0
   destroyOnHealthGone: 0
   initialHealth: 1000
   health: 0
