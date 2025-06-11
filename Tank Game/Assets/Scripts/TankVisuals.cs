@@ -44,7 +44,7 @@ public class TankVisuals : MonoBehaviour
     void Awake()
     {
         RefreshList();
-        ShowTankNormal(); // show normal on awake
+        // ShowTankNormal(); // dont change UI on awake - need to show respawn UI which will show normal later
     }
 
     private void Start()

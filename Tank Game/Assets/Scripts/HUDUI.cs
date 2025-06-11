@@ -10,6 +10,7 @@ public class HUDUI : MonoBehaviour
 {
     public static HUDUI Singleton;
     [SerializeField] private WindowManager windowManager;
+    [SerializeField] private Window hudWindow;
     [SerializeField] private Window sniperWindow;
     [SerializeField] private Window pauseWindow;
     [SerializeField] private Window respawnWindow;
@@ -114,17 +115,17 @@ public class HUDUI : MonoBehaviour
             Debug.LogWarning("HUDUI is missing required variable assignments...");
             return;
         }
-        windowManager.ShowOnly(sniperWindow);
+        windowManager.ShowWindow(sniperWindow);
     }
 
     public void HideSniperMode()
     {
-        if (windowManager == null || sniperWindow == null)
+        if (windowManager == null || hudWindow == null)
         {
             Debug.LogWarning("HUDUI is missing required variable assignments...");
             return;
         }
-        windowManager.HideOnly(sniperWindow);
+        windowManager.ShowWindow(hudWindow);
     }
 
     public void LeaveMatch()
