@@ -142,6 +142,7 @@ public class TankCombat : NetworkBehaviour
                     repairTimer = 0f;
                     repairing = false;
                     RepairTank();
+                    HUDUI.Singleton.ShowRepairUI(0);
                 }
             }
             else if (repairing == false && repairTimer > 0f)
