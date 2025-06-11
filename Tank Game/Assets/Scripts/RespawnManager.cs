@@ -207,7 +207,7 @@ public class RespawnManager : NetworkBehaviour
         if (NetworkManager.Singleton.LocalClientId == deadClientId)
         {
             // This is the player who died
-            HUDUI.Singleton?.ShowRespawnUI();
+            HUDUI.Singleton?.ShowTankSelectionUI();
         }
     }
 }

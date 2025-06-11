@@ -287,4 +287,9 @@ public class HUDUI : MonoBehaviour
     {
         repairTimeText.text = $"{value}s";
     }
+
+    public void ShowTankSelectionUI()
+    {
+        windowManager.ShowWindow(tankSelectionWindow);
+    }
 }

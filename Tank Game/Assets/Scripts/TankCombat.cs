@@ -71,6 +71,10 @@ public class TankCombat : NetworkBehaviour
     {
         Debug.Log($"Health updated to {current}");
         UpdateHealthBar();
+        if(current <= 0f)
+        {
+            Debug.Log("Test");
+        }
     }
 
     void Update()
@@ -215,7 +219,7 @@ public class TankCombat : NetworkBehaviour
     private void PlayerDeath()
     {
         Debug.Log($"Player {OwnerClientId} died");
-        InformAllPlayersOfDeath();
+        InformAllPlayersOfDeathServerRpc();
     }
 
     [ClientRpc]
@@ -226,10 +230,12 @@ public class TankCombat : NetworkBehaviour
         if (IsOwner)
         {
             RespawnManager.Singleton.ReportPlayerDeathServerRpc();
+            HUDUI.Singleton.ShowTankSelectionUI();
         }
     }
 
-    private void InformAllPlayersOfDeath()
+    [ServerRpc]
+    private void InformAllPlayersOfDeathServerRpc()
     {
         InformPlayersOfDeathClientRpc(OwnerClientId); // server -> clients
     }
