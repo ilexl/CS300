@@ -162,6 +162,7 @@ public class TankCombat : NetworkBehaviour
         foreach(FunctionalTankModule component in tankModules)
         {
             component.Health = component.GetInitialHealth();
+            UpdateHealthServerRpc(tankModules.IndexOf(component), component.Health);
         }
     }
 
@@ -198,17 +199,15 @@ public class TankCombat : NetworkBehaviour
 
     public void ApplyDamage(float amount)
     {
-        if(!IsServer) return; // only the server will run this code
-
-        currentHealth.Value -= amount;
-        if (currentHealth.Value < 0f)
-            currentHealth.Value = 0f;
-
-        UpdateHealthBar();
-
-        if(currentHealth.Value <= 0f)
+        if(IsServer) // only the server will run this code
         {
-            PlayerDeath(); // destroy tank if health is 0
+            currentHealth.Value -= amount;
+            if (currentHealth.Value < 0f)
+                currentHealth.Value = 0f;
+            if (currentHealth.Value <= 0f)
+            {
+                PlayerDeath(); // destroy tank if health is 0
+            }
         }
     }
 
@@ -362,12 +361,14 @@ public class TankCombat : NetworkBehaviour
     {
         FunctionalTankModule tankModule = tankModules[index];
         tankModule.Health = newHealth;
-        UpdateHealthClientRpc();
+        UpdateHealthClientRpc(index, newHealth);
     }
 
     [ClientRpc]
-    void UpdateHealthClientRpc()
+    void UpdateHealthClientRpc(int index, float newHealth)
     {
+        FunctionalTankModule tankModule = tankModules[index];
+        tankModule.Health = newHealth;
         if (IsOwner)
         {
             if (HUDUI.Singleton != null)
