@@ -53,6 +53,11 @@ namespace Ballistics
             }
         }
 
+        public void ServerSetHealth(float h)
+        {
+            health = h;
+        }
+
         public float HealthRatio
         {
             get => health / initialHealth;

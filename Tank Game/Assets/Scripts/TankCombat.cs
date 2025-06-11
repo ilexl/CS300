@@ -369,7 +369,7 @@ public class TankCombat : NetworkBehaviour
     void UpdateHealthClientRpc(int index, float newHealth)
     {
         FunctionalTankModule tankModule = tankModules[index];
-        tankModule.Health = newHealth;
+        tankModule.ServerSetHealth(newHealth);
         if (IsOwner)
         {
             if (HUDUI.Singleton != null)
