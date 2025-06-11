@@ -291,7 +291,7 @@ public class TankCombat : NetworkBehaviour
 
     public void ComponentHealthUpdate(FunctionalTankModule component)
     {
-        Debug.Log($"ComponentHealthUpdate called for {component.gameObject}");
+        //Debug.Log($"ComponentHealthUpdate called for {component.gameObject}");
         if (IsServer)
         {
             switch (component.CurrentType)
@@ -328,7 +328,7 @@ public class TankCombat : NetworkBehaviour
                     {
                         if (component.Health == 0)
                         {
-                            ApplyDamage(99999); // force kill player
+                            currentHealth.Value -= 99999; // force kill player
                         }
                     }
                     break;
