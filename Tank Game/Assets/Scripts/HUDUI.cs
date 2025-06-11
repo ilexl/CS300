@@ -1,4 +1,5 @@
 using Ballistics;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
@@ -34,6 +35,11 @@ public class HUDUI : MonoBehaviour
     [Space(10)]
 
     [SerializeField] private TextMeshProUGUI endOfMatchText;
+
+    [Space(10)]
+    [SerializeField] private Image RepairHoldRadial;
+    [SerializeField] private TextMeshProUGUI repairTimeText;
+    [SerializeField] private GameObject repairObject;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -262,5 +268,23 @@ public class HUDUI : MonoBehaviour
     public void UpdateComponentsUI(List<FunctionalTankModule> modules)
     {
 
+    }
+
+    public void ShowRepairUI(float value)
+    {
+        if(value == 0f)
+        {
+            repairObject.SetActive(false);
+            return;
+        }
+
+        repairObject.SetActive(true);
+        // show repair key circle int 0+ -> 1
+        RepairHoldRadial.fillAmount = value;
+    }
+
+    public void ShowRepairTimer(float value)
+    {
+        repairTimeText.text = $"{value}s";
     }
 }

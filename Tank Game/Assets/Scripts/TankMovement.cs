@@ -129,6 +129,8 @@ public class TankMovement : NetworkBehaviour
 
         if (moveInput < 0) rotateInput *= -1;
 
+        if (GetComponent<TankCombat>().repairing) { return; } // cant move while repairing
+
         if (GetComponent<TankCombat>().canDrive.Value)
         {
             hull.transform.Translate(Vector3.forward * moveInput * moveSpeed * Time.deltaTime);

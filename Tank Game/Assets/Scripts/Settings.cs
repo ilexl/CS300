@@ -110,6 +110,7 @@ public class Settings : MonoBehaviour
         list.Add(new Setting("Control-Back", "S")); // S Back
         list.Add(new Setting("Control-Right", "D")); // D Right
         list.Add(new Setting("Control-Freelook", "C")); // C Freelook
+        list.Add(new Setting("Control-Repair", "R")); // R Repair
         list.Add(new Setting("Control-ShootPrimary", "Mouse0")); // M1 Shoot (Cannons)
         list.Add(new Setting("Control-ShootSecondary", "Space")); // Spacebar Shoot (Machine Gun)
         list.Add(new Setting("Control-CameraZoom", "Mouse1")); // M2 Aim (Zoom)

@@ -60,7 +60,7 @@ namespace Ballistics
         }
         #endregion
        
-
+        public float GetInitialHealth() { return initialHealth; }
         
         #region penetrationEffects
         public override void PostPenetration(Vector3 entryPoint, Vector3 exitPoint, float thickness, Vector3 projectileVelocity, Vector3 previousVelocity, 

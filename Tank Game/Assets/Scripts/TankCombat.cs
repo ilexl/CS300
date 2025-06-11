@@ -29,6 +29,13 @@ public class TankCombat : NetworkBehaviour
     public float MaxReload => maxReload.Value;
     public float CurrentReload => currentReload.Value;
 
+    [SerializeField] float repairHoldTimer = 0f;
+    float repairHoldMax = 1.5f;
+    [SerializeField] float repairTimer = 0f;
+    float repairMax = 15f;
+    public bool repairing = false;
+    bool repairKeyLetUp = true;
+
     void Start()
     {
         if (IsServer)
@@ -41,6 +48,7 @@ public class TankCombat : NetworkBehaviour
         }
 
         UpdateHealthBar();
+        repairKeyLetUp = true;
     }
 
     public override void OnNetworkSpawn()
@@ -73,11 +81,14 @@ public class TankCombat : NetworkBehaviour
             if (currentReload.Value < 0f)
                 currentReload.Value = 0f;
         }
+        
 
         if (!IsOwner) return;
 
+        
+
         //if (Input.GetMouseButtonDown(0))
-        if(Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-ShootPrimary")))
+        if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-ShootPrimary")))
         {
             if (currentReload.Value > 0f)
             {
@@ -86,6 +97,71 @@ public class TankCombat : NetworkBehaviour
             }
             
             Shoot();
+        }
+
+        bool canRepair = canDrive.Value == false || canShoot.Value == false; // if anything damaged then canRepair
+        if (canRepair)
+        {
+            if (Input.GetKeyUp(Settings.Singleton.KeyCodeFromSetting("Control-Repair")))
+            {
+                repairKeyLetUp = true;
+            }
+            if (Input.GetKey(Settings.Singleton.KeyCodeFromSetting("Control-Repair")) && repairKeyLetUp == true)
+            {
+                repairHoldTimer += Time.deltaTime;
+                if (repairHoldTimer >= repairHoldMax) // 1.5 seconds hold down to switch repair mode
+                {
+                    repairing = !repairing; // switch it
+                    repairHoldTimer = 0f;
+                    repairKeyLetUp = false;
+
+                    HUDUI.Singleton.ShowRepairUI(repairing ? 1 : 0);
+                }
+            }
+            else if (repairing == false && repairHoldTimer > 0f)
+            {
+                repairHoldTimer -= Time.deltaTime;
+                if (repairHoldTimer < 0f)
+                {
+                    repairHoldTimer = 0f;
+                }
+            }
+
+            if (repairHoldTimer != 0f)
+            {
+                float progress = repairHoldTimer / repairHoldMax;
+                HUDUI.Singleton.ShowRepairUI(repairing ? 1 - progress : progress);
+            }
+
+
+            if (repairing == true)
+            {
+                repairTimer += Time.deltaTime;
+                if (repairTimer >= repairMax)
+                {
+                    repairTimer = 0f;
+                    repairing = false;
+                    RepairTank();
+                }
+            }
+            else if (repairing == false && repairTimer > 0f)
+            {
+                repairTimer = 0f;
+            }
+            HUDUI.Singleton.ShowRepairTimer(repairMax - repairTimer);
+        }
+        else
+        {
+            HUDUI.Singleton.ShowRepairUI(0); // hides the repair UI
+        }
+
+    }
+
+    private void RepairTank()
+    {
+        foreach(FunctionalTankModule component in tankModules)
+        {
+            component.Health = component.GetInitialHealth();
         }
     }
 
