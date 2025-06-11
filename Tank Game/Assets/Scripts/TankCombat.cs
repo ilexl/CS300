@@ -213,7 +213,6 @@ public class TankCombat : NetworkBehaviour
         // TODO: Show killfeed, play sound, display explosion, etc.
         if (IsOwner)
         {
-            RespawnManager.Singleton.ReportPlayerDeathServerRpc();
             HUDUI.Singleton.ShowTankSelectionUI();
         }
     }
@@ -222,6 +221,7 @@ public class TankCombat : NetworkBehaviour
     private void InformAllPlayersOfDeathServerRpc()
     {
         InformPlayersOfDeathClientRpc(OwnerClientId); // server -> clients
+        RespawnManager.Singleton.ReportPlayerDeathServerRpc();
     }
 
 
@@ -333,6 +333,11 @@ public class TankCombat : NetworkBehaviour
                         Debug.Log("Module Type damaged not implemented...");
                     }
                     break;
+            }
+
+            if(currentHealth.Value <= 0)
+            {
+                InformAllPlayersOfDeathServerRpc();
             }
         }
         else if(IsOwner == false) // we should not apply own health - other player will tell the server what was hit
