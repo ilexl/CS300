@@ -290,6 +290,8 @@ public class TankCombat : NetworkBehaviour
             maxHealth.Value = 100f;
             currentHealth.Value = 100f;
             Debug.Log($"Player {GetComponent<NetworkObject>().OwnerClientId} has {maxCrew} crew members");
+            CheckCanDrive();
+            CheckCanShoot();
         }
     }
 
