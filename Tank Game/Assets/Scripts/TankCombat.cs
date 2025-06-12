@@ -385,8 +385,8 @@ public class TankCombat : NetworkBehaviour
         foreach (var tankModule in tankModules)
         {
             // if either dont work - return cannot shoot
-            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canShoot = false; }
-            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canShoot = false; }
+            if (tankModule.CurrentType == FunctionalTankModule.Type.Barrel && tankModule.Health <= 0) { _canShoot = false; }
+            if (tankModule.CurrentType == FunctionalTankModule.Type.Breach && tankModule.Health <= 0) { _canShoot = false; }
         }
         canShoot.Value = _canShoot;
         Debug.Log($"Can shoot set to {_canShoot}");
