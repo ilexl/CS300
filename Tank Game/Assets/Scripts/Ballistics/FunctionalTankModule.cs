@@ -62,6 +62,7 @@ namespace Ballistics
         public void ServerSetHealth(float h)
         {
             health = h;
+            _colourNeedsUpdating = true;
         }
 
         public float HealthRatio
