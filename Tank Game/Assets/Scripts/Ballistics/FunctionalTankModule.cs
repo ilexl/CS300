@@ -15,6 +15,7 @@ namespace Ballistics
         
         private Renderer _renderer;
         private bool _colourNeedsUpdating = false;
+        bool alreadyDestroyed = false;
 
         #region Enum
         public enum Type
@@ -43,12 +44,17 @@ namespace Ballistics
             get => health;
             set
             {
+                if(health > 0)
+                {
+                    alreadyDestroyed = false;
+                }
                 float oldHealth = health;
                 health = value;
                 ComponentDamaged(oldHealth);
                 if (health <= 0)
                 {
                     ComponentDestroyed();
+                    alreadyDestroyed = true;
                 }
             }
         }
@@ -91,7 +97,7 @@ namespace Ballistics
         #region Events
         public void ComponentDestroyed()
         {
-            
+            if (alreadyDestroyed) { return; }
             if (transform.root.GetComponent<TankCombat>() != null && healthInit == true)
             {
                 transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
@@ -103,6 +109,7 @@ namespace Ballistics
         
         private void ComponentDamaged(float oldHealth)
         {
+            if (alreadyDestroyed) { return; }
             if (transform.root.GetComponent<TankCombat>() != null && healthInit == true)
             {
                 transform.root.GetComponent<TankCombat>().ComponentHealthUpdate(this);
