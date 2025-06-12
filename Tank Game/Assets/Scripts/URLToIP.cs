@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -28,30 +29,34 @@ public class URLToIP : MonoBehaviour
         return ip;
     }
 
-    public static async Task<bool> IsPortOpenAsync(string ipAddress, int port, int timeout = 2000)
+    public static async Task<bool> IsUnityServerAlive(string ipAddress, int port = 9000, int timeout = 2000)
     {
-        using (TcpClient tcpClient = new TcpClient())
+        try
         {
-            try
+            using (TcpClient tcpClient = new TcpClient())
             {
                 var connectTask = tcpClient.ConnectAsync(ipAddress, port);
-                if (await Task.WhenAny(connectTask, Task.Delay(timeout)) == connectTask)
+                var timeoutTask = Task.Delay(timeout);
+                var completed = await Task.WhenAny(connectTask, timeoutTask);
+
+                if (completed != connectTask)
+                    return false; // Timed out
+
+                await connectTask; // Ensure exception is thrown if failed
+
+                using (var stream = tcpClient.GetStream())
                 {
-                    return tcpClient.Connected;
+                    byte[] buffer = new byte[16];
+                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    string response = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    return response == "ALIVE";
                 }
-                else
-                {
-                    return false; // Timeout
-                }
-            }
-            catch (SocketException)
-            {
-                return false; // Connection failed
-            }
-            catch (Exception)
-            {
-                return false; // Other errors
             }
         }
+        catch
+        {
+            return false; // Could not connect or read
+        }
     }
+
 }

@@ -7,10 +7,12 @@ public class MainMenu : MonoBehaviour
     [SerializeField] TextMeshProUGUI selectedVehicleText;
     public static MainMenu Singleton;
     bool searching = false;
+    [SerializeField] GameObject SearchingForServerWindow;
     public void StartMatchMaking()
     {
         searching = true;
-        StartCoroutine(TryConnectToServer("dev.legner.foo", 7777));
+        SearchingForServerWindow.SetActive(true);
+        StartCoroutine(TryConnectToServer("dev.legner.foo", ServerHeartbeat.port));
     }
 
     public void SetSelectedVehicleText(string text)
@@ -21,6 +23,7 @@ public class MainMenu : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        SearchingForServerWindow.SetActive(false);
         searching = false;
         Singleton = this;
     }
@@ -29,7 +32,7 @@ public class MainMenu : MonoBehaviour
     {
         while (searching)
         {
-            var task = URLToIP.IsPortOpenAsync(ip, port);
+            var task = URLToIP.IsUnityServerAlive(ip, port);
             yield return new WaitUntil(() => task.IsCompleted);
 
             if (task.Result)
