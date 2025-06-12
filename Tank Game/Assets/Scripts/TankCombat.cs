@@ -424,7 +424,7 @@ public class TankCombat : NetworkBehaviour
                 case FunctionalTankModule.Type.Gunner:
                 case FunctionalTankModule.Type.Loader:
                     {
-                        if(tankModule.Health != 0)
+                        if(tankModule.Health > 0)
                         {
                             aliveCrew++;
                         }
