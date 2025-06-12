@@ -164,11 +164,9 @@ public class RespawnManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    public void ReportPlayerDeathServerRpc(ServerRpcParams rpcParams = default)
+    public void ReportPlayerDeath(ulong clientId)
     {
         Debug.Log("Server informing all respawn managers of players death");
-        ulong clientId = rpcParams.Receive.SenderClientId;
         Debug.Log($"[Server] Player {clientId} has died.");
 
         // Inform all clients

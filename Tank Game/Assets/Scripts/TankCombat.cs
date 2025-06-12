@@ -70,15 +70,15 @@ public class TankCombat : NetworkBehaviour
     private void OnHealthChanged(float previous, float current)
     {
         Debug.Log($"Health updated to {current}");
-        UpdateHealthBar();
         if (IsServer)
         {
             if(current <= 0f)
             {
                 Debug.Log("Killing Player!!");
-                InformAllPlayersOfDeathServerRpc();
+                InformAllPlayersOfDeath();
             }
         }
+        UpdateHealthBar();
     }
 
     void Update()
@@ -219,12 +219,11 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    private void InformAllPlayersOfDeathServerRpc()
+    private void InformAllPlayersOfDeath()
     {
         Debug.Log("All players being told to kill player");
         InformPlayersOfDeathClientRpc(OwnerClientId); // server -> clients
-        RespawnManager.Singleton.ReportPlayerDeathServerRpc();
+        RespawnManager.Singleton.ReportPlayerDeath(OwnerClientId);
         Debug.Log("All players have been told to kill player");
     }
 
@@ -341,7 +340,7 @@ public class TankCombat : NetworkBehaviour
 
             if(currentHealth.Value <= 0)
             {
-                InformAllPlayersOfDeathServerRpc();
+                InformAllPlayersOfDeath();
             }
         }
         else if(IsOwner == false) // we should not apply own health - other player will tell the server what was hit
