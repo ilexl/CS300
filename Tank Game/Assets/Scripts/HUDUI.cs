@@ -41,6 +41,7 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI repairTimeText;
     [SerializeField] private GameObject repairObject;
     [SerializeField] private Slider reloadSlider;
+    [SerializeField] private TextMeshProUGUI flipText;
         
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -303,4 +304,11 @@ public class HUDUI : MonoBehaviour
         windowManager.ShowWindow(tankSelectionWindow);
         SetCursorShown(true);
     }
+
+    public void FlipPromptActive(bool active)
+    {
+        flipText.text = $"Press {Settings.Singleton.KeyCodeFromSetting("Control-FlipTank")} to flip your tank...";
+        flipText.gameObject.SetActive(active);
+    }
+
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using System;
 
 public class TankMovement : NetworkBehaviour
 {
@@ -88,6 +89,43 @@ public class TankMovement : NetworkBehaviour
             HandleTurretRotation();
             HandleCannonElevation();
             SyncTurretAndCannonRotations(); // from player to server/other players
+            RightSideUp();
+        }
+    }
+
+    private void RightSideUp()
+    {
+
+        if (Vector3.Dot(transform.up, Vector3.down) > 0.5f)
+        {
+            // prompt user to flip the tank
+            HUDUI.Singleton.FlipPromptActive(true);
+
+            // check for key down input
+            if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-FlipTank")))
+            {
+                Rigidbody rb = GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    // Temporarily disable physics to avoid conflict
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+
+                    rb.MovePosition(transform.position + new Vector3(0, 5, 0));
+                    Quaternion upright = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+                    rb.MoveRotation(upright);
+                }
+                else
+                {
+                    // Fallback if no Rigidbody
+                    transform.position += new Vector3(0, 5, 0);
+                    transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+                }
+            }
+        }
+        else
+        {
+            HUDUI.Singleton.FlipPromptActive(false);
         }
     }
 
