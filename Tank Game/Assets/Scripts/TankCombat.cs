@@ -332,7 +332,7 @@ public class TankCombat : NetworkBehaviour
                 case FunctionalTankModule.Type.Loader:
                     {
                         int aliveCrew = GetAliveCrew();
-                        currentHealth.Value = aliveCrew * (float)((float)maxCrew / (float)100f);
+                        currentHealth.Value = aliveCrew * (float)((float)100f / (float)maxCrew);
                     }
                     break;
                 case FunctionalTankModule.Type.Wheel:
