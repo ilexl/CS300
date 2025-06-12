@@ -291,5 +291,6 @@ public class HUDUI : MonoBehaviour
     public void ShowTankSelectionUI()
     {
         windowManager.ShowWindow(tankSelectionWindow);
+        SetCursorShown(true);
     }
 }
