@@ -209,6 +209,8 @@ public class TankCombat : NetworkBehaviour
         ulong shooterClientId = rpcParams.Receive.SenderClientId;
         if (!NetworkManager.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)) return; // ensure player is valid
 
+        currentReload.Value = maxReload.Value;
+
         // do server stuff here
         long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
