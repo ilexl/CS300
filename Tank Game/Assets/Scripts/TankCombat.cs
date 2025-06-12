@@ -5,6 +5,8 @@ using System;
 using Ballistics.Database;
 using System.Collections.Generic;
 using System.Linq;
+using System.ComponentModel;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -301,29 +303,13 @@ public class TankCombat : NetworkBehaviour
                 case FunctionalTankModule.Type.Engine:
                 case FunctionalTankModule.Type.Transmission:
                     {
-                        bool _canDrive = true; // assume both working
-                        foreach (var tankModule in tankModules)
-                        {
-                            // if either dont work - return cannot drive
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canDrive = false; }
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canDrive = false; }
-                        }
-                        canDrive.Value = _canDrive;
-                        Debug.Log($"Can drive set to {_canDrive}");
+                        CheckCanDrive();
                     }
                     break;
                 case FunctionalTankModule.Type.Barrel:
                 case FunctionalTankModule.Type.Breach:
                     {
-                        bool _canShoot = true; // assume both working
-                        foreach (var tankModule in tankModules)
-                        {
-                            // if either dont work - return cannot shoot
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canShoot = false; }
-                            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canShoot = false; }
-                        }
-                        canShoot.Value = _canShoot;
-                        Debug.Log($"Can shoot set to {_canShoot}");
+                        CheckCanShoot();
                     }
                     break;
                 case FunctionalTankModule.Type.Ammo:
@@ -370,12 +356,40 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership=false)]
+    [ServerRpc(RequireOwnership = false)]
     void UpdateHealthServerRpc(int index, float newHealth)
     {
         FunctionalTankModule tankModule = tankModules[index];
         tankModule.Health = newHealth;
         UpdateHealthClientRpc(index, newHealth);
+        CheckCanDrive();
+        CheckCanShoot();
+    }
+
+    void CheckCanDrive()
+    {
+        bool _canDrive = true; // assume both working
+        foreach (var _tankModule in tankModules)
+        {
+            // if either dont work - return cannot drive
+            if (_tankModule.CurrentType == FunctionalTankModule.Type.Engine && _tankModule.Health <= 0) { _canDrive = false; }
+            if (_tankModule.CurrentType == FunctionalTankModule.Type.Transmission && _tankModule.Health <= 0) { _canDrive = false; }
+        }
+        canDrive.Value = _canDrive;
+        Debug.Log($"Can drive set to {_canDrive}");
+    }
+
+    void CheckCanShoot()
+    {
+        bool _canShoot = true; // assume both working
+        foreach (var tankModule in tankModules)
+        {
+            // if either dont work - return cannot shoot
+            if (tankModule.CurrentType == FunctionalTankModule.Type.Engine && tankModule.Health <= 0) { _canShoot = false; }
+            if (tankModule.CurrentType == FunctionalTankModule.Type.Transmission && tankModule.Health <= 0) { _canShoot = false; }
+        }
+        canShoot.Value = _canShoot;
+        Debug.Log($"Can shoot set to {_canShoot}");
     }
 
     [ClientRpc]
