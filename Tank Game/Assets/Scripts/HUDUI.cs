@@ -40,7 +40,8 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private Image RepairHoldRadial;
     [SerializeField] private TextMeshProUGUI repairTimeText;
     [SerializeField] private GameObject repairObject;
-
+    [SerializeField] private Slider reloadSlider;
+        
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -268,6 +269,15 @@ public class HUDUI : MonoBehaviour
     public void UpdateComponentsUI(List<FunctionalTankModule> modules)
     {
 
+    }
+
+    public void UpdateReloadTime(float timeZO)
+    {
+        // time is zero to one - zero being needs to reload still - one being ready to fire
+        if(reloadSlider != null)
+        {
+            reloadSlider.value = timeZO;
+        }
     }
 
     public void ShowRepairUI(float value)

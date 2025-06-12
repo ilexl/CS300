@@ -94,8 +94,7 @@ public class TankCombat : NetworkBehaviour
         
 
         if (!IsOwner) return;
-
-        
+        HUDUI.Singleton.UpdateReloadTime(1 - (currentReload.Value / maxReload.Value));
 
         //if (Input.GetMouseButtonDown(0))
         if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-ShootPrimary")))
