@@ -170,8 +170,23 @@ public class TankCombat : NetworkBehaviour
     {
         foreach(FunctionalTankModule component in tankModules)
         {
-            component.Health = component.GetInitialHealth();
-            UpdateHealthServerRpc(tankModules.IndexOf(component), component.Health);
+            switch (component.CurrentType)
+            {
+                case FunctionalTankModule.Type.Engine:
+                case FunctionalTankModule.Type.Transmission:
+                case FunctionalTankModule.Type.Track:
+                case FunctionalTankModule.Type.Wheel:
+                case FunctionalTankModule.Type.Barrel:
+                case FunctionalTankModule.Type.Breach:
+                    {
+                        component.Health = component.GetInitialHealth();
+                        UpdateHealthServerRpc(tankModules.IndexOf(component), component.Health);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            
         }
     }
 
