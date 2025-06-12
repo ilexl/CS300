@@ -125,7 +125,11 @@ namespace Ballistics
             healthInit = false;
             _renderer = GetComponent<Renderer>();
             
-            if(initialHealth <= 0) { initialHealth = 100; } // default to 100
+            if(initialHealth <= 0) 
+            {
+                Debug.LogWarning($"init health for {gameObject.name} was <= 0... Set to 100 as a fail over...");
+                initialHealth = 100; 
+            } // default to 100
             Health = initialHealth;
             healthInit = true;
         }
