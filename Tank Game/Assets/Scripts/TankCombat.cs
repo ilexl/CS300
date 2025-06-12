@@ -94,6 +94,9 @@ public class TankCombat : NetworkBehaviour
         
 
         if (!IsOwner) return;
+
+        Debug.Log($"Crew alive == {GetAliveCrew()}");
+
         HUDUI.Singleton.UpdateReloadTime(1 - (currentReload.Value / maxReload.Value));
 
         //if (Input.GetMouseButtonDown(0))
@@ -329,7 +332,7 @@ public class TankCombat : NetworkBehaviour
                 case FunctionalTankModule.Type.Loader:
                     {
                         int aliveCrew = GetAliveCrew();
-                        currentHealth.Value = aliveCrew * (maxCrew / 100);
+                        currentHealth.Value = aliveCrew * (float)((float)maxCrew / (float)100f);
                     }
                     break;
                 case FunctionalTankModule.Type.Wheel:
