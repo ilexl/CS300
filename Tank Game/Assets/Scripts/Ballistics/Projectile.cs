@@ -54,7 +54,7 @@ namespace Ballistics
         public static GameObject Create(Vector3 pos, Vector3 velocity, Random rng, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
             
-            if (Projectiles.Count >= 100000)
+            if (Projectiles.Count >= 1000)
             {
                 throw new Exception("Too many projectiles!");
             }
