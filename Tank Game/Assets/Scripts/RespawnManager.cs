@@ -28,15 +28,7 @@ public class RespawnManager : NetworkBehaviour
 
         if (playerTeams.ContainsKey(clientId))
         {
-            if (playerTeams[clientId] == team)
-            {
-                Debug.LogWarning($"Client {clientId} already in the team.");
-                return;
-            }
-            else
-            {
-                RemovePlayerTeam(clientId);
-            }
+            RemovePlayerTeam(clientId);
         }
 
         playerTeams[clientId] = team;

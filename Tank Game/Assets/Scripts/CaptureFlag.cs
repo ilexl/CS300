@@ -144,9 +144,9 @@ public class CaptureFlag : NetworkBehaviour
     private void InterpolateFlagPosition(float lerp)
     {
         float y = Mathf.Lerp(flagUpPos.y, flagDownPos.y, lerp);
-        Vector3 pos = flagObj.transform.position;
-        pos.y = y;
-        flagObj.transform.position = pos;
+        Vector3 pos = flagObj.transform.localPosition;
+        pos.y = y / transform.localScale.y;
+        flagObj.transform.localPosition = pos;
     }
 
     private void OnTeamChanged(Team previous, Team current)
