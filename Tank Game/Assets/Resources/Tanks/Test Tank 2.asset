@@ -55,7 +55,7 @@ MonoBehaviour:
   gunAimSpeed:
   - 1
   tankMoveSpeed: 1
-  cameraPosSniper: {x: 0, y: 0, z: 0}
+  cameraPosSniper: {x: 0, y: 2.25, z: 1.35}
   description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras euismod
     risus enim, et malesuada est mattis in. Quisque quis pretium justo. Interdum
     et malesuada fames ac ante ipsum primis in faucibus. Donec tristique vel metus
