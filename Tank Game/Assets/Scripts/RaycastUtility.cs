@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Provides utility methods for performing raycasts with additional filtering,
+/// such as targeting specific GameObjects using RaycastAll.
+/// </summary>
 public static class RaycastUtility
 {
     /// <summary>

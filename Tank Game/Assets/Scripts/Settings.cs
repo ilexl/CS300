@@ -1,17 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Linq;
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+/// <summary>
+/// Manages the user settings for video, audio, graphics, camera, and controls.
+/// Handles UI creation, input rebinding, and application of preferences.
+/// </summary>
 public class Settings : MonoBehaviour
 {
     public static Settings Singleton;
@@ -21,34 +21,42 @@ public class Settings : MonoBehaviour
     [SerializeField] private Window ChangeControlWindow;
     List<Setting> settings;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    /// <summary>
+    /// Called at start; initializes the singleton and loads settings.
+    /// </summary>
     void Start()
     {
         Singleton = this;
         LoadSettings();
     }
 
+    /// <summary>
+    /// Unity Awake method override; defers to Start for initialization.
+    /// </summary>
     private void Awake()
     {
         Start();
     }
 
+    /// <summary>
+    /// Displays the change control UI and handles input rebinding for a setting.
+    /// </summary>
     public void ShowChangeControl(Setting setting, Action callback)
     {
         ChangeControlWindow.Show();
 
-        // Start listening for input
+        // Start listening for input from user
         StartCoroutine(WaitForControlInput(input =>
         {
-            // input is a string like "KeyCode.Space" or "GamepadButton.X"
             setting.UpdateCurrentValue(input);
-
-            // Now call the callback to notify it's done
             callback?.Invoke();
             ChangeControlWindow.Hide();
         }));
     }
 
+    /// <summary>
+    /// Coroutine that waits until a key is pressed, then passes it to a callback.
+    /// </summary>
     private IEnumerator WaitForControlInput(Action<string> onInputReceived)
     {
         bool inputReceived = false;
@@ -56,7 +64,6 @@ public class Settings : MonoBehaviour
 
         while (!inputReceived)
         {
-            // Example: key press detection
             foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
             {
                 if (Input.GetKeyDown(key))
@@ -67,15 +74,17 @@ public class Settings : MonoBehaviour
                 }
             }
 
-            // Extend this for gamepad input, mouse buttons, etc. as needed
+            // Could be extended for controller, mouse input, etc.
             Debug.Log("Waiting for input");
             yield return null; // wait until next frame
         }
 
-        // Send the detected input string to the callback
         onInputReceived?.Invoke(detectedInput);
     }
 
+    /// <summary>
+    /// Builds a predefined list of all game settings with default values.
+    /// </summary>
     private List<Setting> GetSettingsList()
     {
         List<Setting> list = new List<Setting>();
@@ -131,6 +140,9 @@ public class Settings : MonoBehaviour
         return list;
     }
 
+    /// <summary>
+    /// Retrieves valid options for a given setting, based on its name.
+    /// </summary>
     private List<string> GetSettingOptions(Setting setting)
     {
         List<string> options = new List<string>();
@@ -306,6 +318,9 @@ public class Settings : MonoBehaviour
         return options;
     }
 
+    /// <summary>
+    /// Destroys all existing UI setting elements from each category container.
+    /// </summary>
     private void DeleteUI()
     {
 #if UNITY_EDITOR
@@ -346,6 +361,9 @@ public class Settings : MonoBehaviour
 #endif
     }
 
+    /// <summary>
+    /// Creates a fresh UI for all settings and binds them to their respective controls.
+    /// </summary>
     private void NewUI()
     {
         // delete old UI
@@ -412,6 +430,9 @@ public class Settings : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Loads all saved settings from PlayerPrefs and generates the settings UI.
+    /// </summary>
     public void LoadSettings()
     {
         settings = GetSettingsList();
@@ -422,6 +443,10 @@ public class Settings : MonoBehaviour
 
         NewUI();
     }
+
+    /// <summary>
+    /// Saves all current settings to PlayerPrefs.
+    /// </summary>
     public void SaveSettings()
     {
         foreach (Setting setting in settings)
@@ -429,6 +454,10 @@ public class Settings : MonoBehaviour
             setting.SaveSetting();
         }
     }
+
+    /// <summary>
+    /// Clears all saved settings and reverts to default.
+    /// </summary>
     public void ResetSettings()
     {
         foreach(Setting setting in settings)
@@ -436,6 +465,10 @@ public class Settings : MonoBehaviour
             setting.ResetSetting();
         }
     }
+
+    /// <summary>
+    /// Applies current settings values to the game systems.
+    /// </summary>
     public void ApplySettings()
     {
         int targetWidth = Screen.currentResolution.width;
@@ -560,6 +593,9 @@ public class Settings : MonoBehaviour
         ApplyResolution(targetWidth, targetHeight, targetFullScreenMode, targetRefreshRate);
     }
 
+    /// <summary>
+    /// Applies a resolution and refresh rate using Unity's resolution API.
+    /// </summary>
     public void ApplyResolution(int width, int height, FullScreenMode mode, double targetHz)
     {
         // Try to find the closest supported refresh rate
@@ -573,6 +609,9 @@ public class Settings : MonoBehaviour
         Screen.SetResolution(width, height, mode, closestRate);
     }
 
+    /// <summary>
+    /// Returns the KeyCode for a named control setting.
+    /// </summary>
     public KeyCode KeyCodeFromSetting(string settingName)
     {
         foreach(Setting setting in settings)
@@ -594,11 +633,18 @@ public class Settings : MonoBehaviour
         Debug.LogWarning($"No setting found by name of {settingName}");
         return KeyCode.None;
     }
+
+    /// <summary>
+    /// Placeholder for testing experimental code.
+    /// </summary>
     public void TestCodeSnippet()
     {
         
     }
 
+    /// <summary>
+    /// Represents a single configurable setting, its state and persistence.
+    /// </summary>
     public class Setting
     {
         string name, defaultValue, currentValue;
@@ -622,7 +668,9 @@ public class Settings : MonoBehaviour
 
 
 #if UNITY_EDITOR
-
+/// <summary>
+/// Adds custom buttons to the Unity Inspector for testing Settings at edit-time.
+/// </summary>
 [CustomEditor(typeof(Settings))]
 public class EDITOR_Settings : Editor
 {

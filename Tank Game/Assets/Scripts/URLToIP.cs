@@ -1,17 +1,22 @@
-using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
-using UnityEngine.Networking;
 
+/// <summary>
+/// Resolves a URL to an IP address at runtime and configures UnityTransport.
+/// Also provides an async method to check server heartbeat status.
+/// </summary>
 public class URLToIP : MonoBehaviour
 {
     public string URL;
     [SerializeField] UnityTransport transport;
 
+    /// <summary>
+    /// Resolves the provided URL to an IP address and sets connection data on UnityTransport.
+    /// </summary>
     private void Start()
     {
         if (URL == "") { return; }
@@ -23,12 +28,25 @@ public class URLToIP : MonoBehaviour
         transport.SetConnectionData(ip.ToString(), 7777); 
     }
 
+    /// <summary>
+    /// Resolves a hostname or URL to its first available IPv4 address.
+    /// </summary>
+    /// <param name="url">The hostname or URL to resolve.</param>
+    /// <returns>The resolved IPAddress.</returns>
     public static IPAddress URLtoIP(string url)
     {
         IPAddress ip = System.Net.Dns.GetHostEntry(url).AddressList[0];
         return ip;
     }
 
+    /// <summary>
+    /// Attempts to connect to a TCP server at the specified IP and port,
+    /// and checks for an "ALIVE" response string to confirm server status.
+    /// </summary>
+    /// <param name="ipAddress">Target server IP address.</param>
+    /// <param name="port">Port to connect to (default is 9000).</param>
+    /// <param name="timeout">Timeout in milliseconds (default is 2000).</param>
+    /// <returns>True if the server responds with "ALIVE"; otherwise false.</returns>
     public static async Task<bool> IsUnityServerAlive(string ipAddress, int port = 9000, int timeout = 2000)
     {
         try

@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using System;
 
+/// <summary>
+/// Handles player-controlled tank movement, aiming, turret rotation,
+/// cannon elevation, syncing with server, and sniper mode.
+/// </summary>
 public class TankMovement : NetworkBehaviour
 {
     [SerializeField] GameObject hull;
@@ -29,16 +32,36 @@ public class TankMovement : NetworkBehaviour
     private List<Quaternion> turretRotations = new List<Quaternion>();
     private List<Quaternion> cannonRotations = new List<Quaternion>();
 
+    private NetworkVariable<bool> canMove = new NetworkVariable<bool>(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    
+    /// <summary>
+    /// Whether sniper mode is currently enabled.
+    /// </summary>
     public bool SniperMode => sniperMode;
+
+    /// <summary>
+    /// Gets the world transform of the sniper camera position.
+    /// </summary>
     public Transform GetSniperCameraTransform() => sniperCameraPos;
+
+    /// <summary>
+    /// Returns the current aim point in world space.
+    /// </summary>
     public Vector3 GetAimPoint() => aimPoint;
 
-    private NetworkVariable<bool> canMove = new NetworkVariable<bool>(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-    // REPLACEMENT for old SetCanMove method
+    /// <summary>
+    /// Returns whether the tank can currently move.
+    /// </summary>
     public bool CanMove() => canMove.Value;
+
+    /// <summary>
+    /// Sets whether the tank can move. Intended for internal server control.
+    /// </summary>
     public void SetCanMove(bool set) => canMove.Value = set; // kept to avoid logic break (DO NOT USE directly in gameplay)
 
+    /// <summary>
+    /// Updates this tank's components (used when switching tanks).
+    /// </summary>
     public void UpdateTank(TankVarients tank, GameObject hull, List<GameObject> turrets, List<GameObject> cannons, GameObject SniperCameraPos)
     {
         currentTank = tank;
@@ -48,11 +71,12 @@ public class TankMovement : NetworkBehaviour
         this.sniperCameraPos = SniperCameraPos.transform;
     }
 
+    /// <summary>
+    /// Assigns the player's camera and locates debug aim object if available.
+    /// </summary>
     public void SetPlayerCamera(Camera camera)
     {
         playerCamera = camera;
-
-        // try set debug aim
 
         var da = GameObject.FindGameObjectWithTag("DEBUGAIM");
         if (da != null) 
@@ -66,11 +90,17 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Immediately submits the given position and rotation to the server.
+    /// </summary>
     public void ForceUpdateServerPos(Vector3 pos, Quaternion rot)
     {
         SubmitPositionToServerServerRpc(pos, rot);
     }
 
+    /// <summary>
+    /// Main update loop for owner player: handles movement, aiming, syncing, etc.
+    /// </summary>
     void Update()
     {
         if (CanMove() == false) return;
@@ -93,6 +123,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Flips the tank upright if it's upside down and player presses the key.
+    /// </summary>
     private void RightSideUp()
     {
 
@@ -129,6 +162,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Server-side movement validation and correction for non-owners.
+    /// </summary>
     void LateUpdate()
     {
         if (IsServer && !IsOwner)
@@ -138,12 +174,18 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Reinitializes tank visuals and components at runtime if needed.
+    /// </summary>
     void FixTankRunTime()
     {
         GetComponent<Player>().ChangeTank(GetComponent<Player>().TankVarient);
         GetComponent<TankVisuals>().RefreshList();
     }
 
+    /// <summary>
+    /// Handles hull movement and rotation based on input.
+    /// </summary>
     void HandleHullMovement()
     {
         float moveInput = 0;
@@ -179,6 +221,9 @@ public class TankMovement : NetworkBehaviour
 
     }
 
+    /// <summary>
+    /// ServerRpc to receive position/rotation from client.
+    /// </summary>
     [ServerRpc (RequireOwnership=false)]
     public void SubmitPositionToServerServerRpc(Vector3 position, Quaternion rotation)
     {
@@ -186,6 +231,9 @@ public class TankMovement : NetworkBehaviour
         lastServerRotation = rotation;
     }
 
+    /// <summary>
+    /// Forces client position reset when server detects invalid movement.
+    /// </summary>
     [ClientRpc]
     void MovePlayerBackClientRpc(Vector3 pos, Quaternion rot)
     {
@@ -193,6 +241,9 @@ public class TankMovement : NetworkBehaviour
         transform.rotation = rot;
     }
 
+    /// <summary>
+    /// Validates movement on server and applies correction if threshold exceeded.
+    /// </summary>
     void ServerValidateClientMovement()
     {
         if (hull == null) return;
@@ -213,6 +264,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the aim point based on raycast from the player camera.
+    /// </summary>
     void UpdateAimPoint()
     {
         if (playerCamera == null && IsOwner) playerCamera = Camera.main;
@@ -236,6 +290,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Rotates all turrets to face the aim point.
+    /// </summary>
     void HandleTurretRotation()
     {
         if (turrets == null) return;
@@ -258,6 +315,9 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Elevates each cannon toward the aim point within angular limits.
+    /// </summary>
     void HandleCannonElevation()
     {
         if (cannons == null) return;
@@ -295,11 +355,13 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Sends turret and cannon rotations to server for syncing.
+    /// </summary>
     void SyncTurretAndCannonRotations()
     {
         if (!IsOwner) return;
 
-        // Debug.Log($"{OwnerClientId} sent update to all");
 
         Vector3[] turretEuler = new Vector3[turretRotations.Count];
         Vector3[] cannonEuler = new Vector3[cannonRotations.Count];
@@ -313,6 +375,11 @@ public class TankMovement : NetworkBehaviour
         SendRotationsToServerServerRpc(turretEuler, cannonEuler);
     }
 
+    /// <summary>
+    /// Sends current rotations to server for synchronization
+    /// </summary>
+    /// <param name="turretEuler">Turret rotation</param>
+    /// <param name="cannonEuler">Cannon rotation</param>
     [ServerRpc]
     void SendRotationsToServerServerRpc(Vector3[] turretEuler, Vector3[] cannonEuler)
     {
@@ -330,12 +397,15 @@ public class TankMovement : NetworkBehaviour
         SyncTurretAndCannonRotationsClientRpc(turretEuler, cannonEuler);
     }
 
+    /// <summary>
+    /// Recieves rotations from server for player synchronization
+    /// </summary>
+    /// <param name="syncedTurretEulerAngles">Turret rotation</param>
+    /// <param name="syncedCannonEulerAngles">Cannon rotation</param>
     [ClientRpc]
     void SyncTurretAndCannonRotationsClientRpc(Vector3[] syncedTurretEulerAngles, Vector3[] syncedCannonEulerAngles)
     {
         if (IsOwner) return;
-
-        // Debug.Log($"{NetworkManager.Singleton.LocalClientId} received update");
 
         for (int i = 0; i < turrets.Count && i < syncedTurretEulerAngles.Length; i++)
         {
@@ -349,42 +419,67 @@ public class TankMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Toggles sniper mode when the appropriate key is pressed.
+    /// </summary>
     void SniperCheck()
     {
         if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-SniperMode"))) sniperMode = !sniperMode;
     }
 
+    /// <summary>
+    /// Returns a reference to the selected cannon GameObject.
+    /// </summary>
     public GameObject GetCannon(int cannonIndex) => cannons[cannonIndex];
 
+    /// <summary>
+    /// Called when the object is spawned on the network.
+    /// </summary>
     public override void OnNetworkSpawn()
     {
         canMove.OnValueChanged += OnCanMoveChanged;
     }
 
+    /// <summary>
+    /// Called when the object is despawned from the network.
+    /// </summary>
     public override void OnNetworkDespawn()
     {
         canMove.OnValueChanged -= OnCanMoveChanged;
     }
 
+    /// <summary>
+    /// Helper function to log if a player can move or not
+    /// </summary>
+    /// <param name="previousValue">Player previously could move?</param>
+    /// <param name="newValue">Player currently can move?</param>
     private void OnCanMoveChanged(bool previousValue, bool newValue)
     {
         Debug.Log($"[Client {OwnerClientId}] CanMove changed: {previousValue} → {newValue}");
     }
 
-    // Called locally to request the server to change canMove
+    /// <summary>
+    /// Requests the server to change this tank's CanMove flag.
+    /// </summary>
     public void RequestCanMoveChange(bool newValue)
     {
         RequestCanMoveChangeServerRpc(newValue);
     }
 
-    // ServerRpc to accept client request
+    /// <summary>
+    /// Server accepts requests to change canMove flag
+    /// </summary>
+    /// <param name="newValue">Player can move?</param>
+    /// <param name="rpcParams">Netcode parametet values</param>
     [ServerRpc]
     private void RequestCanMoveChangeServerRpc(bool newValue, ServerRpcParams rpcParams = default)
     {
         SetCanMoveOnServer(newValue);
     }
 
-    // Server method to set canMove for this player and sync to all
+    /// <summary>
+    /// Called on server to update the CanMove flag for this tank.
+    /// </summary>
     public void SetCanMoveOnServer(bool newValue)
     {
         canMove.Value = newValue;

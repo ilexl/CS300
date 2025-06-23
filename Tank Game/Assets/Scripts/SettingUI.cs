@@ -1,10 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// UI component representing a single setting option with selectable values.
+/// Handles UI initialization, formatting, and cycling through options.
+/// </summary>
 public class SettingUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI title;
@@ -24,18 +27,23 @@ public class SettingUI : MonoBehaviour
         GetCurrentSelection();
         title.text = CleanAndSplitCamelCase(setting.GetName());
         UpdateText();
-        GetComponent<RawImage>().color = GetColour(); // alternating backgrounds
+
+        // Assign alternating background color
+        GetComponent<RawImage>().color = GetColour();
     }
 
+    /// <summary>
+    /// Determines the current selection index based on the saved setting value.
+    /// </summary>
     void GetCurrentSelection()
     {
         if(setting.GetCurrentValue() == "HIGHEST")
         {
-            // it will be the very last in the list (in theory)
+            // Use last option assuming it is the highest value
             // TODO: test if highest values ARE the last in their options lists...
             currentSelection = options.Count - 1;
             setting.UpdateCurrentValue(options[currentSelection]);
-            setting.SaveSetting(); // save setting to use known resolution of user
+            setting.SaveSetting();
             return;
         }
 
@@ -48,6 +56,9 @@ public class SettingUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Moves the selection to the previous option in the list, wrapping around if needed.
+    /// </summary>
     public void PreviousOption()
     {
         // decrement around list of options
@@ -60,6 +71,9 @@ public class SettingUI : MonoBehaviour
         UpdateText();
     }
 
+    /// <summary>
+    /// Moves the selection to the next option in the list, wrapping around if needed.
+    /// </summary>
     public void NextOption()
     {
         // increment around list of options
@@ -72,6 +86,9 @@ public class SettingUI : MonoBehaviour
         UpdateText();
     }
 
+    /// <summary>
+    /// Updates the UI text to reflect the currently selected option.
+    /// </summary>
     void UpdateText()
     {
         if(options.Count == 0)
@@ -83,16 +100,19 @@ public class SettingUI : MonoBehaviour
         option.text = options[currentSelection];
     }
 
+    /// <summary>
+    /// Formats the setting name by removing the prefix and splitting camel case words.
+    /// </summary>
     string CleanAndSplitCamelCase(string input)
     {
-        // Step 1: Remove everything before and including the first dash
+        // Remove prefix before dash
         int dashIndex = input.IndexOf('-');
         if (dashIndex != -1)
         {
             input = input.Substring(dashIndex + 1);
         }
 
-        // Step 2: If input has only one uppercase letter or all caps are adjacent, don't split
+        // Skip split if input is all caps or has only one capital letter
         int uppercaseCount = 0;
         int maxConsecutiveUppercase = 0;
         int currentConsecutive = 0;
@@ -112,23 +132,30 @@ public class SettingUI : MonoBehaviour
             }
         }
 
-        // If all caps are grouped or only 1 capital letter, return unchanged
         if (uppercaseCount <= 1 || maxConsecutiveUppercase > 1)
         {
             return input;
         }
 
-        // Step 3: Split on uppercase letters that are not the first character
+        // Insert spaces before capital letters
         return Regex.Replace(input, "(?<!^)([A-Z])", " $1");
     }
 
     const string COLORODD = "3D3D3D";
     const string COLOREVEN = "4D4D4D";
     static int colourCount = 0;
+
+    /// <summary>
+    /// Resets the alternating colour count used for background coloring.
+    /// </summary>
     public static void ResetColourCount()
     {
         colourCount = 0;
     }
+
+    /// <summary>
+    /// Returns the next alternating color for background display.
+    /// </summary>
     public static Color GetColour()
     {
         Color color;

@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Manages player team assignments, spawn logic, tank selection,
+/// and player death/respawn events in a multiplayer game.
+/// </summary>
 public class RespawnManager : NetworkBehaviour
 {
     public static RespawnManager Singleton { get; private set; }
@@ -11,16 +15,26 @@ public class RespawnManager : NetworkBehaviour
 
     private Dictionary<ulong, Team> playerTeams = new();
 
+    /// <summary>
+    /// Assigns the singleton reference on Awake.
+    /// </summary>
     void Awake()
     {
         Singleton = this;
     }
 
+    /// <summary>
+    /// Ensures singleton reference is valid after Start.
+    /// </summary>
     void Start()
     {
         Singleton = this;
     }
 
+    /// <summary>
+    /// Called by a client to select their team.
+    /// Server assigns the team, spawns the player, and notifies all clients.
+    /// </summary>
     [ServerRpc(RequireOwnership = false)]
     public void SelectTeamServerRpc(Team team, ServerRpcParams rpcParams = default)
     {
@@ -37,11 +51,13 @@ public class RespawnManager : NetworkBehaviour
         Vector3 spawnPos = GetRandomizedSpawnPosition(team);
         SendPlayerToSpawnClientRpc(clientId, spawnPos);
 
-        // Notify all clients that this player selected a team
         NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<PlayerTeam>().SetTeamSide(team); // set the team
         NotifyTeamSelectedClientRpc(clientId, team);
     }
 
+    /// <summary>
+    /// Called on clients to apply team change locally after server assignment.
+    /// </summary>
     [ClientRpc]
     private void NotifyTeamSelectedClientRpc(ulong clientId, Team team)
     {
@@ -51,6 +67,9 @@ public class RespawnManager : NetworkBehaviour
         NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<PlayerTeam>().SetTeamSide(team); // set the team
     }
 
+    /// <summary>
+    /// Returns a randomized position around the team’s spawn point.
+    /// </summary>
     private Vector3 GetRandomizedSpawnPosition(Team team)
     {
         Transform baseSpawn = team switch
@@ -71,6 +90,10 @@ public class RespawnManager : NetworkBehaviour
         return baseSpawn.position + offset;
     }
 
+    /// <summary>
+    /// Moves the local client’s player to a new spawn position.
+    /// Called by the server via ClientRpc.
+    /// </summary>
     [ClientRpc]
     private void SendPlayerToSpawnClientRpc(ulong targetClientId, Vector3 spawnPosition)
     {
@@ -84,7 +107,9 @@ public class RespawnManager : NetworkBehaviour
         }
     }
 
-
+    /// <summary>
+    /// Removes a player’s team assignment from the dictionary.
+    /// </summary>
     public void RemovePlayerTeam(ulong clientId)
     {
         if (playerTeams.Remove(clientId))
@@ -93,11 +118,19 @@ public class RespawnManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Public entry point for clients to request a tank change.
+    /// Forwards the request to the server.
+    /// </summary>
     public void RequestTankChange(string tankName)
     {
         RequestTankChangeServerRpc(tankName);
     }
 
+    /// <summary>
+    /// Handles a client’s tank change request on the server.
+    /// Applies the change and broadcasts it to all clients.
+    /// </summary>
     [ServerRpc(RequireOwnership = false)]
     private void RequestTankChangeServerRpc(string tankName, ServerRpcParams rpcParams = default)
     {
@@ -127,6 +160,9 @@ public class RespawnManager : NetworkBehaviour
         UpdateTankClientRpc(clientId, tankName);
     }
 
+    /// <summary>
+    /// Called on clients to apply tank change for the specified player.
+    /// </summary>
     [ClientRpc]
     private void UpdateTankClientRpc(ulong clientId, string tankName)
     {
@@ -135,7 +171,6 @@ public class RespawnManager : NetworkBehaviour
 
         if (NetworkManager.Singleton.LocalClientId == clientId)
         {
-            // Apply to local player (the requester)
             var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject()?.GetComponent<Player>();
             if (localPlayer != null)
             {
@@ -156,6 +191,10 @@ public class RespawnManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Reports a player death on the server and initiates respawn logic.
+    /// </summary>
+    /// <param name="clientId">Client ID of the dead player.</param>
     public void ReportPlayerDeath(ulong clientId)
     {
         Debug.Log("Server informing all respawn managers of players death");
@@ -181,6 +220,10 @@ public class RespawnManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Notifies all clients about a player's death so they can update UI and state.
+    /// </summary>
+    /// <param name="deadClientId">Client ID of the dead player.</param>
     [ClientRpc]
     private void InformPlayersOfDeathClientRpc(ulong deadClientId)
     {

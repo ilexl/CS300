@@ -4,13 +4,20 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// TCP server that listens for client connections and responds with a heartbeat message.
+/// Used to confirm the server is alive and responsive.
+/// </summary>
 public class ServerHeartbeat : MonoBehaviour
 {
-    private TcpListener listener;
-    private bool running;
 
-    public static int port = 7778;
+    public static int port = 7778; // Port number the server listens on.
+    private TcpListener listener; // TCP listener that accepts incoming connections.
+    private bool running; // Flag indicating whether the server should keep running.
 
+    /// <summary>
+    /// Starts the TCP listener and asynchronously handles incoming connections.
+    /// </summary>
     private async void Start()
     {
         listener = new TcpListener(IPAddress.Any, port);
@@ -23,7 +30,7 @@ public class ServerHeartbeat : MonoBehaviour
             try
             {
                 TcpClient client = await listener.AcceptTcpClientAsync();
-                _ = HandleClient(client); // fire-and-forget
+                _ = HandleClient(client); // Handle client asynchronously without awaiting
             }
             catch (SocketException ex)
             {
@@ -32,6 +39,11 @@ public class ServerHeartbeat : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles communication with a connected client by sending a heartbeat message.
+    /// </summary>
+    /// <param name="client">Connected TCP client.</param>
+    /// <returns>Task representing the asynchronous operation.</returns>
     private async Task HandleClient(TcpClient client)
     {
         using (client)
@@ -50,6 +62,9 @@ public class ServerHeartbeat : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Stops the TCP listener and ends the server when the application quits.
+    /// </summary>
     private void OnApplicationQuit()
     {
         running = false;

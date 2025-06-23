@@ -7,6 +7,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Central UI controller handling all heads-up display windows and elements for the player.
+/// Manages visibility of HUD, sniper mode, pause, respawn, settings, and match end UI.
+/// Controls health bar, score, flag status, repair UI, reload UI, and team selection buttons.
+/// Implements singleton pattern for global access.
+/// </summary>
 public class HUDUI : MonoBehaviour
 {
     public static HUDUI Singleton;
@@ -42,8 +48,14 @@ public class HUDUI : MonoBehaviour
     [SerializeField] private GameObject repairObject;
     [SerializeField] private Slider reloadSlider;
     [SerializeField] private TextMeshProUGUI flipText;
-        
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    public Button orangeButton;
+    public Button blueButton;
+
+    /// <summary>
+    /// Initializes UI singleton, shows settings window and tank selection at start.
+    /// Ensures cursor is visible for menu interaction.
+    /// </summary>
     void Start()
     {
         windowManager.ShowOnly(settingsWindow);
@@ -53,11 +65,17 @@ public class HUDUI : MonoBehaviour
         SetupJoinButtons();
     }
 
+    /// <summary>
+    /// Ensures Start logic is called on Awake, supporting editor or runtime calls.
+    /// </summary>
     private void Awake()
     {
         Start();
     }
 
+    /// <summary>
+    /// Handles pause input to toggle pause menu or close other UI windows.
+    /// </summary>
     private void Update()
     {
         if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-Pause/Back")))
@@ -67,18 +85,19 @@ public class HUDUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows or hides the cursor depending on game state.
+    /// </summary>
     public void SetCursorShown(bool shown)
     {
-        if (shown)
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        Cursor.lockState = shown ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
+    /// <summary>
+    /// Centralized logic for Escape key: closes settings or pause windows,
+    /// or opens pause menu if none active.
+    /// Prevents escape exit from respawn or tank selection windows.
+    /// </summary>
     private void EscLogic()
     {
         if (respawnWindow == null || settingsWindow == null || pauseWindow == null)
@@ -87,23 +106,18 @@ public class HUDUI : MonoBehaviour
             return;
         }
 
-        // check respawn
         if (respawnWindow.isActiveAndEnabled || tankSelectionWindow.isActiveAndEnabled)
         {
-            // do nothing as respawn cannot be exited out of with esc
+            // Cannot exit respawn or tank selection with escape
             return;
         }
 
-        // check settings
         if (settingsWindow.isActiveAndEnabled)
         {
-            // close settings and hide that window
-            // same as the back button
             settingsWindow.Hide();
             return;
         }
 
-        // check paused
         if (pauseWindow.isActiveAndEnabled)
         {
             pauseWindow.Hide();
@@ -111,11 +125,13 @@ public class HUDUI : MonoBehaviour
             return;
         }
 
-        // if no windows are active then show pause menu
         windowManager.ShowOnly(pauseWindow);
         SetCursorShown(true);
     }
 
+    /// <summary>
+    /// Switches UI to sniper mode window.
+    /// </summary>
     public void ShowSniperMode()
     {
         if (windowManager == null || sniperWindow == null)
@@ -126,6 +142,9 @@ public class HUDUI : MonoBehaviour
         windowManager.ShowWindow(sniperWindow);
     }
 
+    /// <summary>
+    /// Reverts UI back to normal HUD window from sniper mode.
+    /// </summary>
     public void HideSniperMode()
     {
         if (windowManager == null || hudWindow == null)
@@ -136,17 +155,24 @@ public class HUDUI : MonoBehaviour
         windowManager.ShowWindow(hudWindow);
     }
 
+    /// <summary>
+    /// Initiates network shutdown and loads main menu scene.
+    /// </summary>
     public void LeaveMatch()
     {
         StartCoroutine(ShutdownThenLoadScene("MainMenu"));
     }
 
+    /// <summary>
+    /// Coroutine that cleanly disconnects network, destroys NetworkManager,
+    /// and transitions to specified scene.
+    /// </summary>
     private System.Collections.IEnumerator ShutdownThenLoadScene(string sceneName)
     {
         // Shut down network
         NetworkManager.Singleton.Shutdown();
 
-        // Optional: Wait a short time to ensure disconnect messages, despawns, etc. propagate
+        // Wait a short time to ensure disconnect messages, despawns, etc. propagate
         yield return new WaitForSeconds(0.5f);
 
         // Destroy the NetworkManager so it doesn't persist across scenes
@@ -159,6 +185,10 @@ public class HUDUI : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
+    /// <summary>
+    /// Shows respawn UI window and ensures cursor is visible.
+    /// Only called on clients, never on server.
+    /// </summary>
     public void ShowRespawnUI()
     {
         if (NetworkManager.Singleton.IsServer) { return; }
@@ -166,6 +196,9 @@ public class HUDUI : MonoBehaviour
         SetCursorShown(true);
     }
 
+    /// <summary>
+    /// Updates health bar slider and text to reflect current health status.
+    /// </summary>
     public void UpdateHealth(float currentHealth, float maxHealth)
     {
         Slider s = healthBar.GetComponent<Slider>();
@@ -176,6 +209,9 @@ public class HUDUI : MonoBehaviour
         healthBarText.GetComponent<TextMeshProUGUI>().text = $"{healthPercentage}% Health";
     }
 
+    /// <summary>
+    /// Updates the health bar colors based on the player's team colors.
+    /// </summary>
     public void UpdateTeamColour(Team team)
     {
         // update health bar
@@ -193,13 +229,13 @@ public class HUDUI : MonoBehaviour
                 image.color = PlayerTeam.GetDarkerColour(team);
             }
         }
-
-        // update team tracker thingy
     }
 
-    public Button orangeButton;
-    public Button blueButton;
+    
 
+    /// <summary>
+    /// Updates colors of the battle status bar to reflect local and opposing team colors.
+    /// </summary>
     public void SelectTeam(Team team)
     {
         if (RespawnManager.Singleton != null && NetworkManager.Singleton.IsClient)
@@ -226,6 +262,9 @@ public class HUDUI : MonoBehaviour
         awayTeamBSBText.GetComponent<TextMeshProUGUI>().text = $"{awayScore}";
     }
 
+    /// <summary>
+    /// Updates colors of the battle status bar to reflect local and opposing team colors.
+    /// </summary>
     public void SetTeams(Team local, Team away)
     {
         var images = battleStatusBar.GetComponentsInChildren<Image>();
@@ -244,6 +283,10 @@ public class HUDUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Creates and initializes a UI element representing a capture flag on the HUD.
+    /// Disabled on server as UI is client-side.
+    /// </summary>
     public GameObject CreateFlagUI(string flagLetter)
     {
         if (NetworkManager.Singleton.IsServer) { return null; }
@@ -254,6 +297,9 @@ public class HUDUI : MonoBehaviour
         return flagUI;
     }
 
+    /// <summary>
+    /// Updates the UI flag progress and color fill to reflect capture progress and owning team.
+    /// </summary>
     public void UpdateFlagUIValues(GameObject flagUI, Team colour, float progress)
     {
         if(flagUI == null) { return; }
@@ -261,26 +307,37 @@ public class HUDUI : MonoBehaviour
         flagUI.transform.GetChild(1).GetComponent<Image>().color = PlayerTeam.GetNormalColour(colour);
     }
 
+    /// <summary>
+    /// Displays end of match UI window with the winning team announcement.
+    /// </summary>
     public void ShowGameOver(Team winner)
     {
         windowManager.ShowWindow(endOfMatchWindow);
         endOfMatchText.text = $"{winner} team has won!";
     }
 
+    /// <summary>
+    /// (Currently empty) Intended to update UI components related to tank modules.
+    /// </summary>
     public void UpdateComponentsUI(List<FunctionalTankModule> modules)
     {
-
+        // TODO: Implement component UI update logic
     }
 
+    /// <summary>
+    /// Updates the reload progress slider UI based on normalized reload time.
+    /// </summary>
     public void UpdateReloadTime(float timeZO)
     {
-        // time is zero to one - zero being needs to reload still - one being ready to fire
         if(reloadSlider != null)
         {
             reloadSlider.value = timeZO;
         }
     }
 
+    /// <summary>
+    /// Shows or hides the repair progress UI and updates its fill amount.
+    /// </summary>
     public void ShowRepairUI(float value)
     {
         if(value == 0f)
@@ -290,21 +347,29 @@ public class HUDUI : MonoBehaviour
         }
 
         repairObject.SetActive(true);
-        // show repair key circle int 0+ -> 1
         RepairHoldRadial.fillAmount = value;
     }
 
+    /// <summary>
+    /// Updates the textual repair timer UI.
+    /// </summary>
     public void ShowRepairTimer(float value)
     {
         repairTimeText.text = $"{value}s";
     }
 
+    /// <summary>
+    /// Shows the tank selection UI window and makes the cursor visible for interaction.
+    /// </summary>
     public void ShowTankSelectionUI()
     {
         windowManager.ShowWindow(tankSelectionWindow);
         SetCursorShown(true);
     }
 
+    /// <summary>
+    /// Shows or hides the flip tank prompt and updates the prompt text with the correct key binding.
+    /// </summary>
     public void FlipPromptActive(bool active)
     {
         flipText.text = $"Press {Settings.Singleton.KeyCodeFromSetting("Control-FlipTank")} to flip your tank...";

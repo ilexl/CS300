@@ -6,6 +6,9 @@ using UnityEditor;
 #endif
 #endregion
 
+/// <summary>
+/// Manages a collection of UI windows, providing functions to show, hide, or toggle them individually or collectively.
+/// </summary>
 public class WindowManager : MonoBehaviour
 {
     [SerializeField] private Window[] Windows;

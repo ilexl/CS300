@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Basic UI window controller for showing and hiding game interface elements.
+/// </summary>
 public class Window : MonoBehaviour
 {
     public bool ShowOnStart = false;
