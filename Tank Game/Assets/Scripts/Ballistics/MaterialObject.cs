@@ -2,14 +2,15 @@ using UnityEngine;
 
 namespace Ballistics
 {
+    /// <summary>
+    /// A monobehavior with an attached material component. Useful to inherit from.
+    /// </summary>
     public abstract class MaterialObject : MonoBehaviour
     {
         [SerializeField] 
         private MaterialKey materialType; // Backing field, directly set in unity editor
 
-        private Material _material;
-
-        public Material Material => _material;
+        public Material Material { get; private set; }
 
         public MaterialKey MaterialType
         {
@@ -17,7 +18,7 @@ namespace Ballistics
             set
             {
                 materialType = value;
-                _material = MaterialDatabase.GetMaterial(materialType);
+                Material = MaterialDatabase.GetMaterial(materialType);
             }
         }
     
@@ -25,13 +26,13 @@ namespace Ballistics
         private void OnValidate()
         {
             // Ensure your material database lookup is valid.
-            _material = MaterialDatabase.GetMaterial(materialType);
+            Material = MaterialDatabase.GetMaterial(materialType);
         }
 
         private void Awake()
         {
             // Ensure your material database lookup is valid.
-            _material = MaterialDatabase.GetMaterial(materialType);
+            Material = MaterialDatabase.GetMaterial(materialType);
         }
         
     }

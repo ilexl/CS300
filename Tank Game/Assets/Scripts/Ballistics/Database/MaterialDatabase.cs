@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Ballistics
 {
+    // This is essentially our main way of accessing materials, so clear naming here is important.
     public enum MaterialKey
     {
         MildSteel,
@@ -30,6 +31,7 @@ namespace Ballistics
         HumanFlesh
     
     }
+    // Unused, potenitally a factor affecting ballistics.
     public enum MaterialType
     {
         Metal,
@@ -41,7 +43,7 @@ namespace Ballistics
     public class Material
     {
         public string Name { get; }
-        public MaterialType Type { get; }  // Now an enum
+        public MaterialType Type { get; }
         public float Hardness { get; }  // Mohs scale
         public float Density { get; }  // kg/m³
         public float ImpactResistance { get; }  // J/cm²
@@ -54,7 +56,12 @@ namespace Ballistics
             Density = density;
             ImpactResistance = impactResistance;
         }
-
+        /// <summary>
+        /// Returns a coefficient that roughly calculates the toughness based on various things
+        /// </summary>
+        /// <param name="resistanceFactor"></param>
+        /// <param name="mul"></param>
+        /// <returns>A float intended to be multiplied by protection.</returns>
         public float GetMaterialToughnessCoefficient(float resistanceFactor, float mul)
         {
             return Math.Min((ImpactResistance / resistanceFactor) / Hardness, 1) * Hardness * mul;
@@ -63,6 +70,9 @@ namespace Ballistics
 
     public static class MaterialDatabase
     {
+        /// <summary>
+        /// Master material list. Accessed by enumerated key.
+        /// </summary>
         private static readonly Dictionary<MaterialKey, Material> Materials = new()
         {
             // STEELS
@@ -99,7 +109,11 @@ namespace Ballistics
             
             
         };
-
+        /// <summary>
+        /// Gets a material from the database matching the key.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns>The material matching the key, or the default material if invalid.</returns>
         public static Material GetMaterial(MaterialKey key)
         {
             return Materials.GetValueOrDefault(key);

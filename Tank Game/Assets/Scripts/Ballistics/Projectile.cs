@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Ballistics.Database;
 using UnityEngine;
@@ -7,6 +8,109 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace Ballistics
 {
+    public class ProjectilePool
+    {
+        private static ProjectilePool _instance;
+        public static ProjectilePool I => _instance ??= new ProjectilePool();
+
+        private GameObject prefab;
+        private Queue<GameObject> pool = new Queue<GameObject>();
+        private int maxSize = 100000;
+
+        private ProjectilePool()
+        {
+            prefab = Resources.Load<GameObject>("Weaponry/Projectile");
+            if (prefab == null)
+            {
+                throw new Exception("ProjectilePrefab not found in Resources!");
+            }
+        }
+
+        public GameObject Get()
+        {
+            if (pool.Count > 0)
+            {
+                var obj = pool.Dequeue();
+                obj.SetActive(true);
+                
+                return obj;
+            }
+            return GameObject.Instantiate(prefab);
+        }
+
+        public void ReturnToPool(GameObject obj)
+        {
+            if (pool.Count < maxSize)
+            {
+                obj.SetActive(false);
+                pool.Enqueue(obj);
+            }
+            else
+            {
+                GameObject.Destroy(obj);
+            }
+            
+        }
+    }
+    
+    public class ProjectileTrailDisplayPool
+    {
+        private static ProjectileTrailDisplayPool _instance;
+        public static ProjectileTrailDisplayPool I => _instance ??= new ProjectileTrailDisplayPool();
+
+        private GameObject prefab;
+        private Queue<GameObject> pool = new Queue<GameObject>();
+
+        private ProjectileTrailDisplayPool()
+        {
+            prefab = Resources.Load<GameObject>("Weaponry/ProjectileTrail");
+            if (prefab == null)
+                throw new Exception("ProjectileTrail prefab not found in Resources!");
+        }
+
+        public GameObject Get()
+        {
+            if (pool.Count > 0)
+            {
+                var obj = pool.Dequeue();
+                obj.SetActive(true);
+                return obj;
+            }
+            return GameObject.Instantiate(prefab);
+        }
+
+        public void ReturnToPool(GameObject obj)
+        {
+            obj.SetActive(false);
+            pool.Enqueue(obj);
+        }
+    }
+
+    public static class CoroutineHelper
+    {
+        private class CoroutineRunner : MonoBehaviour { }
+
+        private static CoroutineRunner _runner;
+        private static bool _exists;
+        
+        private static void EnsureRunnerExists()
+        {
+            if (!_exists)
+            {
+                _exists = true;
+                var go = new GameObject("CoroutineHelperRunner");
+                GameObject.DontDestroyOnLoad(go); // Optional: keep alive across scenes
+                _runner = go.AddComponent<CoroutineRunner>();
+            }
+        }
+
+        public static Coroutine Run(IEnumerator coroutine)
+        {
+            EnsureRunnerExists();
+            return _runner.StartCoroutine(coroutine);
+        }
+    }
+    
     public class Projectile : MaterialObject
     {
         private float _diameter;
@@ -15,6 +119,7 @@ namespace Ballistics
         private float _hpPool;
     
         private Vector3 _previousPos;
+        [SerializeField]
         private Rigidbody rb;
         private System.Random rng;
 
@@ -38,36 +143,72 @@ namespace Ballistics
         
         
         
-        
+        /// <summary>
+        /// Creates a projectile at a position and a direction with a seed using an existing projectile definition.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="direction"></param>
+        /// <param name="seed"></param>
+        /// <param name="projectileDefinition"></param>
+        /// <returns></returns>
         public static GameObject Create(Vector3 pos, Vector3 direction, long seed, ProjectileDefinition projectileDefinition)
         {
             var projectile = Create(pos, direction * projectileDefinition.VelocityMs, seed, projectileDefinition.DiameterMm / 1000f, projectileDefinition.LengthMm / 1000f, projectileDefinition.MaterialKey, ProjectileType.Bullet);
             return projectile;
         }
+        /// <summary>
+        /// Creates a projectile at a position with a velocity (direction and magnitude) with a seed, diameter, length, material key, and type
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="velocity"></param>
+        /// <param name="seed"></param>
+        /// <param name="diameterM"></param>
+        /// <param name="lengthM"></param>
+        /// <param name="mKey"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static GameObject Create(Vector3 pos, Vector3 velocity, long seed, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
             
             var projectile = Create(pos, velocity, new Random((int)seed), diameterM, lengthM, mKey, type);
             return projectile;
         }
-        
+
+
+        public static ProjectilePool projectilePool;
+        /// <summary>
+        /// Creates a projectile at a position with a velocity (direction and magnitude) with an rng object, diameter, length, material key, and type
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="velocity"></param>
+        /// <param name="rng"></param>
+        /// <param name="diameterM"></param>
+        /// <param name="lengthM"></param>
+        /// <param name="mKey"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static GameObject Create(Vector3 pos, Vector3 velocity, Random rng, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
-            
-            if (Projectiles.Count >= 100000)
+            if (Projectiles.Count >= 100000) // Sane limit?
             {
                 throw new Exception("Too many projectiles!");
             }
-        
-            var projectile = new GameObject("Projectile");
-        
-            var projectileInstance = projectile.AddComponent<Projectile>();
-            projectileInstance.rb = projectile.AddComponent<Rigidbody>();
-        
+
+            // Get projectile GameObject from the pool
+            var projectile = ProjectilePool.I.Get();
+
+            // Get the Projectile component (already attached in prefab)
+            var projectileInstance = projectile.GetComponent<Projectile>();
+
+            // Rigidbody should be already attached in prefab, so no need to add
+            // Just reset or update properties:
             projectileInstance.SetProjectileProperties(pos, velocity, diameterM, lengthM, mKey, type);
             projectileInstance.rng = rng;
+
             return projectile;
         }
+
         
 
         
@@ -80,6 +221,7 @@ namespace Ballistics
         }
         public void SetProjectileProperties(Vector3 pos, Vector3 velocity, float diameterM, float lengthM, MaterialKey mKey, ProjectileType type)
         {
+            _framesAlive = 0;
             _type = type;
             transform.position = pos;
             _previousPos = pos;
@@ -328,8 +470,9 @@ namespace Ballistics
 
         public void Destroy()
         {
-            Destroy(gameObject);
             Projectiles.Remove(this);
+            ProjectilePool.I.ReturnToPool(gameObject);
+            Debug.Log("Returning projectile to pool");
         }
     
     
@@ -344,15 +487,27 @@ namespace Ballistics
     
         private void DrawMesh(Vector3 posA, Vector3 posB)
         {
+            
+            
             Vector3 shapeCenter = (posA + posB) / 2;
-            var mesh = ProjectileDamageMeshGenerator.Generate(posA,posB, _diameter / 2, 10);
-            GameObject negative = new GameObject("CylinderDisplay");
-            negative.AddComponent<MeshFilter>().mesh = mesh;
-            negative.AddComponent<MeshRenderer>();
-            //negative.transform.position = shapeCenter;
-        
-            // Destroy it after n seconds
-            Destroy(negative, 0.1f);
+            GameObject line = ProjectileTrailDisplayPool.I.Get();
+
+            var lineRenderer = line.GetComponent<LineRenderer>();
+            
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPosition(0, posA);
+            lineRenderer.SetPosition(1, posB);
+
+            lineRenderer.startWidth = _diameter;
+            lineRenderer.endWidth = _diameter;
+            
+            CoroutineHelper.Run(ReturnAfterDelay(line, 0.1f));
+
+            IEnumerator ReturnAfterDelay(GameObject obj, float delay)
+            {
+                yield return new WaitForSeconds(delay);
+                ProjectileTrailDisplayPool.I.ReturnToPool(obj);
+            }
         }
     
     
