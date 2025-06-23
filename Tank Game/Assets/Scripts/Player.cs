@@ -8,6 +8,10 @@ using Unity.Collections;
 using UnityEditor;
 #endif
 
+/// <summary>
+/// Networked player class handling tank spawning, changing tanks, and player ownership.
+/// Manages tank visuals, movement, and synchronizes tank variant selection across clients.
+/// </summary>
 public class Player : NetworkBehaviour
 {
     [SerializeField] TankMovement tankMovement;
@@ -16,8 +20,13 @@ public class Player : NetworkBehaviour
     [SerializeField] TankVarients currentTank;
     [SerializeField] GameObject holderPrefab;
     public bool LocalPlayer = false;
+
+    // NetworkVariable to synchronize the tank variant's name between server and clients
     private NetworkVariable<FixedString64Bytes> currentTankName = new NetworkVariable<FixedString64Bytes>(string.Empty, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+    /// <summary>
+    /// Property wrapper for currentTank that triggers ChangeTank on set.
+    /// </summary>
     public TankVarients TankVarient
     {
         get { return currentTank; }
@@ -28,30 +37,44 @@ public class Player : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when the network object is spawned.
+    /// Synchronizes tank variant and initializes local player setup.
+    /// </summary>
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
+        // If a tank name has been synced previously, restore that tank variant
         if (!string.IsNullOrEmpty(currentTankName.Value.ToString()))
         {
             ChangeTank(currentTankName.Value.ToString());
         }
         else
         {
+            // No tank selected, set to null
             ChangeTank((TankVarients)null);
         }
 
         if (IsOwner)
         {
+            // Reset local player position and force server position update on spawn
             GetComponent<TankMovement>().ForceUpdateServerPos(new Vector3(0, 0, 0), Quaternion.identity);
             transform.position = new Vector3(0, 0, 0);
         }
+
+        // Enable gravity for the rigidbody (tank physics)
         GetComponent<Rigidbody>().useGravity = true;
     }
 
+    /// <summary>
+    /// Editor-only validation method, called on changes in inspector.
+    /// Cleans up child objects and reapplies current tank to avoid duplication.
+    /// </summary>
     public void OnValidate()
     {
-    #if UNITY_EDITOR
+        #if UNITY_EDITOR
+        // Only run if not playing or building
         if (EditorApplication.isPlaying is false)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -59,11 +82,12 @@ public class Player : NetworkBehaviour
             if (BuildPipeline.isBuildingPlayer) return; // Prevents issues during builds
         }
 
-        // Schedule object destruction to avoid Unity serialization issues
+        // Use delayed call to safely destroy children after inspector updates
         UnityEditor.EditorApplication.delayCall += () =>
         {
-            if (this == null) return; // Prevent null reference errors if the object was deleted
+            if (this == null) return; // Object might be destroyed
 
+            // Destroy all child gameobjects twice to ensure cleanup
             foreach (Transform child in transform)
             {
                 DestroyImmediate(child.gameObject, true);
@@ -71,8 +95,9 @@ public class Player : NetworkBehaviour
             foreach (Transform child in transform)
             {
                 DestroyImmediate(child.gameObject, true);
-            } 
+            }
 
+            // Re-apply current tank visuals
             if (currentTank != null)
             {
                 ChangeTank(currentTank);
@@ -81,45 +106,73 @@ public class Player : NetworkBehaviour
         #endif
     }
 
+    /// <summary>
+    /// Initialization on game start.
+    /// Disables gravity initially and assigns camera to local player tank.
+    /// </summary>
     private void Start()
     {
+        // Disable gravity until tank is set up
         GetComponent<Rigidbody>().useGravity = false;
+
+        // Detect if this player instance is the local owner
         LocalPlayer = GetComponent<NetworkObject>().IsOwner;
+
         if(LocalPlayer)
         {
+            // Assign main camera to follow this player’s tank
             Camera.main.GetComponent<CameraControl>().target = transform;
         }
         if (LocalPlayer) 
-        { 
+        {
+            // Reset position and force server position update for local player
             GetComponent<TankMovement>().ForceUpdateServerPos(new Vector3(0, 0, 0), Quaternion.identity);
             transform.position = new Vector3(0, 0, 0);
         }
     }
+
+    /// <summary>
+    /// Changes tank variant by tank name string.
+    /// Updates network variable and calls variant change method.
+    /// </summary>
     public void ChangeTank(string tankName)
     {
         if (IsOwner)
         {
+            // Sync the new tank name with network variable
             currentTankName.Value = tankName ?? string.Empty;
         }
         
         if (tankName == null) // return null tank if string doesnt exist
         {
+            // Null input resets the tank variant to null
             ChangeTank((TankVarients)null);
         }
 
+        // Attempt to find TankVarients object by name
         TankVarients tv = TankVarients.GetFromString(tankName);
         
         if (tv != null) 
         {
+            // Valid tank variant found, apply it
             ChangeTank(tv);
             return;
         }
 
-        ChangeTank((TankVarients)null); // change tank to null if not found
+        // Tank name invalid, set tank to null
+        ChangeTank((TankVarients)null);
     }
+
+    /// <summary>
+    /// Changes tank variant to the specified TankVarients object.
+    /// Destroys previous tank models, instantiates new hull, turrets, cannons,
+    /// updates movement and visuals, and handles colliders and physics.
+    /// </summary>
     public void ChangeTank(TankVarients tank)
     {
         currentTank = tank;
+
+        // Destroy all children (previous tank models)
         foreach (Transform child in transform)
         {
             Destroy(child.gameObject);
@@ -127,23 +180,18 @@ public class Player : NetworkBehaviour
 
         if (IsOwner)
         {
-            if(tank == null)
-            {
-                currentTankName.Value = string.Empty;
-            }
-            else
-            {
-                currentTankName.Value = tank.tankName;
-            }
+            // Update network variable with new tank name or clear if null
+            currentTankName.Value = tank == null ? string.Empty : tank.tankName;
         }
 
-        // disable the colliders
+        // Disable collider and gravity while not a tank
         GetComponent<BoxCollider>().enabled = false;
-        GetComponent<Rigidbody>().useGravity = false; // disable gravity when not a tank
+        GetComponent<Rigidbody>().useGravity = false;
 
 
         if (tank == null)
         {
+            // If no tank assigned, show respawn UI for local player or client (not server
             if (IsOwner) { return; }
             if (LocalPlayer == false) { return; }  
             if (HUDUI.Singleton != null)
@@ -155,21 +203,26 @@ public class Player : NetworkBehaviour
         }
 
         Debug.Log($"Tank changing to {tank.name}");
+
+        // Ensure tankMovement script is assigned
         if(tankMovement == null)
         {
             Debug.LogError("Missing TankMovement (required script for player)");
             Debug.LogWarning($"Failed to change tank to {tank.name}");
             return;
         }
-        
 
-        // hull
+
+        // Validate hull model and instantiate it
         if (tank.hullModel == null)
         {
             Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
             return;
         }
+
         GameObject hull = Instantiate(tank.hullModel, this.transform);
+
+        // Validate hull position and set it
         if (tank.hullPosition == null)
         {
             Debug.LogError($"{tank.tankName} [hull position] == null... STOPING EXECUTION");
@@ -177,9 +230,11 @@ public class Player : NetworkBehaviour
         }
         hull.transform.localPosition = tank.hullPosition;
         hull.transform.localRotation = Quaternion.Euler(tank.hullRotation);
+
+        // Update collider size to match hull dimensions
         GetComponent<BoxCollider>().size = new Vector3(tank.hullWidth, tank.hullHeight, tank.hullLength);
 
-        // turrets
+        // Instantiate turrets, parenting them under hull, with error checking for arrays
         List<GameObject> turrets = new List<GameObject>();
         for (int i = 0; i < tank.turretModels.Length; i++) 
         {
@@ -197,7 +252,7 @@ public class Player : NetworkBehaviour
                 Debug.LogError($"{tank.tankName} [hull model] == null... STOPING EXECUTION");
                 return;
             }
-            GameObject tm = tank.turretModels[i]; // no check as for loop has max defined
+            GameObject tm = tank.turretModels[i];
             if(tm == null)
             {
                 Debug.LogError($"{tank.tankName} [turret model] @ index {i} == null... STOPING EXECUTION");
@@ -224,7 +279,7 @@ public class Player : NetworkBehaviour
             turrets.Add(holder);
         }
 
-        // cannons
+        // Instantiate cannons attached to turrets with error handling for arrays
         List<GameObject> cannons = new List<GameObject>();
         for (int i = 0; i < tank.cannonModels.Length; i++)
         {
@@ -247,7 +302,7 @@ public class Player : NetworkBehaviour
                 holder.transform.localPosition = Vector3.zero;
             }
             #endregion
-            GameObject cm = tank.cannonModels[i]; // no check as for loop has max defined
+            GameObject cm = tank.cannonModels[i];
             if (cm == null)
             {
                 Debug.LogError($"{tank.tankName} [cannon model] @ index {i} == null... STOPING EXECUTION");
@@ -273,15 +328,15 @@ public class Player : NetworkBehaviour
             cannons.Add(holder);
         }
 
-        // update overall scale
+        // Set overall hull scale based on tank variant
         hull.transform.localScale = tank.modelScale;
 
-        // create empty gameobject for camera pos in snipermode
+        // Create a holder gameobject to mark sniper camera position on the hull
         GameObject sniperPos = Instantiate(holderPrefab, hull.transform);
         sniperPos.transform.localPosition = tank.cameraPosSniper;
         sniperPos.name = "SNIPERMODE CAMERA POSITION";
 
-        // update tank movement script
+        // Update tank movement with newly instantiated hull, turrets, cannons, sniperPos
         if (tankMovement == null || tankVisuals == null)
         {
             Debug.LogWarning("Player missing movement or visual scripts. " +
@@ -290,7 +345,9 @@ public class Player : NetworkBehaviour
         else
         {
             tankMovement.UpdateTank(tank, gameObject, turrets, cannons, sniperPos);
-            if(NetworkManager.Singleton != null) {
+
+            // Assign camera for the local player only
+            if (NetworkManager.Singleton != null) {
                 if (NetworkManager.Singleton.LocalClient.PlayerObject != null)
                 {
                     if (NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Player>() == this)
@@ -304,17 +361,18 @@ public class Player : NetworkBehaviour
             Debug.Log("TankMovement Script Updated!");
         }
 
+        // Setup tank combat if component exists
         if (GetComponent<TankCombat>() != null)
         {
             GetComponent<TankCombat>().Setup();
         }
 
-        // enable the colliders
-        GetComponent<BoxCollider>().enabled = true; // enable collider when actually a tank
-        GetComponent<Rigidbody>().useGravity = true; // enable gravity when actually a tank
+        // Enable collider and physics gravity now that tank is ready
+        GetComponent<BoxCollider>().enabled = true;
+        GetComponent<Rigidbody>().useGravity = true;
 
-        // add minimap icon
-        if(GetComponent<PlayerTeam>() != null)
+        // Add minimap icon for this player's team if PlayerTeam component exists
+        if (GetComponent<PlayerTeam>() != null)
         {
             GetComponent<PlayerTeam>().AddMinimapIcon();
         }
@@ -324,7 +382,9 @@ public class Player : NetworkBehaviour
 }
 
 #if UNITY_EDITOR
-
+/// <summary>
+/// // Editor button for manually refreshing tank setup in inspector
+/// </summary>
 [CustomEditor(typeof(Player))]
 public class EDITOR_Player : Editor
 {

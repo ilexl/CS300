@@ -5,6 +5,10 @@ using System;
 using TMPro;
 using UnityEngine.UI;
 
+/// <summary>
+/// Handles capture-the-flag zone logic for a single flag.
+/// Supports multiplayer authority, visual syncing, team ownership, and UI updates.
+/// </summary>
 public class CaptureFlag : NetworkBehaviour
 {
     public string FlagLetter;
@@ -26,17 +30,26 @@ public class CaptureFlag : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI minimapLetter;
     [SerializeField] private RawImage minimapCircle;
 
-
     private float targetLerp = 0f; // NEW: used to smooth flag movement
     public GameObject flagUI;
 
+    /// <summary>
+    /// Shortcut for accessing the flag’s current owning team.
+    /// </summary>
+    public Team currentTeam => owningTeam.Value;
+
+    /// <summary>
+    /// Waits for the network to be available before proceeding with server-specific logic.
+    /// Ensures the flag is spawned and initialized on the server.
+    /// </summary>
     private void Start()
     {
         StartCoroutine(WaitForNetwork());
     }
 
-    public Team currentTeam => owningTeam.Value;
-
+    /// <summary>
+    /// Waits for the NetworkManager, then spawns and initializes the flag object if on server.
+    /// </summary>
     private System.Collections.IEnumerator WaitForNetwork()
     {
         while (NetworkManager.Singleton == null)
@@ -57,6 +70,9 @@ public class CaptureFlag : NetworkBehaviour
         
     }
 
+    /// <summary>
+    /// Client-side initialization: sets up HUD UI and registers value change listeners.
+    /// </summary>
     public override void OnNetworkSpawn()
     {
         if (IsClient)
@@ -66,6 +82,9 @@ public class CaptureFlag : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the HUD UI and minimap to reflect flag capture progress and controlling team.
+    /// </summary>
     private void UpdateUIVisual(float previousValue, float newValue)
     {
         if (flagUI == null || HUDUI.Singleton == null)
@@ -76,18 +95,14 @@ public class CaptureFlag : NetworkBehaviour
 
         if (capturingTeam != Team.None && newValue > previousValue)
         {
-            // Capturing in progress (flag moving down)
-            displayTeam = capturingTeam;
+            displayTeam = capturingTeam; // Currently being captured
         }
         else
         {
-            // Reverting back up (flag moving up)
-            displayTeam = owningTeam.Value;
+            displayTeam = owningTeam.Value;  // Reverting or neutral
         }
 
         HUDUI.Singleton.UpdateFlagUIValues(flagUI, displayTeam, progress);
-
-        // update Minimap stuff here
 
         if(minimapLetter == null || minimapCircle == null) { return; }
         minimapLetter.text = FlagLetter;
@@ -95,6 +110,9 @@ public class CaptureFlag : NetworkBehaviour
         minimapCircle.color = PlayerTeam.GetNormalColour(displayTeam);
     }
 
+    /// <summary>
+    /// Resets the flag state to neutral, resetting visuals and ownership.
+    /// </summary>
     public void ResetFlag()
     {
         owningTeam.Value = Team.None;
@@ -105,6 +123,9 @@ public class CaptureFlag : NetworkBehaviour
         UpdateFlagVisual(Team.None);
     }
 
+    /// <summary>
+    /// Handles interpolation (client-side) and flag ownership/capture logic (server-side).
+    /// </summary>
     private void Update()
     {
         if (IsClient)
@@ -118,6 +139,7 @@ public class CaptureFlag : NetworkBehaviour
 
             if (teamInZone != Team.None && teamInZone != owningTeam.Value)
             {
+                // Start or continue capturing the flag
                 capturingTeam = teamInZone;
                 captureProgress += Time.deltaTime;
                 targetLerp = Mathf.Clamp01(captureProgress / captureDuration);
@@ -131,16 +153,19 @@ public class CaptureFlag : NetworkBehaviour
             }
             else
             {
-                // contested or nobody in zone
+                // Contested or empty — revert progress
                 captureProgress = Mathf.MoveTowards(captureProgress, 0f, Time.deltaTime);
                 targetLerp = Mathf.Clamp01(captureProgress / captureDuration);
             }
 
-            // Smoothly move flagLerp.Value toward targetLerp over time
+            // Smoothly animate flag progress value (for visual sync)
             flagLerp.Value = Mathf.MoveTowards(flagLerp.Value, targetLerp, Time.deltaTime / captureDuration);
         }
     }
 
+    /// <summary>
+    /// Smoothly adjusts the flag model's height based on lerp progress.
+    /// </summary>
     private void InterpolateFlagPosition(float lerp)
     {
         float y = Mathf.Lerp(flagUpPos.y, flagDownPos.y, lerp);
@@ -149,14 +174,20 @@ public class CaptureFlag : NetworkBehaviour
         flagObj.transform.localPosition = pos;
     }
 
+    /// <summary>
+    /// Called on team ownership change — updates flag color (clients only).
+    /// </summary>
     private void OnTeamChanged(Team previous, Team current)
     {
         UpdateFlagVisual(current);
     }
 
+    /// <summary>
+    /// Updates the flag mesh material based on team ownership.
+    /// </summary>
     private void UpdateFlagVisual(Team team)
     {
-        if (IsServer) return; // Prevent server from updating materials
+        if (IsServer) return; // Server doesn't handle visuals
 
         UnityEngine.Material mat = whiteMat;
         if (team == Team.Orange) mat = teamOrange;
@@ -166,6 +197,9 @@ public class CaptureFlag : NetworkBehaviour
         if (mr != null) { mr.material = mat; }
     }
 
+    /// <summary>
+    /// Returns the single team present in the zone, or None if contested or empty.
+    /// </summary>
     private Team GetSingleTeamInZone()
     {
         bool hasOrange = false;
@@ -184,6 +218,10 @@ public class CaptureFlag : NetworkBehaviour
         return Team.None;
     }
 
+    /// <summary>
+    /// Called when a player enters the flag zone.
+    /// Adds them to the active capture set if on the server.
+    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (!IsServer) return;
@@ -196,6 +234,10 @@ public class CaptureFlag : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when a player exits the flag zone.
+    /// Removes them from the active capture set if on the server.
+    /// </summary>
     private void OnTriggerExit(Collider other)
     {
         if (!IsServer) return;

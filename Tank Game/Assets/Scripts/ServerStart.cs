@@ -1,9 +1,15 @@
 using UnityEngine;
 using Unity.Netcode;
 
+/// <summary>
+/// Responsible for starting the server using Unity Netcode's NetworkManager.
+/// Waits for the NetworkManager to initialize before starting the server.
+/// </summary>
 public class StartServer : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    /// <summary>
+    /// Called once on component creation; begins server startup coroutine if no server exists.
+    /// </summary>
     void Start()
     {
         if(NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
@@ -16,6 +22,9 @@ public class StartServer : MonoBehaviour
         StartCoroutine(WaitForNetworkManager());
     }
 
+    /// <summary>
+    /// Coroutine that waits for the NetworkManager singleton to be ready, then starts the server.
+    /// </summary>
     System.Collections.IEnumerator WaitForNetworkManager()
     {
         while (NetworkManager.Singleton == null)

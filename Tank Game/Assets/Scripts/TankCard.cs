@@ -2,16 +2,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
-using System;
-using UnityEngine.SceneManagement;
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+/// <summary>
+/// Represents a draggable and selectable UI tank card used for loadouts or selection screens.
+/// Supports drag-and-drop swapping, preference saving, and visual updates.
+/// </summary>
 [System.Serializable]
 public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
@@ -24,6 +23,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private GameObject dragVisualInstance;
     private RectTransform dragVisualRect;
 
+    /// <summary>
+    /// Called when drag starts. Instantiates a visual copy of the card for dragging.
+    /// </summary>
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (holder) return;
@@ -35,23 +37,29 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         dragVisualInstance.GetComponent<RawImage>().raycastTarget = false;
         dragVisualInstance.GetComponent<TankCard>().enabled = false;
 
-        // Set anchors and pivot to center for free movement
+        // Set anchors and pivot for correct screen positioning
         dragVisualRect = dragVisualInstance.GetComponent<RectTransform>();
         dragVisualRect.anchorMin = new Vector2(0.5f, 0.5f);
         dragVisualRect.anchorMax = new Vector2(0.5f, 0.5f);
         dragVisualRect.pivot = new Vector2(0.5f, 0.5f);
-        dragVisualRect.SetParent(transform.root, true); // ensure it's not under layout
+        dragVisualRect.SetParent(transform.root, true); // not under layout
 
         UpdateDragVisualPosition(eventData);
         CameraMainMenu.mouseBusy = true;
     }
 
+    /// <summary>
+    /// Updates the visual drag instance while dragging.
+    /// </summary>
     public void OnDrag(PointerEventData eventData)
     {
         if (holder || dragVisualInstance == null) return;
         UpdateDragVisualPosition(eventData);
     }
 
+    /// <summary>
+    /// Called when drag ends. Handles swapping with another card if valid.
+    /// </summary>
     public void OnEndDrag(PointerEventData eventData)
     {
         if (holder) return;
@@ -62,6 +70,7 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             dropTarget = eventData.pointerEnter.GetComponentInParent<TankCard>();
         }
 
+        // Only allow swapping into a valid target holder
         if (dropTarget != null && dropTarget.holder && dropTarget.canChange)
         {
             dropTarget.SetCard(tankVarient);
@@ -75,6 +84,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         CameraMainMenu.mouseBusy = false;
     }
 
+    /// <summary>
+    /// Moves the drag visual to match the pointer position.
+    /// </summary>
     private void UpdateDragVisualPosition(PointerEventData eventData)
     {
         Vector2 pos;
@@ -88,8 +100,14 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         dragVisualRect.anchoredPosition = pos;
     }
 
+    /// <summary>
+    /// Called in editor when values change; refreshes the card.
+    /// </summary>
     public void OnValidate() { Start(); }
 
+    /// <summary>
+    /// Initializes the card display based on whether a tank is assigned.
+    /// </summary>
     void Start()
     {
         if(holder == false && canChange)
@@ -105,6 +123,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
+    /// <summary>
+    /// Clears the card and deletes saved preferences.
+    /// </summary>
     void ResetCard()
     {
         tankVarient = null;
@@ -114,6 +135,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         SetPrefs();
     }
 
+    /// <summary>
+    /// Clears the card without modifying PlayerPrefs.
+    /// </summary>
     void ResetCardNoPref()
     {
         tankVarient = null;
@@ -122,6 +146,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         tankRank.text = "";
     }
 
+    /// <summary>
+    /// Assigns a new tank variant to this card and updates UI + preferences.
+    /// </summary>
     public void SetCard(TankVarients tank)
     {
         tankVarient = tank;
@@ -138,6 +165,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
+    /// <summary>
+    /// Handles left/right click logic. Left selects, right clears.
+    /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
         if (holder && eventData.button == PointerEventData.InputButton.Right)
@@ -150,20 +180,24 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
-    string GetPrefString()
-    {
-        string prefString = $"TankCard-{name}";
-        return prefString;
-    }
+    /// <summary>
+    /// Constructs a unique PlayerPrefs key for this card.
+    /// </summary>
+    string GetPrefString() { return $"TankCard-{name}"; }
 
+    /// <summary>
+    /// Loads saved preferences and applies them without re-saving.
+    /// </summary>
     public void LoadPrefs()
     {
         string tankName = PlayerPrefs.GetString(GetPrefString(), "");
         TankVarients t = TankVarients.GetFromString(tankName);
-        SetCardNoPref(t); // dont want to cause an infinite loop by saving again!!!
-        //Resources.UnloadAsset(t);
+        SetCardNoPref(t); // Avoid saving immediately after loading
     }
 
+    /// <summary>
+    /// Assigns a tank to the card without writing to preferences.
+    /// </summary>
     void SetCardNoPref(TankVarients tank)
     {
         tankVarient = tank;
@@ -179,6 +213,9 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
+    /// <summary>
+    /// Saves the current tank variant to PlayerPrefs.
+    /// </summary>
     void SetPrefs()
     {
         if (tankVarient == null) { PlayerPrefs.DeleteKey(GetPrefString()); }
@@ -191,10 +228,12 @@ public class TankCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 }
 
 #if UNITY_EDITOR
+/// <summary>
+/// Custom inspector for TankCard that exposes setup and debug tools in editor.
+/// </summary>
 [CustomEditor(typeof(TankCard))]
 public class EDITOR_TankCard : Editor
 {
-
     public override void OnInspectorGUI()
     {
         TankCard tc = (TankCard)target;

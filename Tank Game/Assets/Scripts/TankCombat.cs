@@ -5,13 +5,15 @@ using System;
 using Ballistics.Database;
 using System.Collections.Generic;
 using System.Linq;
-using System.ComponentModel;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+/// <summary>
+/// Manages tank combat functionality, including shooting, damage, repairs, health updates,
+/// and networking behavior using Unity Netcode.
+/// </summary>
 public class TankCombat : NetworkBehaviour
 {
     public NetworkVariable<float> maxHealth = new(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -38,6 +40,9 @@ public class TankCombat : NetworkBehaviour
     public bool repairing = false;
     bool repairKeyLetUp = true;
 
+    /// <summary>
+    /// Initializes health and reload state on the server and updates UI.
+    /// </summary>
     void Start()
     {
         if (IsServer)
@@ -53,6 +58,9 @@ public class TankCombat : NetworkBehaviour
         repairKeyLetUp = true;
     }
 
+    /// <summary>
+    /// Unity Netcode hook called when the object spawns on the network.
+    /// </summary>
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -63,12 +71,18 @@ public class TankCombat : NetworkBehaviour
 
     }
 
+    /// <summary>
+    /// Unity Netcode hook called when the object despawns from the network.
+    /// </summary>
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
         currentHealth.OnValueChanged -= OnHealthChanged;
     }
 
+    /// <summary>
+    /// Handles health changes and checks for death on the server.
+    /// </summary>
     private void OnHealthChanged(float previous, float current)
     {
         Debug.Log($"Health updated to {current}");
@@ -83,8 +97,12 @@ public class TankCombat : NetworkBehaviour
         UpdateHealthBar();
     }
 
+    /// <summary>
+    /// Handles reload, shooting, and repair interactions every frame.
+    /// </summary>
     void Update()
     {
+        // Reload countdown (server only)
         if (IsServer && currentReload.Value > 0f)
         {
             currentReload.Value -= Time.deltaTime;
@@ -99,7 +117,7 @@ public class TankCombat : NetworkBehaviour
 
         HUDUI.Singleton.UpdateReloadTime(1 - (currentReload.Value / maxReload.Value));
 
-        //if (Input.GetMouseButtonDown(0))
+        // Primary fire input
         if (Input.GetKeyDown(Settings.Singleton.KeyCodeFromSetting("Control-ShootPrimary")))
         {
             if (currentReload.Value > 0f)
@@ -111,6 +129,7 @@ public class TankCombat : NetworkBehaviour
             Shoot();
         }
 
+        // Repair logic (hold and toggle)
         bool canRepair = canDrive.Value == false || canShoot.Value == false; // if anything damaged then canRepair
         if (canRepair)
         {
@@ -170,6 +189,9 @@ public class TankCombat : NetworkBehaviour
 
     }
 
+    /// <summary>
+    /// Fully repairs relevant modules and notifies the server.
+    /// </summary>
     private void RepairTank()
     {
         foreach(FunctionalTankModule component in tankModules)
@@ -194,6 +216,9 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Client-side shoot request (validated on server).
+    /// </summary>
     void Shoot()
     {
         if (canShoot.Value)
@@ -205,21 +230,33 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Server validates client shoot request
+    /// </summary>
+    /// <param name="pos">Projectile start position</param>
+    /// <param name="dir">Projectile direction</param>
+    /// <param name="projectile">Type of projectile</param>
+    /// <param name="rpcParams">Netcode params</param>
     [ServerRpc]
     private void RequestShootServerRpc(Vector3 pos, Vector3 dir, int projectile, ServerRpcParams rpcParams = default)
     {
         ulong shooterClientId = rpcParams.Receive.SenderClientId;
-        if (!NetworkManager.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)) return; // ensure player is valid
+        if (!NetworkManager.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)) return; // Ensure player is valid
 
         currentReload.Value = maxReload.Value;
 
-        // do server stuff here
         long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-        // tell all the players
         BroadcastShotClientRpc(shooterClientId, ms, pos, dir, projectile);
     }
 
+    /// <summary>
+    /// Server sends to all players about a projectile
+    /// </summary>
+    /// <param name="shooterClientId">Player that shot the projectile</param>
+    /// <param name="seed">RNG seed so collisions are the same for all players</param>
+    /// <param name="pos">Projectile start position</param>
+    /// <param name="dir">Projectile direction</param>
+    /// <param name="projectile">Type of projectile</param>
     [ClientRpc]
     private void BroadcastShotClientRpc(ulong shooterClientId, long seed, Vector3 pos, Vector3 dir, int projectile)
     {
@@ -227,7 +264,10 @@ public class TankCombat : NetworkBehaviour
         Projectile.Create(pos, dir, seed, projectileDefinition);
     }
 
-
+    /// <summary>
+    /// Server informs all players that a player has died
+    /// </summary>
+    /// <param name="deadClientId">Player that died</param>
     [ClientRpc]
     private void InformPlayersOfDeathClientRpc(ulong deadClientId)
     {
@@ -240,6 +280,9 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Server-side death event: notifies clients and reports to RespawnManager.
+    /// </summary>
     private void InformAllPlayersOfDeath()
     {
         Debug.Log("All players being told to kill player");
@@ -248,7 +291,9 @@ public class TankCombat : NetworkBehaviour
         Debug.Log("All players have been told to kill player");
     }
 
-
+    /// <summary>
+    /// Updates the player's health bar on HUD and team overlay.
+    /// </summary>
     public void UpdateHealthBar()
     {
         PlayerTeam pt = GetComponent<PlayerTeam>();
@@ -260,6 +305,9 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Initializes tank modules and updates UI/state based on crew types.
+    /// </summary>
     public void Setup()
     {
         tankModules = new List<FunctionalTankModule>();
@@ -299,9 +347,11 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when a module takes damage; checks for side effects.
+    /// </summary>
     public void ComponentHealthUpdate(FunctionalTankModule component)
     {
-        //Debug.Log($"ComponentHealthUpdate called for {component.gameObject}");
         if (IsServer)
         {
             switch (component.CurrentType)
@@ -322,7 +372,7 @@ public class TankCombat : NetworkBehaviour
                     {
                         if (component.Health == 0)
                         {
-                            currentHealth.Value -= 99999; // force kill player
+                            currentHealth.Value -= 99999; // lethal explosion
                         }
                     }
                     break;
@@ -350,9 +400,8 @@ public class TankCombat : NetworkBehaviour
                 InformAllPlayersOfDeath();
             }
         }
-        else if(IsOwner == false) // we should not apply own health - other player will tell the server what was hit
+        else if(IsOwner == false)
         {
-            // in all cases the entire UI should be refreshed...
             if (HUDUI.Singleton != null)
             {
                 HUDUI.Singleton.UpdateComponentsUI(tankModules);
@@ -362,6 +411,11 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the health of a tank module on the server and synchronizes it to clients.
+    /// </summary>
+    /// <param name="index">Index of the module in the tankModules list.</param>
+    /// <param name="newHealth">New health value to assign.</param>
     [ServerRpc(RequireOwnership = false)]
     void UpdateHealthServerRpc(int index, float newHealth)
     {
@@ -372,6 +426,10 @@ public class TankCombat : NetworkBehaviour
         CheckCanShoot();
     }
 
+    /// <summary>
+    /// Evaluates whether the tank is drivable based on engine and transmission health.
+    /// Updates the canDrive network variable.
+    /// </summary>
     void CheckCanDrive()
     {
         bool _canDrive = true; // assume both working
@@ -385,6 +443,10 @@ public class TankCombat : NetworkBehaviour
         Debug.Log($"Can drive set to {_canDrive}");
     }
 
+    /// <summary>
+    /// Evaluates whether the tank can fire based on barrel and breach health.
+    /// Updates the canShoot network variable.
+    /// </summary>
     void CheckCanShoot()
     {
         bool _canShoot = true; // assume both working
@@ -398,6 +460,12 @@ public class TankCombat : NetworkBehaviour
         Debug.Log($"Can shoot set to {_canShoot}");
     }
 
+    /// <summary>
+    /// Called by the server to update a module's health on all clients.
+    /// Also triggers UI updates if the local player owns the tank.
+    /// </summary>
+    /// <param name="index">Index of the module in the list.</param>
+    /// <param name="newHealth">New health value to apply.</param>
     [ClientRpc]
     void UpdateHealthClientRpc(int index, float newHealth)
     {
@@ -412,6 +480,11 @@ public class TankCombat : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Calculates the number of crew modules with health greater than zero.
+    /// Used to determine percentage-based health from crew survival.
+    /// </summary>
+    /// <returns>The number of alive crew members.</returns>
     private int GetAliveCrew()
     {
         int aliveCrew = 0;
@@ -464,6 +537,9 @@ public class TankCombat : NetworkBehaviour
 
 
 #if UNITY_EDITOR
+/// <summary>
+/// Custom editor for TankCombat for live debugging in the Unity Editor.
+/// </summary>
 [CustomEditor(typeof(TankCombat))]
 public class EDITOR_TANKCOMBAT : Editor
 {

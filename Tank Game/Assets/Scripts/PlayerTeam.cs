@@ -3,6 +3,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Represents a player's team state (None, Blue, Orange) and handles
+/// related visuals like health bars and minimap icons.
+/// </summary>
 [System.Serializable]
 public enum Team
 {
@@ -11,6 +15,10 @@ public enum Team
     Orange
 }
 
+/// <summary>
+/// Manages team assignment, team-colored visuals (health bar, minimap icon),
+/// and communicates team information across the network.
+/// </summary>
 public class PlayerTeam : NetworkBehaviour
 {
     private NetworkVariable<Team> networkTeam = new NetworkVariable<Team>(
@@ -21,9 +29,16 @@ public class PlayerTeam : NetworkBehaviour
 
     [SerializeField] private GameObject healthBarPrefab;
     public GameObject healthBarCurrent;
+
     [SerializeField] private GameObject minimapIconPrefab;
     public GameObject minimapIconCurrent;
 
+    public Team team = Team.None;
+
+    /// <summary>
+    /// Called when the object is spawned on the network.
+    /// Initializes team color and subscribes to team updates if client.
+    /// </summary>
     public override void OnNetworkSpawn()
     {
         if (IsClient)
@@ -39,6 +54,10 @@ public class PlayerTeam : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when the object is despawned from the network.
+    /// Unsubscribes from the team change event.
+    /// </summary>
     public override void OnNetworkDespawn()
     {
         if (IsClient)
@@ -47,14 +66,20 @@ public class PlayerTeam : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Event callback for when the team value changes on the network.
+    /// Updates internal team value and health bar color.
+    /// </summary>
     private void OnTeamChanged(Team previous, Team current)
     {
         team = current;
         UpdateHealthColour();
     }
 
-    public Team team = Team.None;
-
+    /// <summary>
+    /// Unity lifecycle method for initialization before Start.
+    /// Attempts to load the health bar prefab from Resources if not set.
+    /// </summary>
     private void Awake()
     {
         if (healthBarPrefab == null)
@@ -69,6 +94,9 @@ public class PlayerTeam : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Assigns a team to the player (server-side) and updates all associated UI and visual elements.
+    /// </summary>
     public void SetTeamSide(Team newTeam)
     {
         if (IsServer)
@@ -95,6 +123,9 @@ public class PlayerTeam : NetworkBehaviour
         ScoreManager.Singleton.ForceUpdateScoreUI();
     }
 
+    /// <summary>
+    /// Returns the opposite team from the given team.
+    /// </summary>
     public static Team GetOppositeTeam(Team team)
     {
         return team switch
@@ -105,6 +136,9 @@ public class PlayerTeam : NetworkBehaviour
         };
     }
 
+    /// <summary>
+    /// Updates the health bar value. If max is specified, sets max as well.
+    /// </summary>
     public void UpdateHealthBar(float current, float max = 0)
     {
         if (healthBarCurrent == null)
@@ -126,6 +160,10 @@ public class PlayerTeam : NetworkBehaviour
         s.value = current;
     }
 
+    /// <summary>
+    /// Destroys and re-creates the health bar object and sets the color based on the current team.
+    /// Also updates minimap icon color.
+    /// </summary>
     private void UpdateHealthColour()
     {
         if (!Application.isPlaying) return;
@@ -174,9 +212,14 @@ public class PlayerTeam : NetworkBehaviour
         }
     }
 
+    // Static colour definitions for consistent team color usage
     static readonly Color32 GREYCOLOR = new Color32(246, 246, 246, 255);
     static readonly Color32 BLUECOLOR = new Color32(72, 187, 255, 255);
     static readonly Color32 ORANGECOLOR = new Color32(255, 125, 10, 255);
+
+    /// <summary>
+    /// Returns the bright color representing the given team.
+    /// </summary>
     public static Color32 GetNormalColour(Team team)
     {
         return team switch
@@ -187,9 +230,14 @@ public class PlayerTeam : NetworkBehaviour
         };
     }
 
+    // Static colour definitions for consistent team dark color usage
     static readonly Color32 GREYCOLORARKENED = new Color32(123, 123, 123, 255);
     static readonly Color32 BLUECOLORDARKENED = new Color32(36, 93, 127, 255);
     static readonly Color32 ORANGECOLORDARKENED = new Color32(127, 62, 5, 255);
+
+    /// <summary>
+    /// Returns the darker color variant of the given team color.
+    /// </summary>
     public static Color32 GetDarkerColour(Team team)
     {
         return team switch
@@ -200,6 +248,9 @@ public class PlayerTeam : NetworkBehaviour
         };
     }
 
+    /// <summary>
+    /// Unity editor-specific method to force team setup when values are changed in editor.
+    /// </summary>
     private void OnValidate()
     {
 #if UNITY_EDITOR
@@ -219,6 +270,9 @@ public class PlayerTeam : NetworkBehaviour
 #endif
     }
 
+    /// <summary>
+    /// Instantiates a minimap icon on the client and sets its color based on the team.
+    /// </summary>
     public void AddMinimapIcon()
     {
         if (IsServer) return;

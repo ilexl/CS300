@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages tank selection logic across both the main menu and in-game context.
+/// Handles slot initialization, UI updates, and integration with the RespawnManager.
+/// </summary>
 public class TankSelection : MonoBehaviour
 {
     public static TankSelection Singleton;
@@ -12,7 +16,9 @@ public class TankSelection : MonoBehaviour
     [SerializeField] GameObject holderPrefab;
     [SerializeField] Button battleBtn;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    /// <summary>
+    /// Initializes singleton, recalculates layout widths, and populates tank data from saved preferences.
+    /// </summary>
     void Start()
     {
         Singleton = this;
@@ -20,6 +26,9 @@ public class TankSelection : MonoBehaviour
         SavedPrefsToCards();
     }
 
+    /// <summary>
+    /// Loads saved preferences into each tank card and enables/disables battle button based on slot contents.
+    /// </summary>
     public void SavedPrefsToCards()
     {
         foreach (RectTransform transform in TankList)
@@ -43,34 +52,33 @@ public class TankSelection : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when a player selects a tank card. Updates selected tank for main menu or game context.
+    /// </summary>
+    /// <param name="card">The selected TankCard object.</param>
     public void SelectTank(TankCard card)
     {
         if (card.tankVarient == null) { return; }
         RespawnManager rm = FindAnyObjectByType<RespawnManager>();
         if (rm != null)
         {
-            // respawn manager only active in game
-
-            // set tank to respawn in
+            // In-game tank selection
             rm.RequestTankChange(card.tankVarient.tankName);
-
-            // set UI to team selection
             HUDUI.Singleton.ShowRespawnUI();
-
         }
         else
         {
-            // main menu
-            
-            // change display tank
+            // Main menu tank selection
             FindAnyObjectByType<Player>().ChangeTank(card.tankVarient); 
-        
-            // UI stats on selected tank
             MainMenu.Singleton.SetSelectedVehicleText(card.tankVarient.description);
         }
     
     }
 
+    /// <summary>
+    /// Checks all slots to determine if any contain a valid tank variant.
+    /// </summary>
+    /// <returns>True if all slots are empty; otherwise, false.</returns>
     public bool CheckIfSlotsEmpty()
     {
         foreach (RectTransform transform in TankList)
@@ -83,31 +91,37 @@ public class TankSelection : MonoBehaviour
                 }
             }
         }
-
-        return true; // true == empty == no cards contain valid tanks
+        return true;
     }
 
+    /// <summary>
+    /// Recalculates layout width based on number of tank slots and adjusts UI for screen width.
+    /// </summary>
     void RecalculateTankListWidth()
     {
         foreach(RectTransform holder in TankList)
         {
             int childCount = holder.transform.childCount;
-            int width = (childCount * 215) + (9 * (childCount + 1)); // width of each child + border.
-#if UNITY_EDITOR
+            int width = (childCount * 215) + (9 * (childCount + 1)); // Slot width + margin
+
+            #if UNITY_EDITOR
             Vector2 screen = GetMainGameViewSize();
             if (width < screen.x)
             {
                 width = (int)screen.x;
             }
-#else
+            #else
             if (width < Screen.width)
             {
                 width = Screen.width;
             }
-#endif
+            #endif
+
             holder.sizeDelta = new Vector2(width, holder.parent.GetComponent<RectTransform>().rect.height);
-            holder.anchoredPosition += new Vector2(10000, 0);
-#if UNITY_EDITOR
+            holder.anchoredPosition += new Vector2(10000, 0); // Push offscreen to avoid snapping artifacts
+
+            // Fix Unity editor visual inconsistencies via delayed refocus
+            #if UNITY_EDITOR
             if (EditorApplication.isPlaying) { return; }
             UnityEditor.EditorApplication.delayCall += () =>
             {
@@ -133,12 +147,15 @@ public class TankSelection : MonoBehaviour
                     };
                 };
             };
-#endif
+            #endif
 
         }
         
     }
 
+    /// <summary>
+    /// Unity editor hook to dynamically rebuild slot UI when properties change.
+    /// </summary>
     public void OnValidate()
     {
 #if UNITY_EDITOR
@@ -190,6 +207,9 @@ public class TankSelection : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    /// <summary>
+    /// Retrieves the size of the main game view window in the Unity editor.
+    /// </summary>
     public static Vector2 GetMainGameViewSize()
     {
         System.Type T = System.Type.GetType("UnityEditor.GameView,UnityEditor");
@@ -199,11 +219,17 @@ public class TankSelection : MonoBehaviour
         return (Vector2)result;
     }
 
+    /// <summary>
+    /// Forces Unity to focus the Game view tab.
+    /// </summary>
     public static void FocusGameView()
     {
         EditorApplication.ExecuteMenuItem("Window/General/Game");
     }
 
+    /// <summary>
+    /// Forces Unity to focus the Scene view tab.
+    /// </summary>
     public static void FocusSceneView()
     {
         EditorApplication.ExecuteMenuItem("Window/General/Scene");

@@ -1,7 +1,9 @@
-using System;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Defines a tank configuration used for instantiating different tank types.
+/// Includes all relevant 3D models, transforms, performance stats, and metadata.
+/// </summary>
 [CreateAssetMenu(fileName = "NewTank", menuName = "Tank/Create New Tank")]
 [System.Serializable]
 public class TankVarients : ScriptableObject
@@ -47,16 +49,15 @@ public class TankVarients : ScriptableObject
 
 
     /// <summary>
-    /// Loads a TankVarients ScriptableObject from Resources/Tanks by name.
+    /// Attempts to load a TankVarients asset from Resources/Tanks using the given name.
     /// </summary>
-    /// <param name="tankName">The name of the tank asset (must match filename)</param>
-    /// <returns>TankVarients if found, otherwise null</returns>
+    /// <param name="tankName">Name of the tank asset file.</param>
+    /// <returns>TankVarients instance if found, otherwise null.</returns>
     public static TankVarients GetFromString(string tankName)
     {
         Resources.UnloadUnusedAssets();
         if (string.IsNullOrWhiteSpace(tankName))
         {
-            //Debug.LogWarning("Tank name is null or empty.");
             return null;
         }
 
@@ -70,6 +71,11 @@ public class TankVarients : ScriptableObject
         return tank;
     }
 
+    /// <summary>
+    /// Loads a UI icon texture from Resources/Tanks/Icons. Falls back to placeholder if not found.
+    /// </summary>
+    /// <param name="imageName">Name of the texture file.</param>
+    /// <returns>The loaded texture, or a placeholder texture if missing.</returns>
     public static Texture GetTextureFromString(string imageName)
     {
         Resources.UnloadUnusedAssets();

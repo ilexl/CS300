@@ -1,14 +1,25 @@
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Automatically starts a Netcode client when the NetworkManager becomes available.
+/// Useful for quick connection testing or automated joining in non-dedicated builds.
+/// </summary>
 public class PlayerJoin : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    /// <summary>
+    /// Called once when the script instance is first loaded.
+    /// Begins checking for NetworkManager initialization.
+    /// </summary>
     void Start()
     {
         StartCoroutine(WaitForNetworkManager());
     }
 
+    /// <summary>
+    /// Coroutine that waits until the NetworkManager exists in the scene,
+    /// then starts the client connection.
+    /// </summary>
     System.Collections.IEnumerator WaitForNetworkManager()
     {
         while (NetworkManager.Singleton == null)
