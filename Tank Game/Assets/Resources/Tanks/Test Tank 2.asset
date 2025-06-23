@@ -13,34 +13,49 @@ MonoBehaviour:
   m_Name: Test Tank 2
   m_EditorClassIdentifier: 
   tankName: Test Tank 2
-  Nation: 
-  Rank: 
-  Icon: 
-  cannonModels: []
-  cannonDiameters: []
-  cannonLengths: []
-  cannonPivotPoints: []
-  cannonPositions: []
-  cannonRotations: []
-  cannonAttachedToTurretIndexs: 
-  turretModels: []
-  turretWidths: []
-  turretLengths: []
-  turretHeights: []
-  turretPivotPoints: []
-  turretPositions: []
-  turretRotations: []
-  hullModel: {fileID: 0}
-  hullWidth: 0
-  hullLength: 0
-  hullHeight: 0
+  Nation: Dev
+  Rank: II
+  Icon: Dev-Tank-2
+  cannonModels:
+  - {fileID: 6155993760003230541, guid: 9e9d6337a5eed009a9e2c3febc1521d3, type: 3}
+  cannonDiameters:
+  - 0
+  cannonLengths:
+  - 0
+  cannonPivotPoints:
+  - {x: 0, y: 0, z: 0}
+  cannonPositions:
+  - {x: 0, y: 2.25, z: 1.5}
+  cannonRotations:
+  - {x: 0, y: 0, z: 0}
+  cannonAttachedToTurretIndexs: 00000000
+  turretModels:
+  - {fileID: 2552460241647453659, guid: 559755fa893c7617997808d923b0c297, type: 3}
+  turretWidths:
+  - 0
+  turretLengths:
+  - 0
+  turretHeights:
+  - 0
+  turretPivotPoints:
+  - {x: 0, y: 0, z: 0}
+  turretPositions:
+  - {x: 0, y: 1.75, z: 0}
+  turretRotations:
+  - {x: 0, y: 0, z: 0}
+  hullModel: {fileID: 3486346281312639011, guid: d9c1ea89b28d7ca7c8af4c9554922967, type: 3}
+  hullWidth: 4
+  hullLength: 7.5
+  hullHeight: 2
   hullRotation: {x: 0, y: 0, z: 0}
-  hullPosition: {x: 0, y: 0, z: 0}
-  modelScale: {x: 0, y: 0, z: 0}
-  turretRotationSpeed: []
-  gunAimSpeed: []
-  tankMoveSpeed: 0
-  cameraPosSniper: {x: 0, y: 0, z: 0}
+  hullPosition: {x: 0, y: 0, z: 0.4}
+  modelScale: {x: 1, y: 1, z: 1}
+  turretRotationSpeed:
+  - 1
+  gunAimSpeed:
+  - 1
+  tankMoveSpeed: 1
+  cameraPosSniper: {x: 0, y: 2.25, z: 1.35}
   description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras euismod
     risus enim, et malesuada est mattis in. Quisque quis pretium justo. Interdum
     et malesuada fames ac ante ipsum primis in faucibus. Donec tristique vel metus
