@@ -141,9 +141,9 @@ namespace Ballistics
                 return; // no renderer on server
             }
 
-            if (_colourNeedsUpdating)
+            if (_colourNeedsUpdating) // Only set the colour if it needs to be set this frame
             {
-                
+                // Sets the colour based on ship damage
                 float ratio = HealthRatio;
 
                 if (ratio <= 0)
